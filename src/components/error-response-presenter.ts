@@ -220,6 +220,14 @@ export default (error: AppError | DBError) => {
                 },
             };
         }
+        case US_ERRORS.NOT_EXIST_SERVICE_INSTANCE: {
+            return {
+                code: 404,
+                response: {
+                    message: "The service instance doesn't exist",
+                },
+            };
+        }
         case US_ERRORS.NOT_EXIST_REVISION: {
             return {
                 code: 404,
@@ -325,6 +333,15 @@ export default (error: AppError | DBError) => {
             };
         }
         case US_ERRORS.ACCESS_SERVICE_UNAUTHENTICATED: {
+            return {
+                code: 401,
+                response: {
+                    message: 'Unauthenticated',
+                    code,
+                },
+            };
+        }
+        case US_ERRORS.BILLING_SERVICE_ACCOUNT_UNAUTHENTICATED: {
             return {
                 code: 401,
                 response: {
@@ -660,6 +677,24 @@ export default (error: AppError | DBError) => {
                 response: {
                     code,
                     message: 'Workbook isolation interruption',
+                },
+            };
+        }
+        case US_ERRORS.WORKBOOK_TEMPLATE_CANT_BE_DELETED: {
+            return {
+                code: 403,
+                response: {
+                    code,
+                    message: "Workbook template can't be deleted",
+                },
+            };
+        }
+        case US_ERRORS.COLLECTION_WITH_WORKBOOK_TEMPLATE_CANT_BE_DELETED: {
+            return {
+                code: 403,
+                response: {
+                    code,
+                    message: "Collection with workbook template can't be deleted",
                 },
             };
         }

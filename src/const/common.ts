@@ -19,7 +19,9 @@ export const ALL_COLUMNS = [
     'meta',
     'innerMeta',
     'hidden',
+    'mirrored',
     'links',
+    'workbookId',
 ];
 
 export const RETURN_COLUMNS = [
@@ -39,6 +41,7 @@ export const RETURN_COLUMNS = [
     'data',
     'meta',
     'hidden',
+    'mirrored',
     'public',
     'workbookId',
 ];
