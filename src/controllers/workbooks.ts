@@ -64,7 +64,8 @@ export default {
         );
 
         const formattedResponse = formatWorkbook(result);
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = prepareResponse({ data: formattedResponse}, req);
+
         res.status(code).send(response);
     },
 

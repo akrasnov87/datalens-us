@@ -20,7 +20,7 @@ export default {
             ctx: req.ctx,
         });
 
-        const {code, response} = prepareResponse({data: result});
+        const {code, response} = prepareResponse({data: result}, req);
 
         res.status(code).send(response);
     },

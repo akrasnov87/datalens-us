@@ -11,10 +11,15 @@ export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
 
     const {accessServiceEnabled} = ctx.config;
 
-    const result = {
+    var result = {
         createCollectionInRoot: true,
         createWorkbookInRoot: true,
     };
+
+    var context: any = ctx;
+    if(context.appParams && context.appParams.rpc && context.appParams.rpc.length) {
+        result = Object.assign(result, context.appParams.rpc[0].permissions);
+    }
 
     if (accessServiceEnabled) {
         const [createCollectionInRoot, createWorkbookInRoot] = await Promise.all([

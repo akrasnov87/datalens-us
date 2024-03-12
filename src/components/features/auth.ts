@@ -1,13 +1,15 @@
 const http = require('http');
 const https = require('https');
 
+const AUTHORIZATION_HEADER = 'x-rpc-authorization';
+
 export const isAuthFeature = (
     req: any,
     res: any,
     callback: (status: number, responseData: any) => void,
 ) => {
     function getRpcAuthorization(req: any) {
-        const authorization = req.headers['x-rpc-authorization'];
+        const authorization = req.headers[AUTHORIZATION_HEADER];
         if (authorization) {
             return authorization;
         } else {

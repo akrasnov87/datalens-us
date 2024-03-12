@@ -1,7 +1,7 @@
 import * as ST from '../types/services.types';
 import Utils from '../utils';
 
-export default ({data}: {data: any}): ST.ServiceResponse => {
+export default ({data}: {data: any}, req?: any): ST.ServiceResponse => {
     const response = Utils.encodeData(data);
 
     if (response.results) {
@@ -21,6 +21,10 @@ export default ({data}: {data: any}): ST.ServiceResponse => {
     }
     if (response.chart) {
         response.chart = Utils.encodeData(response.chart);
+    }
+
+    if(req) {
+        response.permissions = Object.assign(response.permissions, ((req.rpc && req.rpc.length > 0) ? req.rpc[0].permissions : {}));
     }
 
     return {

@@ -56,7 +56,7 @@ export const formatGetEntryResponse = (
             workbookId: joinedEntryRevisionFavorite.workbookId,
             links: includeLinks ? joinedEntryRevisionFavorite.links : undefined,
             isFavorite: isHiddenIsFavorite ? undefined : joinedEntryRevisionFavorite.isFavorite,
-            permissions: includePermissionsInfo ? (process.env.NODE_RPC_URL ? Object.assign(permissions, (rpc.permissions || {})) : permissions) : undefined,
+            permissions: includePermissionsInfo ? permissions : undefined,
         },
         process.env.NODE_RPC_URL ? {rpc: rpc} : null,
     );
