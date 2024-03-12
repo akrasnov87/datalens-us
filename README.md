@@ -59,3 +59,10 @@ US_SURPRESS_DB_STATUS_LOGS=true
 </pre>
 
 Создать файл .env.development и оставить его пустым
+
+## Получение последних изменений
+
+<pre>
+git remote add upstream https://github.com/datalens-tech/datalens-us.git
+git pull upstream main
+</pre>
