@@ -305,6 +305,14 @@ export default (error: AppError | DBError) => {
                 },
             };
         }
+        case US_ERRORS.NOT_EXIST_BILLING_INSTANCE_SERVICE_ID_PREFIX_IN_CONFIG: {
+            return {
+                code: 500,
+                response: {
+                    message: 'Not found billingInstanceServiceIdPrefix in config',
+                },
+            };
+        }
         case US_ERRORS.DLS_ADD_ENTITY_ERROR:
         case US_ERRORS.DLS_CHECK_BULK_PERMISSION_ERROR:
         case US_ERRORS.DLS_CHECK_PERMISSION_ERROR: {
@@ -695,6 +703,15 @@ export default (error: AppError | DBError) => {
                 response: {
                     code,
                     message: "Collection with workbook template can't be deleted",
+                },
+            };
+        }
+        case US_ERRORS.WORKBOOK_ID_IS_NOT_SET_FOR_TEMPLATE: {
+            return {
+                code: 500,
+                response: {
+                    code,
+                    message: 'Workbook id is not set for template',
                 },
             };
         }
