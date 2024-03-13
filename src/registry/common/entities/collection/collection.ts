@@ -2,6 +2,7 @@ import type {AppContext} from '@gravity-ui/nodekit';
 import type {CollectionModel} from '../../../../db/models/new/collection';
 import {CollectionConstructor, CollectionInstance} from './types';
 import {Permissions} from '../../../../entities/collection/types';
+import {Utils} from '../../../../utils/utils';
 
 export const Collection: CollectionConstructor = class Collection implements CollectionInstance {
     ctx: AppContext;
@@ -23,8 +24,15 @@ export const Collection: CollectionConstructor = class Collection implements Col
         this.permissions = permissions;
     }
 
-    enableAllPermissions() {
-        this.permissions = {
+    async enableAllPermissions() {
+        var context: any = this.ctx;
+        
+        var response:any = null;
+        if(context.appParams.rpc && context.appParams.rpc.length > 0) {
+            response = await Utils.getPermissions(context.appParams.rpc[0].token, this.model);
+        }
+
+        this.permissions = Object.assign({
             listAccessBindings: true,
             updateAccessBindings: true,
             createCollection: true,
@@ -35,6 +43,6 @@ export const Collection: CollectionConstructor = class Collection implements Col
             copy: true,
             move: true,
             delete: true,
-        };
+        }, response.data ? response.data[0] : {});
     }
 };

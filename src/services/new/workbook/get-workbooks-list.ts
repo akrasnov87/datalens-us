@@ -205,15 +205,19 @@ export const getWorkbooksList = async (
                 );
             }
         } else {
-            workbooks = workbooksPage.results.map((model) => {
-                const workbook = new Workbook({ctx, model});
-
-                if (includePermissionsInfo) {
-                    workbook.enableAllPermissions();
-                }
-
-                return workbook;
-            });
+            workbooks = await Promise.all(
+                workbooksPage.results.map(async (model) => {
+                    const workbook = new Workbook({ctx, model});
+                    try {
+                        if (includePermissionsInfo) {
+                            await workbook.enableAllPermissions();
+                        }
+                        return workbook;
+                    } catch (error) {
+                        return workbook;
+                    }
+                }),
+            );
         }
     }
 

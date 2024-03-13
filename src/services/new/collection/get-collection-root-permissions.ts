@@ -5,6 +5,7 @@ import {OrganizationPermission, ProjectPermission} from '../../../components/iam
 import {logInfo} from '../../../utils';
 import {registry} from '../../../registry';
 import {Feature, isEnabledFeature} from '../../../components/features';
+import { Utils } from '../../../utils/utils';
 
 export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
     logInfo(ctx, 'GET_ROOT_COLLECTION_PERMISSIONS_START');
@@ -18,7 +19,8 @@ export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
 
     var context: any = ctx;
     if(context.appParams && context.appParams.rpc && context.appParams.rpc.length) {
-        result = Object.assign(result, context.appParams.rpc[0].permissions);
+        var response: any = await Utils.getPermissions(context.appParams.rpc[0].token, {});
+        result = Object.assign(result, response.data ? response.data[0] : {});
     }
 
     if (accessServiceEnabled) {

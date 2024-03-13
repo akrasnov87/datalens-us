@@ -1,5 +1,7 @@
 const fs = require('fs');
 const PowerRadix = require('power-radix');
+const http = require('http');
+const https = require('https');
 
 import {EntryScope, USAPIResponse} from '../types/models';
 
@@ -371,4 +373,56 @@ export class Utils {
     static getTimestampInSeconds = () => {
         return Math.floor(new Date().getTime() / 1000);
     };
+
+    static getPermissions = async (token: String, item:any) => {
+        return new Promise(resolve => {
+            const url = require('url');
+
+            const data = JSON.stringify({
+                action: 'shell',
+                method: 'permissions',
+                data: [item],
+                type: 'rpc',
+                tid: 0,
+            });
+    
+            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
+    
+            const options = {
+                hostname: urlRpc.hostname,
+                path: urlRpc.pathname,
+                method: 'POST',
+                port: urlRpc.port,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': data.length,
+                    'rpc-authorization': token,
+                },
+            };
+    
+            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
+                .request(options, (response: any) => {
+                    let body = '';
+    
+                    response.on('data', (chunk: any) => {
+                        body += chunk;
+                    });
+    
+                    response.on('end', () => {
+                        try {
+                            const json = JSON.parse(body);
+                            resolve({err: null, data: json[0].result.records});
+                        } catch (error: any) {
+                            resolve({err: error, data: null});
+                        }
+                    });
+                })
+                .on('error', (error: any) => {
+                    resolve({err: error, data: null});
+                });
+    
+            postRequest.write(data);
+            postRequest.end();
+        });
+    }
 }

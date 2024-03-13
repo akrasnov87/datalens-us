@@ -5,9 +5,15 @@ export const bulkFetchCollectionsAllPermissions: BulkFetchCollectionsAllPermissi
     ctx,
     items,
 ) => {
-    return items.map(({model}) => {
-        const collection = new Collection({ctx, model});
-        collection.enableAllPermissions();
-        return collection;
-    });
+    return await Promise.all(
+        items.map(async ({model}) => {
+            const collection = new Collection({ctx, model});
+            try {
+                await collection.enableAllPermissions();
+                return collection;
+            } catch (error) {
+                return collection;
+            }
+        }),
+    );
 };

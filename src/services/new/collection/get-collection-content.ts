@@ -218,15 +218,19 @@ export const getCollectionContent = async (
                     );
                 }
             } else {
-                collections = curCollectionsPage.results.map((model) => {
-                    const collection = new Collection({ctx, model});
-
-                    if (includePermissionsInfo) {
-                        collection.enableAllPermissions();
-                    }
-
-                    return collection;
-                });
+                collections = await Promise.all(
+                    curCollectionsPage.results.map(async (model) => {
+                        const collection = new Collection({ctx, model});
+                        try {
+                            if (includePermissionsInfo) {
+                                await collection.enableAllPermissions();
+                            }
+                            return collection;
+                        } catch (error) {
+                            return collection;
+                        }
+                    }),
+                );
             }
         }
     }

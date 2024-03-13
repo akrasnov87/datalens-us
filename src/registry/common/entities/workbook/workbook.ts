@@ -2,6 +2,7 @@ import type {AppContext} from '@gravity-ui/nodekit';
 import type {WorkbookModel} from '../../../../db/models/new/workbook';
 import {WorkbookConstructor, WorkbookInstance} from './types';
 import {Permissions} from '../../../../entities/workbook/types';
+import {Utils} from '../../../../utils/utils';
 
 export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
     implements WorkbookInstance
@@ -25,8 +26,14 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
         this.permissions = permissions;
     }
 
-    enableAllPermissions() {
-        this.permissions = {
+    async enableAllPermissions() {
+        var context: any = this.ctx;
+        
+        var response:any = null;
+        if(context.appParams.rpc && context.appParams.rpc.length > 0) {
+            response = await Utils.getPermissions(context.appParams.rpc[0].token, this.model);
+        }
+        this.permissions = Object.assign({
             listAccessBindings: true,
             updateAccessBindings: true,
             limitedView: true,
@@ -37,6 +44,6 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             publish: true,
             embed: true,
             delete: true,
-        };
+        }, response.data ? response.data[0] : {});
     }
 };
