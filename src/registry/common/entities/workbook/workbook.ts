@@ -44,6 +44,6 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             publish: true,
             embed: true,
             delete: true,
-        }, response.data ? response.data[0] : {});
+        }, (response && response.data) ? response.data[0] : {});
     }
 };

@@ -43,6 +43,6 @@ export const Collection: CollectionConstructor = class Collection implements Col
             copy: true,
             move: true,
             delete: true,
-        }, response.data ? response.data[0] : {});
+        }, (response && response.data) ? response.data[0] : {});
     }
 };
