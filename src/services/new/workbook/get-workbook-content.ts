@@ -11,6 +11,8 @@ import {Feature, isEnabledFeature} from '../../../components/features';
 
 import {JoinedEntryRevisionFavorite} from '../../../db/presentations';
 
+//import {formatGetJoinedEntryRevisionFavorite2} from './formatters/format-get-workbook-content';
+
 const validateArgs = makeSchemaValidator({
     type: 'object',
     required: ['workbookId'],
@@ -167,24 +169,25 @@ export const getWorkbookContent = async (
 
     const nextPageToken = Utils.getNextPageToken(page, pageSize, entriesPage.total);
 
-    const entries = entriesPage.results.map((entry) => {
-        let permissions: Optional<UsPermission>;
+    const entries = await Promise.all(
+        entriesPage.results.map(async (entry) => {
+            let permissions: Optional<UsPermission>;
 
-        if (includePermissionsInfo) {
-            permissions = getEntryPermissionsByWorkbook({
-                ctx,
-                workbook,
-                scope: entry.scope,
-            });
-        }
+            if (includePermissionsInfo) {
+                permissions = getEntryPermissionsByWorkbook({
+                    ctx,
+                    workbook,
+                    scope: entry.scope,
+                });
+            }
 
-        return {
-            ...entry,
-            permissions,
-            isLocked: false,
-        };
-    });
-
+            return {
+                ...entry,
+                permissions,
+                isLocked: false,
+            };
+        })
+    );
     ctx.log('GET_WORKBOOK_CONTENT_FINISH');
 
     return {

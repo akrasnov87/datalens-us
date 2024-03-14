@@ -16,6 +16,7 @@ export enum CollectionPermission {
     Copy = 'copy',
     Move = 'move',
     Delete = 'delete',
+    Hidden = 'hidden'
 }
 
 export type Permissions = Record<CollectionPermission, boolean>;

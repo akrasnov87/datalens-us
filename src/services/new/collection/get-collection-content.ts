@@ -218,15 +218,21 @@ export const getCollectionContent = async (
                     );
                 }
             } else {
-                collections = await Promise.all(
+                await Promise.all(
                     curCollectionsPage.results.map(async (model) => {
                         const collection = new Collection({ctx, model});
                         try {
                             if (includePermissionsInfo) {
                                 await collection.enableAllPermissions();
                             }
+
+                            if(collection.permissions?.hidden === true) {
+                                return null;
+                            }
+                            collections.push(collection);
                             return collection;
                         } catch (error) {
+                            collections.push(collection);
                             return collection;
                         }
                     }),

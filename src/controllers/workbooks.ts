@@ -1,6 +1,7 @@
 import {Request, Response} from '@gravity-ui/expresskit';
 import prepareResponse from '../components/response-presenter';
 import Utils from '../utils';
+
 import {
     createWorkbook,
     getWorkbook,
@@ -88,6 +89,30 @@ export default {
 
         const formattedResponse = formatGetWorkbookContent(result);
         const {code, response} = prepareResponse({data: formattedResponse});
+
+        var context: any = req.ctx;
+            
+        var entries = await Promise.all(
+            response.entries.map(async (entry: any) => {
+                var responsePermissions:any = null;
+                if(context.appParams.rpc && context.appParams.rpc.length > 0) {
+                    responsePermissions = await Utils.getPermissions(context.appParams.rpc[0].token, entry);
+                }
+
+                if(responsePermissions && responsePermissions.data && responsePermissions.data[0].hidden == false) {
+                    return entry;
+                } else {
+                    return null;
+                }
+            })
+        );
+
+        response.entries = [];
+        for(var i in entries) {
+            if(entries[i]) {
+                response.entries.push(entries[i]);
+            }
+        }
         res.status(code).send(response);
     },
 

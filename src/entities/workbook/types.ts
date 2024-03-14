@@ -16,6 +16,7 @@ export enum WorkbookPermission {
     Publish = 'publish',
     Embed = 'embed',
     Delete = 'delete',
+    Hidden = 'hidden'
 }
 
 export type Permissions = Record<WorkbookPermission, boolean>;

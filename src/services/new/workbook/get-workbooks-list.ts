@@ -205,15 +205,22 @@ export const getWorkbooksList = async (
                 );
             }
         } else {
-            workbooks = await Promise.all(
+            await Promise.all(
                 workbooksPage.results.map(async (model) => {
                     const workbook = new Workbook({ctx, model});
                     try {
                         if (includePermissionsInfo) {
                             await workbook.enableAllPermissions();
                         }
+
+                        if(workbook.permissions?.hidden === true) {
+                            return null;
+                        }
+
+                        workbooks.push(workbook);
                         return workbook;
                     } catch (error) {
+                        workbooks.push(workbook);
                         return workbook;
                     }
                 }),

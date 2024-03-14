@@ -30,6 +30,30 @@ export const formatGetJoinedEntryRevisionFavorite = (
     };
 };
 
+export const formatGetJoinedEntryRevisionFavorite2 = (
+    joinedEntryRevisionFavorite: any,
+) => {
+    return {
+        entryId: joinedEntryRevisionFavorite.entryId,
+        scope: joinedEntryRevisionFavorite.scope,
+        type: joinedEntryRevisionFavorite.type,
+        key: joinedEntryRevisionFavorite.displayKey,
+        createdBy: joinedEntryRevisionFavorite.createdBy,
+        createdAt: joinedEntryRevisionFavorite.createdAt,
+        updatedBy: joinedEntryRevisionFavorite.updatedBy,
+        updatedAt: joinedEntryRevisionFavorite.updatedAt,
+        savedId: joinedEntryRevisionFavorite.savedId,
+        publishedId: joinedEntryRevisionFavorite.publishedId,
+        meta: joinedEntryRevisionFavorite.meta,
+        hidden: joinedEntryRevisionFavorite.hidden,
+        workbookId: joinedEntryRevisionFavorite.workbookId,
+        isFavorite: joinedEntryRevisionFavorite.isFavorite,
+        isLocked: joinedEntryRevisionFavorite.isLocked,
+        permissions: joinedEntryRevisionFavorite.permissions,
+        mirrored: joinedEntryRevisionFavorite.mirrored,
+    };
+};
+
 export const formatGetWorkbookContent = ({
     entries,
     nextPageToken,

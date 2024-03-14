@@ -12,6 +12,7 @@ export interface UsPermission {
     read?: boolean;
     edit?: boolean;
     admin?: boolean;
+    hidden?: boolean;
 }
 
 export interface PrivatePermissions {
