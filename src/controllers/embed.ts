@@ -8,7 +8,7 @@ export default async function embedController(req: Request, res: Response) {
         var r: any = req;
         var token = r.rpc[0].token;
 
-        var embedResult: any = await Utils.getEmbedToken(token, {});
+        var embedResult: any = await Utils.getEmbedToken(token, r.query);
         res.send(embedResult);
     } else {
         res.send('hey');
