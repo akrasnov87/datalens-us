@@ -9,7 +9,7 @@ export const isAuthFeature = (
     callback: (status: number, responseData: any) => void,
 ) => {
     function getRpcAuthorization(req: any) {
-        const authorization = req.headers[AUTHORIZATION_HEADER];
+        const authorization = req.headers[AUTHORIZATION_HEADER] || req.query[AUTHORIZATION_HEADER];
         if (authorization) {
             return authorization;
         } else {

@@ -4,6 +4,7 @@ import {NodeKit} from '@gravity-ui/nodekit';
 import {isEnabledFeature, Feature} from './components/features';
 
 import homeController from './controllers/home';
+import embedController from './controllers/embed';
 import helpersController from './controllers/helpers';
 import entriesController from './controllers/entries';
 import locksController from './controllers/locks';
@@ -37,6 +38,11 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
         home: makeRoute({
             route: 'GET /',
             handler: homeController,
+        }),
+
+        embed: makeRoute({
+            route: 'GET /embed',
+            handler: embedController,
         }),
 
         ping: {
