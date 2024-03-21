@@ -66,3 +66,7 @@ US_SURPRESS_DB_STATUS_LOGS=true
 git remote add upstream https://github.com/datalens-tech/datalens-us.git
 git pull upstream main
 </pre>
+
+## Проверка соединения с БД
+
+Подключаемся через docker exec и в терминале выполняем команду из документации по [postgres](https://postgrespro.ru/docs/postgresql/9.6/app-pg-isready)

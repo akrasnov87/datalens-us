@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.175.0] 20.03.2024
+
+Fixed:
+
+- исправлена ошибка в deploy, исправлен порт 8083 на 80;
+- исправлена отображение списка объектов при отключенной авторизации.
+
 ## [0.168.0] 12.03.2024
 
 Created:
