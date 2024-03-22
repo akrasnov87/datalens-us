@@ -45,8 +45,8 @@ export const isAuthFeature = (
             method: 'POST',
             port: urlRpc.port,
             headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': data.length,
+                'Content-Type': 'application/json; charset=utf-8',
+                'Content-Length': Buffer.byteLength(data),
                 'rpc-authorization': token,
             },
         };
@@ -64,8 +64,8 @@ export const isAuthFeature = (
                         const json = JSON.parse(body);
                         callback(response.statusCode, json[0].result.records);
                     } catch (error: any) {
-                        req.ctx.logError(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack);
-                        callback(response.statusCode, {msg: error.message});
+                        req.ctx.logError(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
+                        callback(response.statusCode, {msg: body || error.message});
                     }
                 });
             })

@@ -394,8 +394,8 @@ export class Utils {
                 method: 'POST',
                 port: urlRpc.port,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': data.length,
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Length': Buffer.byteLength(data),
                     'rpc-authorization': token,
                 },
             };
@@ -413,6 +413,7 @@ export class Utils {
                             const json = JSON.parse(body);
                             resolve({err: null, data: json[0].result.records});
                         } catch (error: any) {
+                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
                             resolve({err: error, data: null});
                         }
                     });
@@ -446,8 +447,8 @@ export class Utils {
                 method: 'POST',
                 port: urlRpc.port,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': data.length,
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Length': Buffer.byteLength(data),
                     'rpc-authorization': token,
                 },
             };
@@ -465,6 +466,7 @@ export class Utils {
                             const json = JSON.parse(body);
                             resolve({err: null, data: json[0].result.records});
                         } catch (error: any) {
+                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
                             resolve({err: error, data: null});
                         }
                     });

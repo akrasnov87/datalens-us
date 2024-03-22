@@ -24,7 +24,7 @@ export default ({data}: {data: any}, req?: any): ST.ServiceResponse => {
     }
 
     if(req) {
-        response.permissions = Object.assign(response.permissions, ((req.rpc && req.rpc.length > 0) ? req.rpc[0].permissions : {}));
+        response.permissions = Object.assign(response.permissions || {}, ((req.rpc && req.rpc.length > 0) ? req.rpc[0].permissions : {}));
     }
 
     return {
