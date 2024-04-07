@@ -3,6 +3,7 @@ import type {HttpMethod} from '@gravity-ui/expresskit/dist/types';
 import {NodeKit} from '@gravity-ui/nodekit';
 import {isEnabledFeature, Feature} from './components/features';
 
+import authController from './controllers/auth';
 import homeController from './controllers/home';
 import embedController from './controllers/embed';
 import helpersController from './controllers/helpers';
@@ -43,6 +44,11 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
         embed: makeRoute({
             route: 'GET /embed',
             handler: embedController,
+        }),
+
+        auth: makeRoute({
+            route: 'GET /auth',
+            handler: authController,
         }),
 
         ping: {

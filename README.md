@@ -34,7 +34,7 @@ NODE_RPC_URL=http://localhost:5000/dev/rpc
 ## Сборка
 <pre>
 docker login -u [username]
-docker build -t akrasnov87/datalens-us:0.143.0 .
+docker build -t kirilla/datalens-us:0.175.1 .
 docker push akrasnov87/datalens-us:0.143.0
 </pre>
 

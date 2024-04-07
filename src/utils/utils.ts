@@ -2,6 +2,8 @@ const fs = require('fs');
 const PowerRadix = require('power-radix');
 const http = require('http');
 const https = require('https');
+const axios = require('axios');
+const FormData = require('form-data');
 
 import {EntryScope, USAPIResponse} from '../types/models';
 
@@ -424,6 +426,27 @@ export class Utils {
     
             postRequest.write(data);
             postRequest.end();
+        });
+    }
+
+    static authorize = async (login: any, password:any) => {
+        return new Promise(resolve => {
+
+            let formdata = new FormData();
+            formdata.append('UserName', login);
+            formdata.append('Password', password);
+
+            axios({
+                method: 'POST',
+                url: process.env.NODE_RPC_URL?.replace("/rpc", "/auth"),
+                data: formdata,
+            headers: formdata.getHeaders()
+            }).then((response:any) => {
+                resolve({err: null, data: response.data});
+            }).catch((error:any) => {
+                console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack);
+                resolve({err: error, data: null});
+            });
         });
     }
 

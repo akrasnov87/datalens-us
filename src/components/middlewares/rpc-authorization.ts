@@ -6,7 +6,7 @@ export const rpcAuthorization = (req: Request, res: Response, next: NextFunction
     req.ctx.log(`WATCH_URL ${req.method} ${req.url} ${JSON.stringify(req.headers)}`);
 
     isAuthFeature(req, res, (status: number, responseData: any) => {
-        if (status == 200) {
+        if (status == 200 || req.url.indexOf('/auth') >= 0) {
             const r: any = req;
             r.rpc = responseData;
 
