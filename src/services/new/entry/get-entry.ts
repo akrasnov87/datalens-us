@@ -181,6 +181,11 @@ export const getEntry = async (
 
         let permissions: EntryPermissions = {};
         if (includePermissionsInfo) {
+            var context: any = ctx;
+            if(!dlsPermissions && context.appParams.rpc[0].token) {
+                dlsPermissions = await enableAllPermissions(ctx, joinedEntryRevisionFavorite)
+            }
+
             permissions = OldEntry.originatePermissions({
                 isPrivateRoute,
                 shared: onlyPublic || isEmbedding,
@@ -188,6 +193,15 @@ export const getEntry = async (
                 iamPermissions,
                 ctx,
             });
+
+            if(process.env.NODE_RPC_URL && !dlsPermissions) {
+                permissions = {
+                    execute: false,
+                    read: false,
+                    edit: false,
+                    admin: false
+                }
+            }
         }
 
         ctx.log('GET_ENTRY_SUCCESS');
@@ -204,3 +218,33 @@ export const getEntry = async (
         });
     }
 };
+
+async function enableAllPermissions(context:any, model:any) {
+
+    var response:any = null;
+    if(context.appParams.rpc && context.appParams.rpc.length > 0) {
+        response = await Utils.getPermissions(context.appParams.rpc[0].token, model);
+    }
+
+    var permissions = Object.assign({
+        listAccessBindings: true,
+        updateAccessBindings: true,
+        createCollection: true,
+        createWorkbook: true,
+        limitedView: true,
+        view: true,
+        update: true,
+        copy: true,
+        move: true,
+        delete: true,
+    }, (response && response.data) ? response.data[0] : {});
+
+    const mappedPermission = {
+        execute: permissions.view,
+        read: permissions.view,
+        edit: permissions.update,
+        admin: permissions.updateAccessBindings,
+    };
+
+    return mappedPermission;
+}
