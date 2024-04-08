@@ -182,17 +182,21 @@ export const getEntry = async (
         let permissions: EntryPermissions = {};
         if (includePermissionsInfo) {
             var context: any = ctx;
-            if(!dlsPermissions && context.appParams.rpc[0].token) {
-                dlsPermissions = await enableAllPermissions(ctx, joinedEntryRevisionFavorite)
-            }
+            try {
+                if(!dlsPermissions && context.appParams.rpc && context.appParams.rpc.length > 0 && context.appParams.rpc[0].token) {
+                    dlsPermissions = await enableAllPermissions(ctx, joinedEntryRevisionFavorite)
+                }
 
-            permissions = OldEntry.originatePermissions({
-                isPrivateRoute,
-                shared: onlyPublic || isEmbedding,
-                permissions: dlsPermissions,
-                iamPermissions,
-                ctx,
-            });
+                permissions = OldEntry.originatePermissions({
+                    isPrivateRoute,
+                    shared: onlyPublic || isEmbedding,
+                    permissions: dlsPermissions,
+                    iamPermissions,
+                    ctx,
+                });
+            } catch(e) {
+                ctx.logError('GET_ENTRY_ERROR', e);
+            }
 
             if(process.env.NODE_RPC_URL && !dlsPermissions) {
                 permissions = {
