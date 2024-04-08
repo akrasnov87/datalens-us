@@ -46,6 +46,21 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
             handler: embedController,
         }),
 
+        roles: makeRoute({
+            route: 'GET /roles',
+            handler: helpersController.roles,
+        }),
+
+        accesses: makeRoute({
+            route: 'GET /accesses',
+            handler: helpersController.accesses,
+        }),
+
+        updateAccesses: makeRoute({
+            route: 'GET /updateAccesses',
+            handler: helpersController.updateAccesses,
+        }),
+
         auth: makeRoute({
             route: 'GET /auth',
             handler: authController,

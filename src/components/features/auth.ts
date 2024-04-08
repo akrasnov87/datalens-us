@@ -30,8 +30,8 @@ export const isAuthFeature = (
         const url = require('url');
 
         const data = JSON.stringify({
-            action: 'shell',
-            method: 'datalens',
+            action: 'datalens',
+            method: 'authorization',
             data: [{ url: req.url, method: req.method, rawHeaders: req.rawHeaders }],
             type: 'rpc',
             tid: 0,

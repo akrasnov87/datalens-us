@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Created:
 
-- загрузка кода с `main` ветки `datalens-tech`.
+- загрузка кода с `main` ветки `datalens-tech`;
+- добавлен код для разработки интерфейса безопасности.
 
 ## [0.175.2] 08.04.2024
 

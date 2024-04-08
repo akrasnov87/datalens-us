@@ -1,7 +1,56 @@
 import {db} from '../db';
+import {Utils} from '../utils/utils';
 import {Request, Response} from '@gravity-ui/expresskit';
 
 export default {
+    roles: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.getRoles(token, r.query);
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
+    accesses: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.getAccesses(token, r.query);
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
+    updateAccesses: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.updateAccesses(token, r.query);
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
     ping: async (_: Request, res: Response) => {
         res.send({result: 'pong'});
     },
