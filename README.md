@@ -58,6 +58,8 @@ US_SURPRESS_DB_STATUS_LOGS=true
 ### TEMPLATE SECRETS END
 </pre>
 
+__Внимание__: если требуется отладка datalens-backend, то нужно чтобы MASTER_TOKEN(ы) совпадали. 
+
 Создать файл .env.development и оставить его пустым
 
 ## Получение последних изменений
