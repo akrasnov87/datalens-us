@@ -76,6 +76,7 @@ export default (error: AppError | DBError) => {
         case US_ERRORS.DECODE_ID_FAILED:
         case US_ERRORS.USER_SETTINGS_NOT_EXISTS:
         case US_ERRORS.TENANT_IS_BEING_DELETED:
+        case US_ERRORS.INCORRECT_ACTION:
         case US_ERRORS.VALIDATION_ERROR: {
             return {
                 code: 400,
@@ -220,11 +221,11 @@ export default (error: AppError | DBError) => {
                 },
             };
         }
-        case US_ERRORS.NOT_EXIST_SERVICE_INSTANCE: {
+        case US_ERRORS.NOT_EXIST_INSTANCE_SERVICE: {
             return {
                 code: 404,
                 response: {
-                    message: "The service instance doesn't exist",
+                    message: "The instance service doesn't exist",
                 },
             };
         }

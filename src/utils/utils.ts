@@ -293,6 +293,24 @@ export class Utils {
         return undefined;
     }
 
+    static getEnvTokenVariable(envTokenVariableName: string) {
+        const TOKEN_SEPARATOR = ',';
+        const valueFromEnv = Utils.getEnvVariable(envTokenVariableName);
+
+        if (!valueFromEnv) {
+            return undefined;
+        }
+
+        if (valueFromEnv.includes(TOKEN_SEPARATOR)) {
+            return valueFromEnv
+                .split(TOKEN_SEPARATOR)
+                .map((token) => token && token.trim())
+                .filter((token) => token);
+        }
+
+        return [valueFromEnv.trim()];
+    }
+
     static getDsnList() {
         let dsnList;
         const pgRdsConfigPath = process.env.POSTGRES_RDS_CONFIG_PATH;
@@ -314,7 +332,11 @@ export class Utils {
         ) {
             dsnList = process.env.POSTGRES_HOSTS.split(',')
                 .map((host) => {
-                    return `postgres://${process.env.POSTGRES_USER_NAME}:${process.env.POSTGRES_USER_PASSWD}@${host}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB_NAME}?ssl=true`;
+                    return `postgres://${process.env.POSTGRES_USER_NAME}:${
+                        process.env.POSTGRES_USER_PASSWD
+                    }@${host}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB_NAME}${
+                        process.env.POSTGRES_DISABLE_SSL ? '' : '?ssl=true'
+                    }`;
                 })
                 .join(',');
         } else {
