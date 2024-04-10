@@ -48,6 +48,12 @@ export default {
 
         const formattedResponse = formatWorkbookWithOperation(result.workbook, result.operation);
         const {code, response} = prepareResponse({data: formattedResponse});
+        if(process.env.NODE_RPC_URL) {
+            var token = Utils.getTokenFromContext(req.ctx);
+            if(token) {
+                await Utils.updateAccesses(token, { dl: response.workbookId, '*': true });
+            }
+        }
         res.status(code).send(response);
     },
 
@@ -96,9 +102,14 @@ export default {
             response.entries.map(async (entry: any) => {
                 var responsePermissions:any = null;
                 if(context.appParams.rpc && context.appParams.rpc.length > 0) {
-                    responsePermissions = await Utils.getPermissions(context.appParams.rpc[0].token, entry);
-                    if(responsePermissions && responsePermissions.data && responsePermissions.data[0].hidden == false) {
-                        return entry;
+                    var token = Utils.getTokenFromContext(context);
+                    if(token) {
+                        responsePermissions = await Utils.getPermissions(token, entry);
+                        if(responsePermissions && responsePermissions.data && responsePermissions.data[0].hidden == false) {
+                            return entry;
+                        } else {
+                            return null;
+                        }
                     } else {
                         return null;
                     }

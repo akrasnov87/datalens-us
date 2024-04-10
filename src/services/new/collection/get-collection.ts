@@ -109,6 +109,5 @@ export const getCollection = async <T extends CollectionInstance = CollectionIns
     logInfo(ctx, 'GET_COLLECTION_FINISH', {
         collectionId: Utils.encodeId(collection.model.collectionId),
     });
-
     return collection as T;
 };

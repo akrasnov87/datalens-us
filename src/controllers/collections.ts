@@ -44,6 +44,13 @@ export default {
 
         const {code, response} = prepareResponse({data: formattedResponse});
 
+        if(process.env.NODE_RPC_URL) {
+            var token = Utils.getTokenFromContext(req.ctx);
+            if(token) {
+                await Utils.updateAccesses(token, { dl: response.collectionId, '*': true });
+            }
+        }
+
         res.status(code).send(response);
     },
 

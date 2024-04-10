@@ -227,7 +227,10 @@ async function enableAllPermissions(context:any, model:any) {
 
     var response:any = null;
     if(context.appParams.rpc && context.appParams.rpc.length > 0) {
-        response = await Utils.getPermissions(context.appParams.rpc[0].token, model);
+        var token = Utils.getTokenFromContext(context);
+        if(token) {
+            response = await Utils.getPermissions(context.appParams.rpc[0].token, model);
+        }
     }
 
     var permissions = Object.assign({

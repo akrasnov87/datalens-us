@@ -631,6 +631,14 @@ export class Utils {
         });
     }
 
+    static getTokenFromContext = (context: any) => {
+        if(context.appParams.rpc && context.appParams.rpc.length > 0) {
+            return context.appParams.rpc[0].token
+        }
+
+        return null;
+    }
+
     static updateAccesses = async (token: String, item:any) => {
         return new Promise(resolve => {
             const url = require('url');

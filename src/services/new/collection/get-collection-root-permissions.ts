@@ -20,8 +20,11 @@ export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
     var context: any = ctx;
     if(context.appParams && context.appParams.rpc && context.appParams.rpc.length) {
         try {
-            var response: any = await Utils.getPermissions(context.appParams.rpc[0].token, {});
-            result = Object.assign(result, response.data ? response.data[0] : {});
+            var token = Utils.getTokenFromContext(context);
+            if(token) {
+                var response: any = await Utils.getPermissions(token, { id: 'rootCollection' });
+                result = Object.assign(result, response.data ? response.data[0] : {});
+            }
         } catch(e) {
             ctx.logError('GET_PERMISSION_RPC', e);
         }

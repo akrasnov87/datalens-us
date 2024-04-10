@@ -29,7 +29,10 @@ export const Collection: CollectionConstructor = class Collection implements Col
         
         var response:any = null;
         if(context.appParams.rpc && context.appParams.rpc.length > 0) {
-            response = await Utils.getPermissions(context.appParams.rpc[0].token, this.model);
+            var token = Utils.getTokenFromContext(context);
+            if(token) {
+                response = await Utils.getPermissions(token, { "id": Utils.encodeId(this.model.collectionId)});
+            }
         }
 
         this.permissions = Object.assign({
