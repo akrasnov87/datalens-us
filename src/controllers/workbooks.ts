@@ -104,7 +104,7 @@ export default {
                 if(context.appParams.rpc && context.appParams.rpc.length > 0) {
                     var token = Utils.getTokenFromContext(context);
                     if(token) {
-                        responsePermissions = await Utils.getPermissions(token, entry);
+                        responsePermissions = await Utils.getPermissions(token, {id: entry.entryId });
                         if(responsePermissions && responsePermissions.data && responsePermissions.data[0].hidden == false) {
                             return entry;
                         } else {

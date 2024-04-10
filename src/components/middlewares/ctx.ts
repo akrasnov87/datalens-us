@@ -35,6 +35,18 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
 
         const ctx: any = req.originalContext;
         ctx.appParams.rpc = r.rpc;
+        try {
+            if(r.rpc.length > 0 && r.rpc[0].statusCode == 200) {
+                var item = r.rpc[0];
+
+                ctx.appParams.info.user['userId'] = item.user_id;
+                ctx.appParams.info.user['login'] = item.login;
+                ctx.appParams.info.user['claims'] = item.claims;
+                ctx.appParams.info['projectId'] = item.projectId;
+            }
+        } catch(e) {
+
+        }
     }
     next();
 };

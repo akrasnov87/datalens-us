@@ -639,6 +639,19 @@ export class Utils {
         return null;
     }
 
+    static getUserId = (context: any, defUserId: any) => {
+        var token = this.getTokenFromContext(context);
+        if(token != null) {
+            try {
+                return atob(token).split(':')[0];
+            } catch(e) {
+                return defUserId;
+            }
+        } else {
+            return defUserId;
+        }
+    }
+
     static updateAccesses = async (token: String, item:any) => {
         return new Promise(resolve => {
             const url = require('url');
