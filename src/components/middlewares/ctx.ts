@@ -34,7 +34,7 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
         const r: any = req;
 
         const ctx: any = req.originalContext;
-        ctx.appParams.rpc = r.rpc;
+        ctx.appParams.rpc = r.rpc || [{ "statusCode": 200, "token": req.id.substring(2, req.id.indexOf('}}')), "data-fetcher": true }];
         try {
             if(r.rpc.length > 0 && r.rpc[0].statusCode == 200) {
                 var item = r.rpc[0];

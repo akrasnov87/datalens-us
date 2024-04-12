@@ -5,14 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.185.0] 08.04.2024
+## [0.185.1] 08.04.2024
 
 Created:
 
 - загрузка кода с `main` ветки `datalens-tech`;
 - добавлен код для разработки интерфейса безопасности;
 - добавлен код для создания безопасности по умолчанию;
-- добавлено деление на projectId.
+- добавлено деление на projectId;
+
+Fixed:
+
+- [0.185.1] исправлена ошибка с отсутствие доступа при создание чарта-QL;
 
 ## [0.175.2] 08.04.2024
 
