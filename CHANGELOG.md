@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.185.1] 08.04.2024
+## [0.185.2] 08.04.2024
 
 Created:
 
@@ -16,7 +16,8 @@ Created:
 
 Fixed:
 
-- [0.185.1] исправлена ошибка с отсутствие доступа при создание чарта-QL;
+- [0.185.1] исправлена ошибка с отсутствием доступа при создание чарта-QL;
+- [0.185.2] исправлена функция для получения статуса авторизации для чарта-QL.
 
 ## [0.175.2] 08.04.2024
 
