@@ -3,6 +3,14 @@ import {Utils} from '../utils/utils';
 import {Request, Response} from '@gravity-ui/expresskit';
 
 export default {
+    encodeId: (req: Request, res: Response) => {
+        var result: any = Utils.encodeId(req.query['id']);
+        res.send(result);
+    },
+    decodeId: (req: Request, res: Response) => {
+        var result: any = Utils.decodeId(req.query['id']?.toString() || '');
+        res.send(result);
+    },
     roles: async (req: Request, res: Response) => {
         if (process.env.NODE_RPC_URL) {
             var r: any = req;

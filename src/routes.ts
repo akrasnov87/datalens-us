@@ -46,6 +46,16 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
             handler: embedController,
         }),
 
+        encodeId: makeRoute({
+            route: 'GET /encodeId',
+            handler: helpersController.encodeId,
+        }),
+
+        decodeId: makeRoute({
+            route: 'GET /decodeId',
+            handler: helpersController.decodeId,
+        }),
+
         roles: makeRoute({
             route: 'GET /roles',
             handler: helpersController.roles,
