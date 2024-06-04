@@ -4,6 +4,7 @@ export {
     setCiEnv,
     dlContext,
     finalRequestHandler,
+    logError,
     checkReadOnlyMode,
     resolveWorkbookId,
     rpcAuthorization,

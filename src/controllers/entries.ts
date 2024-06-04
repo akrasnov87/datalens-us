@@ -13,6 +13,8 @@ import {
     getEntryRevisions,
     GetEntryRevisionsData,
     getEntryRelations,
+    switchRevisionEntry,
+    RelationDirection,
 } from '../services/entry';
 import {
     getEntry,
@@ -194,6 +196,22 @@ export default {
         res.status(code).send(response);
     },
 
+    switchRevisionEntry: async (req: Request, res: Response) => {
+        const {params, body} = req;
+
+        const result = await switchRevisionEntry(
+            {ctx: req.ctx},
+            {
+                entryId: params.entryId,
+                revId: body.revId,
+            },
+        );
+
+        const {code, response} = prepareResponse({data: result});
+
+        res.status(code).send(response);
+    },
+
     renameEntry: async (req: Request, res: Response) => {
         const {params, body} = req;
 
@@ -223,11 +241,14 @@ export default {
     getRelations: async (req: Request, res: Response) => {
         const {params, query} = req;
 
-        const result = await getEntryRelations(req.ctx, {
-            entryId: params.entryId,
-            direction: query.direction as Optional<string>,
-            includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
-        });
+        const result = await getEntryRelations(
+            {ctx: req.ctx},
+            {
+                entryId: params.entryId,
+                direction: query.direction as Optional<RelationDirection>,
+                includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
+            },
+        );
 
         const {code, response} = prepareResponse({data: result});
 

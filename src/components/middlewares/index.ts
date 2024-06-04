@@ -6,6 +6,6 @@ export {waitDatabase} from './wait-database';
 export {setCiEnv} from './set-ci-env';
 export {dlContext} from './x-dl-context';
 export {ctx} from './ctx';
-export {finalRequestHandler} from './final-request-handler';
+export {finalRequestHandler, logError} from './final-request-handler';
 export {checkReadOnlyMode} from './check-read-only-mode';
 export {rpcAuthorization} from './rpc-authorization';
