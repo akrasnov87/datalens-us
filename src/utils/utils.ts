@@ -704,4 +704,57 @@ export class Utils {
             postRequest.end();
         });
     }
+
+    static getTables = async (token: String, items:any) => {
+        return new Promise(resolve => {
+            const url = require('url');
+
+            const data = JSON.stringify({
+                action: 'datalens',
+                method: 'tables',
+                data: items,
+                type: 'rpc',
+                tid: 0,
+            });
+    
+            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
+    
+            const options = {
+                hostname: urlRpc.hostname,
+                path: urlRpc.pathname,
+                method: 'POST',
+                port: urlRpc.port,
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Content-Length': Buffer.byteLength(data),
+                    'rpc-authorization': token,
+                },
+            };
+    
+            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
+                .request(options, (response: any) => {
+                    let body = '';
+    
+                    response.on('data', (chunk: any) => {
+                        body += chunk;
+                    });
+    
+                    response.on('end', () => {
+                        try {
+                            const json = JSON.parse(body);
+                            resolve({err: null, data: json[0].result.records});
+                        } catch (error: any) {
+                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
+                            resolve({err: error, data: null});
+                        }
+                    });
+                })
+                .on('error', (error: any) => {
+                    resolve({err: error, data: null});
+                });
+    
+            postRequest.write(data);
+            postRequest.end();
+        });
+    }
 }

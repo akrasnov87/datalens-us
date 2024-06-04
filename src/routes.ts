@@ -71,6 +71,11 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
             handler: helpersController.updateAccesses,
         }),
 
+        tables: makeRoute({
+            route: 'POST /tables',
+            handler: helpersController.tables
+        }),
+
         auth: makeRoute({
             route: 'GET /auth',
             handler: authController,

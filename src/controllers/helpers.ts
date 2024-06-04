@@ -43,6 +43,22 @@ export default {
         }
     },
 
+    tables: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.getTables(token, r.body);
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
     updateAccesses: async (req: Request, res: Response) => {
         if (process.env.NODE_RPC_URL) {
             var r: any = req;
