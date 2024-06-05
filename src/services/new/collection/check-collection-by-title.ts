@@ -29,7 +29,7 @@ export const checkCollectionByTitle = async (
 ) => {
     const {parentId, title} = args;
 
-    const {tenantId, projectId} = ctx.get('info');
+    const {tenantId, projectId, superUser} = ctx.get('info');
 
     logInfo(ctx, 'CHECK_COLLECTION_BY_TITLE_START', {
         parentId: Utils.encodeId(parentId),
@@ -53,10 +53,10 @@ export const checkCollectionByTitle = async (
         .select()
         .where({
             [CollectionModelColumn.TenantId]: tenantId,
-            [CollectionModelColumn.ProjectId]: projectId,
             [CollectionModelColumn.DeletedAt]: null,
             [CollectionModelColumn.ParentId]: parentId,
             [CollectionModelColumn.TitleLower]: title.toLowerCase(),
+            ...(superUser ? {} : { [CollectionModelColumn.ProjectId]: projectId})
         })
         .first()
         .timeout(CollectionModel.DEFAULT_QUERY_TIMEOUT);

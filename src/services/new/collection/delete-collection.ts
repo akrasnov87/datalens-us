@@ -36,6 +36,7 @@ export const deleteCollection = async (
         tenantId,
         projectId,
         user: {userId},
+        superUser
     } = ctx.get('info');
 
     const {accessServiceEnabled} = ctx.config;
@@ -81,9 +82,9 @@ export const deleteCollection = async (
                     .from(CollectionModel.tableName)
                     .where({
                         [CollectionModelColumn.TenantId]: tenantId,
-                        [CollectionModelColumn.ProjectId]: projectId,
                         [CollectionModelColumn.DeletedAt]: null,
                         [CollectionModelColumn.CollectionId]: collectionId,
+                        ...(superUser ? {} : { [CollectionModelColumn.ProjectId]: projectId})
                     })
                     .union((qb2) => {
                         qb2.select(`${CollectionModel.tableName}.*`)
@@ -91,10 +92,9 @@ export const deleteCollection = async (
                             .where({
                                 [`${CollectionModel.tableName}.${CollectionModelColumn.TenantId}`]:
                                     tenantId,
-                                [`${CollectionModel.tableName}.${CollectionModelColumn.ProjectId}`]:
-                                    projectId,
                                 [`${CollectionModel.tableName}.${CollectionModelColumn.DeletedAt}`]:
                                     null,
+                                ...(superUser ? {} : { [`${CollectionModel.tableName}.${CollectionModelColumn.ProjectId}`]:projectId })
                             })
                             .join(
                                 recursiveName,

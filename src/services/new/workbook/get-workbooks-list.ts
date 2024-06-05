@@ -96,6 +96,7 @@ export const getWorkbooksList = async (
         tenantId,
         projectId,
         user: {userId},
+        superUser
     } = ctx.get('info');
 
     const targetTrx = getReplica(trx);
@@ -134,9 +135,9 @@ export const getWorkbooksList = async (
         .select()
         .where({
             [WorkbookModelColumn.TenantId]: tenantId,
-            [WorkbookModelColumn.ProjectId]: projectId,
             [WorkbookModelColumn.CollectionId]: collectionId,
             [WorkbookModelColumn.DeletedAt]: null,
+            ...(superUser ? {} : { [WorkbookModelColumn.ProjectId]: projectId})
         })
         .where((qb) => {
             if (filterString) {

@@ -26,4 +26,5 @@ export type CtxInfo = {
     privatePermissions: PrivatePermissions;
     projectId: string | null;
     embeddingInfo?: EmbeddingInfo;
+    superUser?: boolean
 };

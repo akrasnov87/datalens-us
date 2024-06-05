@@ -43,6 +43,7 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
                 ctx.appParams.info.user['login'] = item.login;
                 ctx.appParams.info.user['claims'] = item.claims;
                 ctx.appParams.info['projectId'] = item.projectId;
+                ctx.appParams.info['superUser'] = item.root;
             }
         } catch(e) {
 

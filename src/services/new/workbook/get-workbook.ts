@@ -44,7 +44,7 @@ export const getWorkbook = async <T extends WorkbookInstance = WorkbookInstance>
         validateArgs(args);
     }
 
-    const {tenantId, projectId, isPrivateRoute, onlyMirrored} = ctx.get('info');
+    const {tenantId, projectId, isPrivateRoute, onlyMirrored, superUser} = ctx.get('info');
 
     const {accessServiceEnabled} = ctx.config;
 
@@ -59,7 +59,7 @@ export const getWorkbook = async <T extends WorkbookInstance = WorkbookInstance>
                 ? {}
                 : {
                       [WorkbookModelColumn.TenantId]: tenantId,
-                      [WorkbookModelColumn.ProjectId]: projectId,
+                      ...(superUser ? {} : { [WorkbookModelColumn.ProjectId]: projectId})
                   }),
         })
         .first()

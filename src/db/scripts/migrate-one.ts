@@ -3,7 +3,7 @@ require('../../index');
 import {helpers} from '../index';
 
 helpers
-    .migrateDatabase({onlyOne: true})
+    .migrateDatabase()
     .then(() => {
         process.exit(0);
     })

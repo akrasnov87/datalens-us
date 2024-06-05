@@ -34,7 +34,7 @@ export const checkWorkbookByTitle = async (
         title,
     });
 
-    const {tenantId, projectId} = ctx.get('info');
+    const {tenantId, projectId, superUser} = ctx.get('info');
 
     if (!skipValidation) {
         validateArgs(args);
@@ -53,10 +53,10 @@ export const checkWorkbookByTitle = async (
         .select()
         .where({
             [WorkbookModelColumn.TenantId]: tenantId,
-            [WorkbookModelColumn.ProjectId]: projectId,
             [WorkbookModelColumn.DeletedAt]: null,
             [WorkbookModelColumn.CollectionId]: collectionId,
             [WorkbookModelColumn.TitleLower]: title.toLowerCase(),
+            ...(superUser ? {} : { [WorkbookModelColumn.ProjectId]: projectId})
         })
         .first()
         .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);

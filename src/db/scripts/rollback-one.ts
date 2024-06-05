@@ -3,7 +3,7 @@ require('../../index');
 import {helpers} from '../index';
 
 helpers
-    .rollbackDatabase({onlyOne: true})
+    .rollbackDatabase()
     .then(() => {
         process.exit(0);
     })

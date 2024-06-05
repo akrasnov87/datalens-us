@@ -61,7 +61,7 @@ export const getWorkbooksListByIds = async (
         includePermissionsInfo,
     });
 
-    const {tenantId, isPrivateRoute, projectId} = ctx.get('info');
+    const {tenantId, isPrivateRoute, projectId, superUser} = ctx.get('info');
 
     if (!skipValidation) {
         validateArgs(args);
@@ -73,7 +73,7 @@ export const getWorkbooksListByIds = async (
         .where({
             [WorkbookModelColumn.DeletedAt]: null,
             [WorkbookModelColumn.TenantId]: tenantId,
-            [WorkbookModelColumn.ProjectId]: projectId,
+            ...(superUser ? {} : { [WorkbookModelColumn.ProjectId]: projectId})
         })
         .whereIn([WorkbookModelColumn.WorkbookId], workbookIds)
         .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);

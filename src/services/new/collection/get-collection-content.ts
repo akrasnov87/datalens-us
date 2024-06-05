@@ -107,6 +107,7 @@ export const getCollectionContent = async (
         tenantId,
         projectId,
         user: {userId},
+        superUser
     } = ctx.get('info');
 
     const targetTrx = getReplica(trx);
@@ -145,9 +146,9 @@ export const getCollectionContent = async (
             .select()
             .where({
                 [CollectionModelColumn.TenantId]: tenantId,
-                [CollectionModelColumn.ProjectId]: projectId,
                 [CollectionModelColumn.DeletedAt]: null,
                 [CollectionModelColumn.ParentId]: collectionId,
+                ...(superUser ? {} : { [CollectionModelColumn.ProjectId]: projectId})
             })
             .where((qb) => {
                 if (filterString) {

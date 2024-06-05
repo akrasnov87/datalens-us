@@ -80,6 +80,7 @@ export const copyWorkbook = async (
         tenantId,
         projectId,
         user: {userId},
+        superUser
     } = ctx.get('info');
 
     const {Workbook} = registry.common.classes.get();
@@ -177,6 +178,7 @@ export const copyWorkbook = async (
             projectId: targetProjectId,
             collectionId: newCollectionId,
             trx: transactionTrx,
+            superUser: superUser
         });
 
         const copiedWorkbook = await WorkbookModel.query(transactionTrx)
@@ -189,7 +191,7 @@ export const copyWorkbook = async (
                 [WorkbookModelColumn.CollectionId]: newCollectionId,
                 [WorkbookModelColumn.Meta]: originWorkbookModel.meta,
                 [WorkbookModelColumn.CreatedBy]: userId,
-                [WorkbookModelColumn.UpdatedBy]: userId,
+                [WorkbookModelColumn.UpdatedBy]: userId,           
             })
             .returning('*')
             .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);
@@ -257,12 +259,14 @@ async function getUniqWorkbookTitle({
     tenantId,
     collectionId,
     trx,
+    superUser
 }: {
     newTitle: WorkbookModel['title'];
     projectId: WorkbookModel['projectId'];
     tenantId: WorkbookModel['tenantId'];
     collectionId: WorkbookModel['collectionId'];
     trx: TransactionOrKnex;
+    superUser: boolean | undefined;
 }) {
     let uniqTitle = newTitle;
 
@@ -274,9 +278,10 @@ async function getUniqWorkbookTitle({
     const equalWorkbooksByTitleLower = await WorkbookModel.query(trx)
         .where({
             [WorkbookModelColumn.TenantId]: tenantId,
-            [WorkbookModelColumn.ProjectId]: projectId,
             [WorkbookModelColumn.CollectionId]: collectionId,
             [WorkbookModelColumn.DeletedAt]: null,
+            ...(superUser ? {} : { [WorkbookModelColumn.ProjectId]: projectId})
+            
         })
         .andWhere((builder1) => {
             builder1

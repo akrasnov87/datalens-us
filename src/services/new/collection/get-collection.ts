@@ -45,7 +45,7 @@ export const getCollection = async <T extends CollectionInstance = CollectionIns
         validateArgs(args);
     }
 
-    const {tenantId, projectId, isPrivateRoute} = ctx.get('info');
+    const {tenantId, projectId, isPrivateRoute, superUser} = ctx.get('info');
 
     const {accessServiceEnabled} = ctx.config;
 
@@ -60,7 +60,7 @@ export const getCollection = async <T extends CollectionInstance = CollectionIns
                 ? {}
                 : {
                       [CollectionModelColumn.TenantId]: tenantId,
-                      [CollectionModelColumn.ProjectId]: projectId,
+                      ...(superUser ? {} : { [CollectionModelColumn.ProjectId]: projectId})
                   }),
         })
         .first()
