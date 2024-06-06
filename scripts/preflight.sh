@@ -17,11 +17,15 @@ if [ "$USE_DEMO_DATA" = "1" ]; then
     echo "Start setting up demo data"
     if [ "$HC" = "1" ]; then
         echo "Use HC demo data"
-        node /opt/app/dist/server/db/scripts/demo/hc.js
+        node /opt/app/dist/server/db/scripts/demo/hc.js $PROJECT_ID
     else
         echo "Use D3 demo data"
-        node /opt/app/dist/server/db/scripts/demo/d3.js
+        node /opt/app/dist/server/db/scripts/demo/d3.js $PROJECT_ID
     fi
+
+    echo "Use auth demo data"
+    node /opt/app/dist/server/db/scripts/demo/auth.js 
+
     echo "Finish setting up demo data"
 fi
 

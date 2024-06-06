@@ -16,7 +16,7 @@ const PATH_TO_DATA = `${__dirname}/../../../../../scripts/demo/d3-data.sql`;
 
         if (result && result.rows && result.rows[0] && result.rows[0].count === '0') {
             const sqlData = fs.readFileSync(PATH_TO_DATA, 'utf8').toString().trim();
-            await db.primary.raw(sqlData);
+            await db.primary.raw(sqlData.replace(/\$PROJECT_ID/gi, process.argv[2]));
         }
 
         process.exit(0);

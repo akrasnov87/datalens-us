@@ -1,0 +1,989 @@
+
+START TRANSACTION;
+
+SET TIMEZONE TO 'UTC';
+
+SET check_function_bodies = false;
+
+SET search_path = pg_catalog;
+
+CREATE SCHEMA core;
+
+ALTER SCHEMA core OWNER TO us;
+
+CREATE SEQUENCE core.auto_id_pd_accesses
+	START WITH 1
+	INCREMENT BY 1
+	NO MAXVALUE
+	NO MINVALUE
+	CACHE 1;
+
+ALTER SEQUENCE core.auto_id_pd_accesses OWNER TO us;
+
+CREATE SEQUENCE core.auto_id_pd_roles
+	START WITH 1
+	INCREMENT BY 1
+	NO MAXVALUE
+	NO MINVALUE
+	CACHE 1;
+
+ALTER SEQUENCE core.auto_id_pd_roles OWNER TO us;
+
+CREATE SEQUENCE core.auto_id_pd_userinroles
+	START WITH 1
+	INCREMENT BY 1
+	NO MAXVALUE
+	NO MINVALUE
+	CACHE 1;
+
+ALTER SEQUENCE core.auto_id_pd_userinroles OWNER TO us;
+
+CREATE SEQUENCE core.auto_id_pd_users
+	START WITH 1
+	INCREMENT BY 1
+	NO MAXVALUE
+	NO MINVALUE
+	CACHE 1;
+
+ALTER SEQUENCE core.auto_id_pd_users OWNER TO us;
+
+-- DEPCY: This SEQUENCE is a dependency of COLUMN: core.sd_logs.id
+
+CREATE SEQUENCE core.sd_logs_id_seq
+	START WITH 1
+	INCREMENT BY 1
+	NO MAXVALUE
+	NO MINVALUE
+	CACHE 1;
+
+ALTER SEQUENCE core.sd_logs_id_seq OWNER TO us;
+
+CREATE TABLE core.sd_logs (
+	id bigint DEFAULT nextval('core.sd_logs_id_seq'::regclass) NOT NULL,
+	d_date date NOT NULL,
+	jb_data jsonb NOT NULL,
+	d_time time without time zone NOT NULL
+);
+
+ALTER TABLE core.sd_logs OWNER TO us;
+
+CREATE TABLE core.pd_accesses (
+	id smallint DEFAULT nextval('core.auto_id_pd_accesses'::regclass) NOT NULL,
+	f_user integer,
+	f_role smallint,
+	c_name text,
+	c_criteria text,
+	c_function text,
+	c_columns text,
+	b_deletable boolean DEFAULT false NOT NULL,
+	b_creatable boolean DEFAULT false NOT NULL,
+	b_editable boolean DEFAULT false NOT NULL,
+	b_full_control boolean DEFAULT false NOT NULL,
+	c_created_user text DEFAULT 'iserv'::text NOT NULL,
+	d_created_date timestamp without time zone DEFAULT now() NOT NULL,
+	c_change_user text,
+	d_change_date timestamp without time zone,
+	sn_delete boolean DEFAULT false NOT NULL
+);
+
+ALTER TABLE core.pd_accesses OWNER TO us;
+
+COMMENT ON TABLE core.pd_accesses IS 'Права доступа';
+
+COMMENT ON COLUMN core.pd_accesses.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_accesses.f_user IS 'Пользователь';
+
+COMMENT ON COLUMN core.pd_accesses.f_role IS 'Роль';
+
+COMMENT ON COLUMN core.pd_accesses.c_name IS 'Табл./Предст./Функц.';
+
+COMMENT ON COLUMN core.pd_accesses.c_criteria IS 'Серверный фильтр';
+
+COMMENT ON COLUMN core.pd_accesses.c_function IS 'Функция RPC или её часть';
+
+COMMENT ON COLUMN core.pd_accesses.c_columns IS 'Запрещенные колонки';
+
+COMMENT ON COLUMN core.pd_accesses.b_deletable IS 'Разрешено удалени';
+
+COMMENT ON COLUMN core.pd_accesses.b_creatable IS 'Разрешено создание';
+
+COMMENT ON COLUMN core.pd_accesses.b_editable IS 'Разрешено редактирование';
+
+COMMENT ON COLUMN core.pd_accesses.b_full_control IS 'Дополнительный доступ';
+
+COMMENT ON COLUMN core.pd_accesses.c_created_user IS 'Логин пользователя создавшего запись';
+
+COMMENT ON COLUMN core.pd_accesses.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_accesses.c_change_user IS 'Логин пользователя обновившего запись';
+
+COMMENT ON COLUMN core.pd_accesses.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_accesses.sn_delete IS 'Признак удаления';
+
+CREATE TABLE core.pd_roles (
+	id integer DEFAULT nextval('core.auto_id_pd_roles'::regclass) NOT NULL,
+	c_name text NOT NULL,
+	c_description text,
+	n_weight integer DEFAULT 0 NOT NULL,
+	d_created_date timestamp without time zone DEFAULT now() NOT NULL,
+	c_created_user text DEFAULT 'iserv'::text NOT NULL,
+	d_change_date timestamp without time zone,
+	c_change_user text,
+	sn_delete boolean DEFAULT false NOT NULL
+);
+
+ALTER TABLE core.pd_roles OWNER TO us;
+
+COMMENT ON TABLE core.pd_roles IS 'Роли';
+
+COMMENT ON COLUMN core.pd_roles.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_roles.c_name IS 'Наименование';
+
+COMMENT ON COLUMN core.pd_roles.c_description IS 'Описание роли';
+
+COMMENT ON COLUMN core.pd_roles.n_weight IS 'Приоритет';
+
+COMMENT ON COLUMN core.pd_roles.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_roles.c_created_user IS 'Автор создания';
+
+COMMENT ON COLUMN core.pd_roles.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_roles.c_change_user IS 'Автор изменения';
+
+COMMENT ON COLUMN core.pd_roles.sn_delete IS 'Удален';
+
+CREATE TABLE core.pd_user_devices (
+	id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+	f_user integer NOT NULL,
+	c_device_name text DEFAULT 'unknown'::text NOT NULL,
+	c_device_name_uf text DEFAULT 'Неизвестное устройство'::text,
+	n_key integer,
+	c_ip text NOT NULL,
+	b_disabled boolean DEFAULT false NOT NULL,
+	d_last_date timestamp without time zone DEFAULT now() NOT NULL,
+	dx_created timestamp without time zone DEFAULT now() NOT NULL,
+	b_main boolean DEFAULT false NOT NULL,
+	b_verify boolean DEFAULT false NOT NULL
+);
+
+ALTER TABLE core.pd_user_devices OWNER TO us;
+
+COMMENT ON TABLE core.pd_user_devices IS 'Список авторизованных устройств';
+
+COMMENT ON COLUMN core.pd_user_devices.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_user_devices.f_user IS 'Пользователь';
+
+COMMENT ON COLUMN core.pd_user_devices.c_device_name IS 'Системное имя';
+
+COMMENT ON COLUMN core.pd_user_devices.c_device_name_uf IS 'Пользовательское имя';
+
+COMMENT ON COLUMN core.pd_user_devices.n_key IS 'Ключ';
+
+COMMENT ON COLUMN core.pd_user_devices.c_ip IS 'IP адрес';
+
+COMMENT ON COLUMN core.pd_user_devices.b_disabled IS 'Отключено';
+
+COMMENT ON COLUMN core.pd_user_devices.d_last_date IS 'Последняя дата входа';
+
+COMMENT ON COLUMN core.pd_user_devices.dx_created IS 'Дата создания';
+
+COMMENT ON COLUMN core.pd_user_devices.b_main IS 'Признак главного устройства, нужнодля восстановления авторизации';
+
+COMMENT ON COLUMN core.pd_user_devices.b_verify IS 'Проверка пройдена. Первичный ключ был подтверждён';
+
+CREATE TABLE core.pd_userinroles (
+	id integer DEFAULT nextval('core.auto_id_pd_userinroles'::regclass) NOT NULL,
+	f_user integer NOT NULL,
+	f_role integer NOT NULL,
+	c_created_user text DEFAULT 'iserv'::text NOT NULL,
+	d_created_date timestamp without time zone DEFAULT now() NOT NULL,
+	c_change_user text,
+	d_change_date timestamp without time zone,
+	sn_delete boolean DEFAULT false
+);
+
+ALTER TABLE core.pd_userinroles OWNER TO us;
+
+COMMENT ON TABLE core.pd_userinroles IS 'Пользователи в ролях';
+
+COMMENT ON COLUMN core.pd_userinroles.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_userinroles.f_user IS 'Пользователь';
+
+COMMENT ON COLUMN core.pd_userinroles.f_role IS 'Роль';
+
+COMMENT ON COLUMN core.pd_userinroles.c_created_user IS 'Логин пользователя создавшего запись';
+
+COMMENT ON COLUMN core.pd_userinroles.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_userinroles.c_change_user IS 'Логин пользователя обновившего запись';
+
+COMMENT ON COLUMN core.pd_userinroles.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_userinroles.sn_delete IS 'Признак удаления';
+
+CREATE TABLE core.pd_users (
+	id integer DEFAULT nextval('core.auto_id_pd_users'::regclass) NOT NULL,
+	c_login text NOT NULL,
+	c_password text,
+	s_hash text,
+	c_email text,
+	jb_data jsonb,
+	d_last_auth_date timestamp without time zone,
+	d_last_change_password timestamp without time zone,
+	b_key boolean DEFAULT false NOT NULL,
+	b_disabled boolean DEFAULT false NOT NULL,
+	d_created_date timestamp without time zone DEFAULT now(),
+	c_created_user text DEFAULT 'iserv'::text NOT NULL,
+	d_change_date timestamp without time zone,
+	c_change_user text,
+	sn_delete boolean DEFAULT false NOT NULL,
+	d_expired_date timestamp without time zone
+);
+
+ALTER TABLE core.pd_users OWNER TO us;
+
+COMMENT ON TABLE core.pd_users IS 'Пользователи / Организации';
+
+COMMENT ON COLUMN core.pd_users.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_users.c_login IS 'Логин';
+
+COMMENT ON COLUMN core.pd_users.c_password IS 'Пароль';
+
+COMMENT ON COLUMN core.pd_users.s_hash IS 'Hash';
+
+COMMENT ON COLUMN core.pd_users.c_email IS 'Адрес электронной почты';
+
+COMMENT ON COLUMN core.pd_users.d_last_auth_date IS 'Дата последней авторизации';
+
+COMMENT ON COLUMN core.pd_users.d_last_change_password IS 'Дата изменения пароля';
+
+COMMENT ON COLUMN core.pd_users.b_key IS 'Используется доступ по ключу';
+
+COMMENT ON COLUMN core.pd_users.b_disabled IS 'Отключен';
+
+COMMENT ON COLUMN core.pd_users.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_users.c_created_user IS 'Логин пользователья создавшего запись';
+
+COMMENT ON COLUMN core.pd_users.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_users.c_change_user IS 'Логин пользователья изменившего запись';
+
+COMMENT ON COLUMN core.pd_users.sn_delete IS 'Удален';
+
+COMMENT ON COLUMN core.pd_users.d_expired_date IS 'Срок действия';
+
+CREATE OR REPLACE FUNCTION core.pf_accesses(n_user_id integer) RETURNS TABLE(table_name text, record_criteria text, rpc_function text, column_name text, is_editable boolean, is_deletable boolean, is_creatable boolean, is_fullcontrol boolean, access integer)
+    LANGUAGE plpgsql
+    AS $$
+/**
+* @params {integer} n_user_id - иден. пользователя
+*/
+BEGIN
+	RETURN QUERY 
+		SELECT * FROM (SELECT 
+	        a.c_name,
+	        a.c_criteria,
+	        a.c_function,
+	        a.c_columns,
+	        a.b_editable, 
+	        a.b_deletable, 
+	        a.b_creatable, 
+	        a.b_full_control, 
+	        core.sf_accesses(r.c_name, u.id, u.c_claims, a.f_user) AS access 
+	    FROM core.pd_accesses AS a
+	    LEFT JOIN core.sf_users_with_alias(n_user_id, false) AS u ON n_user_id = u.id
+	    LEFT JOIN core.pd_roles AS r ON a.f_role = r.id
+	    WHERE a.sn_delete = false) AS t 
+		WHERE t.access > 0;
+END;
+$$;
+
+ALTER FUNCTION core.pf_accesses(n_user_id integer) OWNER TO us;
+
+COMMENT ON FUNCTION core.pf_accesses(n_user_id integer) IS 'Системная функция. Получение прав доступа для пользователя';
+
+CREATE OR REPLACE FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+/**
+* @params {bigint} _user_id - идент. пользователя
+* @params {json} _claims - роли в виде строки '["manager", "inspector"]'
+*
+* @returns {bigint} идент. пользователя
+*/
+BEGIN
+	delete from core.pd_userinroles
+	where f_user = _user_id;
+
+	insert into core.pd_userinroles(f_user, f_role, sn_delete, c_created_user)
+	SELECT _user_id, (select id from core.pd_roles where t.value = c_name), false, 'iserv'
+	FROM json_array_elements_text(_claims) as t;
+	
+	RETURN _user_id;
+END
+$$;
+
+ALTER FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) OWNER TO us;
+
+COMMENT ON FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) IS 'Обновление ролей у пользователя';
+
+CREATE OR REPLACE FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+/**
+* @params {text} c_role_name - имя роли в безопасности
+* @params {integer} n_currentuser - идент. пользователя в безопасности
+* @params {text} c_claims - список ролей
+* @params {integer} n_user_id - иден. пользователя
+* 
+* @returns
+* 0 - доступ запрещен
+*/
+BEGIN
+    IF c_role_name is null and n_user_id is null then
+		RETURN 1;
+	ELSEIF (c_role_name is not null and c_claims is not null and POSITION(CONCAT('.', c_role_name, '.') IN c_claims) > 0) then
+		RETURN 2;
+	ELSEIF (c_role_name is not null and c_claims is not null and POSITION(CONCAT('.', c_role_name, '.') IN c_claims) > 0) then  
+		RETURN 3;
+	ELSEIF (c_role_name is null and n_currentuser = n_user_id) then
+        RETURN 4;
+    ELSEIF (c_role_name = 'anonymous' or n_user_id = -1) then
+		RETURN 5;
+	else
+		RETURN 0;
+	end if;
+ END
+$$;
+
+ALTER FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) IS 'Системная функция для обработки прав. Для внешнего использования не применять';
+
+CREATE OR REPLACE FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) RETURNS TABLE(msg text, user_id integer, n_code integer)
+    LANGUAGE plpgsql ROWS 1
+    AS $$
+/**
+	Создание пользователя
+	
+	_login: text 		- логин
+	_password: text 	- пароль
+ 	_email: text 		- адрес эл. почты
+ 	_claims: json 		- роли в формате json, например ["master", "datalens"]
+ * 
+ * @returns {integer} - иден. пользователя
+ */
+DECLARE
+	_f_user 					integer;
+BEGIN
+	
+	-- все проверки пройдены
+	INSERT INTO core.pd_users(c_login, s_hash, c_email, b_disabled)
+	VALUES (_login, public.crypt(_password, public.gen_salt('bf')), _email, false) RETURNING id INTO _f_user;
+	
+	PERFORM core.pf_update_user_roles(_f_user, _claims);
+	
+	RETURN QUERY SELECT '', _f_user, 0;
+END
+$$;
+
+ALTER FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) IS 'Создание пользователя';
+
+CREATE OR REPLACE FUNCTION core.sf_gen_key(_f_user integer) RETURNS integer
+    LANGUAGE plpgsql STABLE
+    AS $$
+/**
+ * @params _f_user {integer} - иден. пользователя
+ * @params _n_key {integer} - предыдущий ключ безопасности
+ *
+ * @returns {integer} ключ безопасности
+ */
+DECLARE
+	_n_new_key 		integer;
+	_b_key			boolean;
+	_n_max_number	integer = 99999000;
+	_n_min_key		integer;
+	_b_exists		boolean;
+BEGIN
+	SELECT u.b_key INTO _b_key 
+	FROM core.pd_users AS u
+	WHERE u.id = _f_user;
+	
+	IF _b_key THEN
+		-- плохой способ уменьшить вероятность получения одинакового ключа
+		SELECT t.t INTO _n_new_key 
+		FROM random_in_range(10000000, _n_max_number) AS t;	
+		
+		SELECT COUNT(*) > 0 INTO _b_exists
+		FROM core.pd_user_devices AS ud
+		WHERE ud.f_user = _f_user AND ud.n_key = _n_new_key;
+		
+		SELECT MIN(ud.n_key) INTO _n_min_key
+		FROM core.pd_user_devices AS ud
+		WHERE ud.f_user = _f_user;
+		
+		IF _b_exists THEN
+			PERFORM core.sf_write_log('Был создан ключ, который уже привязан к устройству.', _n_new_key::text, 0);
+			SELECT t.t INTO _n_new_key 
+			FROM random_in_range(1, _n_min_key) AS t;
+		END IF;
+	ELSE
+		RETURN _f_user;
+	END IF;
+	
+	RETURN _n_new_key;
+END
+$$;
+
+ALTER FUNCTION core.sf_gen_key(_f_user integer) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_gen_key(_f_user integer) IS 'Генерация ключа безопасности';
+
+CREATE OR REPLACE FUNCTION core.sf_reset_pwd(_login text, _new_password text) RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+/** 
+	Сброс пароля пользователя
+	
+	login: text 		- логин
+	_new_password: text - пароль
+ */
+DECLARE
+	_is_hash 	boolean;
+BEGIN
+	SELECT u.s_hash IS NOT NULL INTO _is_hash
+	FROM core.pd_users AS u 
+	WHERE u.c_login = _login AND u.sn_delete = false;
+	
+	IF _is_hash THEN
+		UPDATE core.pd_users AS u
+		SET s_hash = public.crypt(_new_password, public.gen_salt('bf')),
+		c_password = null
+		WHERE u.c_login = _login;
+
+		RETURN (SELECT 	u.c_email 
+		FROM core.pd_users AS u 
+		WHERE u.c_login = _login);
+	ELSE
+		UPDATE core.pd_users AS u
+		SET c_password = _new_password,
+		s_hash = null
+		WHERE u.c_login = _login;
+
+		RETURN (SELECT 	u.c_email 
+		FROM core.pd_users AS u 
+		WHERE u.c_login = _login);
+	END IF;
+END
+$$;
+
+ALTER FUNCTION core.sf_reset_pwd(_login text, _new_password text) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_reset_pwd(_login text, _new_password text) IS 'Сброс пароля пользователя';
+
+CREATE OR REPLACE FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+/**
+ * @params {text} _c_version - версия
+ * @params {integer} _f_user - идентификатор пользователя
+ * @params {integer} _n_key - ключ доступа
+ * @params {text} _c_ip - IP-адрес
+ * @params {text} _c_name - имя устройства
+ * @params {boolean} _b_key_mode - режим доступа через ключ
+ * 
+ * @returns {integer} - новый ключ доступа
+ */
+DECLARE
+	_n_new_key 		integer;
+BEGIN
+	IF _c_version = 'Datalens Embed' THEN
+		IF _b_key_mode = TRUE AND (SELECT count(*) FROM core.pd_users AS u WHERE u.id = _f_user AND u.b_key = true) > 0 THEN
+			IF (SELECT COUNT(*) FROM core.pd_user_devices as ud WHERE ud.f_user = _f_user AND ud.c_device_name = _c_name AND ud.b_disabled = false) = 0 THEN
+				SELECT core.sf_gen_key(_f_user) INTO _n_new_key;
+
+				INSERT INTO core.pd_user_devices(f_user, n_key, c_ip, b_main, c_device_name, c_device_name_uf, b_verify)
+				VALUES(_f_user, _n_new_key, _c_ip, false, _c_name, _c_version, true);
+
+				RETURN _n_new_key;
+			ELSE
+				SELECT ud.n_key INTO _n_new_key 
+				FROM core.pd_user_devices as ud WHERE ud.f_user = _f_user AND ud.c_device_name = _c_name AND ud.b_disabled = false
+				LIMIT 1;
+				
+				RETURN _n_new_key;
+			END IF;
+		ELSE
+			RETURN NULL;
+		END IF;
+	ELSE
+		UPDATE core.pd_users AS u 
+		SET d_last_auth_date = now()
+		WHERE u.id = _f_user;
+	END IF;
+	
+	IF _b_key_mode = TRUE AND (SELECT count(*) FROM core.pd_users AS u WHERE u.id = _f_user AND u.b_key = true) > 0 THEN
+		SELECT core.sf_gen_key(_f_user) INTO _n_new_key;	
+		
+		IF (SELECT count(*) FROM core.pd_user_devices AS ud WHERE ud.f_user = _f_user AND ud.b_main = TRUE) = 0 THEN
+			-- пользователь авторизуется первый раз
+			INSERT INTO core.pd_user_devices(f_user, n_key, c_ip, b_main, c_device_name, b_verify)
+			VALUES(_f_user, _n_new_key, _c_ip, true, _c_name, true);
+		ELSEIF (SELECT count(*) FROM core.pd_user_devices AS ud WHERE ud.f_user = _f_user AND ud.n_key = _n_key) = 1 THEN
+			-- пользователь переавторизовывается
+			UPDATE core.pd_user_devices AS ud
+			SET n_key = _n_new_key,
+			d_last_date = now(),
+			c_ip = _c_ip,
+			b_verify = true,
+			c_device_name = _c_name
+			WHERE ud.f_user = _f_user AND ud.n_key = _n_key;
+		ELSEIF (SELECT count(*) FROM core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_verify = false) = 1 then
+			select ud.n_key into _n_new_key from core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_verify = false;
+			
+			return _n_new_key * -1;
+		ELSEIF (select count(*) from core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_main = true) = 1
+			 	and (select count(*) from core.pd_user_devices as ud where ud.f_user = _f_user) = 1 then
+			select ud.n_key into _n_new_key from core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_main = true;
+			
+			return _n_new_key * -1;
+		else
+			RETURN NULL;
+		END IF;
+		
+		RETURN _n_new_key;
+	ELSE
+		RETURN core.sf_gen_key(_f_user);
+	END IF;
+END
+$$;
+
+ALTER FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) IS 'Обновление информации об авторизации';
+
+CREATE OR REPLACE FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+/**
+ * @params {text} _login - логин
+ * @params {text} _password - пароль
+ * @params {text} _new_password - новый пароль
+ * 
+ * @returns {boolean} - иден. пользователя
+ */
+DECLARE
+	_b_verify boolean;
+	_b_hash boolean;
+BEGIN
+	
+	SELECT 
+		CASE WHEN u.s_hash is NULL 
+			THEN u.c_password = _password 
+			ELSE public.crypt(_password, u.s_hash) = u.s_hash 
+		END, u.s_hash IS NOT NULL INTO _b_verify, _b_hash
+	FROM core.pd_users AS u WHERE u.c_login = _login AND u.b_disabled = false AND u.sn_delete = false;
+	
+	IF _b_verify THEN 
+		IF _b_hash THEN
+			UPDATE core.pd_users AS u
+			SET s_hash = public.crypt(_new_password, public.gen_salt('bf')),
+			c_password = null
+			WHERE u.c_login = _login;
+			
+			RETURN TRUE;
+		ELSE
+			UPDATE core.pd_users AS u
+			SET c_password = _new_password,
+			s_hash = null
+			WHERE u.c_login = _login;
+			
+			RETURN TRUE;
+		END IF;
+	END IF;
+	
+	RETURN FALSE;
+END
+$$;
+
+ALTER FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) IS 'Замена пароля пользователя';
+
+CREATE OR REPLACE FUNCTION core.sf_user_devices(_f_user integer, _n_key integer) RETURNS TABLE(f_user integer, c_device_name text, c_device_name_uf text, c_ip text)
+    LANGUAGE plpgsql ROWS 100
+    AS $$
+/**
+	_f_user: integer - идентификатор пользователя
+	_n_key: integer - ключ, может быть null
+*/
+BEGIN
+	RETURN QUERY 
+		SELECT	ud.f_user,
+				ud.c_device_name,
+				ud.c_device_name_uf,
+				ud.c_ip
+		FROM core.pd_user_devices AS ud
+		WHERE ud.f_user = _f_user 
+			AND ud.b_verify = true
+			AND _n_key = ud.n_key
+		;
+		
+END;
+$$;
+
+ALTER FUNCTION core.sf_user_devices(_f_user integer, _n_key integer) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_user_devices(_f_user integer, _n_key integer) IS 'Системная функция. Получение информации об устройствах пользователя';
+
+CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_claims_name text)
+    LANGUAGE plpgsql
+    AS $$
+/**
+* @params {integer} _f_user - иден. пользователя
+*/
+BEGIN
+	RETURN QUERY 
+		SELECT	* FROM core.sf_users_with_alias(_f_user, true);
+END;
+$$;
+
+ALTER FUNCTION core.sf_users(_f_user integer) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_users(_f_user integer) IS 'Системная функция. Получение информации о пользователе';
+
+CREATE OR REPLACE FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, f_avatar uuid, c_email text, c_claims_name text, f_org integer, c_profile text, f_profile integer, c_profile_const text, f_level integer, c_level text, c_intg_host text, f_alias integer, f_original integer)
+    LANGUAGE plpgsql
+    AS $$
+/**
+* @params {integer} _c_login - иден. пользователя
+*/
+
+DECLARE
+	_f_user			integer;
+BEGIN
+	SELECT u.id INTO _f_user
+	FROM core.pd_users AS u
+	WHERE u.c_login = _c_login;
+
+	RETURN QUERY 
+		SELECT * 
+		FROM core.sf_users_with_alias(_f_user, _alias);
+END;
+$$;
+
+ALTER FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
+
+CREATE OR REPLACE FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_claims_name text)
+    LANGUAGE plpgsql
+    AS $$
+/**
+* @params {integer} _f_user - иден. пользователя
+*/
+BEGIN
+	RETURN QUERY 
+		SELECT 	u.id, -- идентификатор пользователя
+				u.c_login, -- логин пользователя
+			    concat('.', ( SELECT string_agg(t.c_name, '.'::text) AS string_agg
+			           FROM ( SELECT r.c_name
+			                   FROM core.pd_userinroles uir
+			                     JOIN core.pd_roles r ON uir.f_role = r.id
+			                  WHERE uir.f_user = u.id AND uir.sn_delete = false
+			                  ORDER BY r.n_weight DESC) t), '.') AS c_claims, -- список ролей разделённых точкой
+			    u.b_disabled, -- признак активности
+				u.d_created_date, -- дата создания УЗ
+				u.d_change_date, -- дата модификации УЗ
+				u.d_last_auth_date, -- дата последней авторизации
+				u.c_email, -- email
+			    concat('.', ( SELECT string_agg(t.c_description, '.'::text) AS string_agg
+			    		FROM ( 	SELECT r.c_description
+			    			FROM core.pd_userinroles uir
+			                JOIN core.pd_roles r ON uir.f_role = r.id
+			              	WHERE uir.f_user = u.id AND uir.sn_delete = false
+			              	ORDER BY r.n_weight DESC) t), '.') AS c_claims_name -- наименование ролей
+		FROM core.pd_users u
+		WHERE u.id = _f_user AND u.sn_delete = false;
+END;
+$$;
+
+ALTER FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
+
+CREATE OR REPLACE FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) RETURNS integer
+    LANGUAGE plpgsql
+    AS $$
+/**
+ * @params {text} _login - логин
+ * @params {text} _password - пароль
+ * @params {text} _c_ip - IP-адрес
+ * @params {integer} _n_key - ключ
+ * @params {boolean} _b_key_mode - рижим авторизации по ключу
+ * 
+ * @returns {integer} - иден. пользователя
+ */
+DECLARE
+	_f_user_without_device	integer;
+	_f_user_with_device		integer;
+	_n_new_key				integer;
+	_b_key					boolean;
+	_d_expired_date			date;
+BEGIN
+	-- проверяем блокировку
+	SELECT u.d_expired_date INTO _d_expired_date 
+	FROM core.pd_users AS u 
+	WHERE u.c_login = _login;
+	
+	IF _d_expired_date IS NOT NULL AND NOW() > _d_expired_date THEN
+		UPDATE core.pd_users AS u
+		SET b_disabled = true
+		WHERE u.c_login = _login;
+		
+		RETURN null;
+	END IF;
+
+	IF _password IS NOT NULL THEN
+		-- читаем информацию из БД без учёта устройств
+		SELECT (CASE WHEN t.b_verify THEN t.id ELSE -1 END), t.b_key INTO _f_user_without_device, _b_key FROM (SELECT 
+			CASE WHEN u.s_hash IS NULL 
+				THEN u.c_password = _password 
+				ELSE public.crypt(_password, u.s_hash) = u.s_hash 
+			END AS b_verify,
+			u.id,
+			u.b_key
+		FROM core.pd_users AS u 
+		WHERE u.c_login = _login AND u.b_disabled = false AND u.sn_delete = false) AS t;
+	ELSE
+		SELECT NULL INTO _f_user_without_device;
+		SELECT true INTO _b_key;
+	END IF;
+
+	--raise notice 'f_user_without_device: %', _f_user_without_device;
+
+	IF _b_key_mode = true AND _b_key = true THEN
+		-- мы здесь потому, что выполняется провека по ключу
+		SELECT u.id INTO _f_user_with_device
+		FROM core.pd_users AS u 
+		LEFT JOIN core.pd_user_devices AS ud ON u.id = ud.f_user AND ud.b_disabled = false																	   
+		WHERE u.c_login = _login AND u.b_disabled = false 
+		AND CASE WHEN u.b_key THEN ud.n_key = _n_key ELSE 1=1 END 
+		AND u.sn_delete = false
+		LIMIT 1;
+		
+		--raise notice 'f_user_with_device: %', _f_user_with_device;
+					
+		IF _f_user_without_device IS NULL THEN
+			SELECT _f_user_with_device INTO _f_user_without_device;
+		END IF;
+		
+		IF _f_user_with_device IS NULL THEN	
+			SELECT core.sf_gen_key(_f_user_without_device) INTO _n_new_key;
+			
+			-- пользователь авторизуется первый раз
+			IF (SELECT count(*) FROM core.pd_user_devices AS ud WHERE ud.f_user = _f_user_without_device AND ud.b_main = true) = 0 THEN
+				-- нет главного пользователя
+				IF _n_key IS NOT NULL THEN
+					INSERT INTO core.pd_user_devices(f_user, c_device_name, n_key, c_ip, b_main, b_verify)
+					VALUES(_f_user_without_device, _c_name, _n_new_key, _c_ip, true, true);
+				END IF;
+			ELSEIF (select count(*) from core.pd_user_devices as ud where ud.f_user = _f_user_without_device and ud.b_verify = false) = 0 then
+				-- нет обычного устройства "неизвестное"
+				INSERT INTO core.pd_user_devices(f_user, c_device_name, n_key, c_ip)
+				VALUES(_f_user_without_device, _c_name, _n_new_key, _c_ip);
+				
+				IF _n_key IS NOT NULL THEN
+					SELECT NULL INTO _f_user_without_device;
+				END IF;
+			ELSE
+				-- обновляем обычное устройство
+				UPDATE core.pd_user_devices as ud
+				SET c_ip = _c_ip,
+				dx_created = now(),
+				c_device_name = _c_name
+				WHERE ud.f_user = _f_user_without_device AND ud.b_main = false AND ud.b_verify = false;
+				
+				IF _n_key IS NOT NULL THEN
+					SELECT NULL INTO _f_user_without_device;
+				END IF;
+			END IF;
+		END IF;
+	END IF;
+	
+	RETURN _f_user_without_device;
+END
+$$;
+
+ALTER FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) IS 'Проверка пользователя на авторизацию';
+
+CREATE OR REPLACE FUNCTION public.random_in_range(integer, integer) RETURNS integer
+    LANGUAGE sql
+    AS $_$
+    SELECT floor(($1 + ($2 - $1 + 1) * random()))::INTEGER;
+$_$;
+
+ALTER FUNCTION public.random_in_range(integer, integer) OWNER TO us;
+
+CREATE INDEX pd_users_b_disabled_sn_delete_idx ON core.pd_users USING btree (b_disabled, sn_delete);
+
+CREATE INDEX sd_logs_d_date_idx ON core.sd_logs USING btree (d_date);
+
+-- DEPCY: This CONSTRAINT is a dependency of CONSTRAINT: core.pd_accesses.pd_accesses_f_role_fkey
+
+ALTER TABLE core.pd_roles
+	ADD CONSTRAINT pd_roles_pkey PRIMARY KEY (id);
+
+ALTER TABLE core.pd_accesses
+	ADD CONSTRAINT pd_accesses_f_role_fkey FOREIGN KEY (f_role) REFERENCES core.pd_roles(id);
+
+-- DEPCY: This CONSTRAINT is a dependency of CONSTRAINT: core.pd_accesses.pd_accesses_f_user_fkey
+
+ALTER TABLE core.pd_users
+	ADD CONSTRAINT pd_users_pkey PRIMARY KEY (id);
+
+ALTER TABLE core.pd_accesses
+	ADD CONSTRAINT pd_accesses_f_user_fkey FOREIGN KEY (f_user) REFERENCES core.pd_users(id);
+
+ALTER TABLE core.pd_accesses
+	ADD CONSTRAINT pd_accesses_pkey PRIMARY KEY (id);
+
+ALTER TABLE core.pd_roles
+	ADD CONSTRAINT pd_roles_uniq_c_name UNIQUE (c_name);
+
+ALTER TABLE core.pd_user_devices
+	ADD CONSTRAINT "core.pd_user_devices_pkey" PRIMARY KEY (id);
+
+ALTER TABLE core.pd_user_devices
+	ADD CONSTRAINT pd_user_devices_f_user_fkey FOREIGN KEY (f_user) REFERENCES core.pd_users(id);
+
+ALTER TABLE core.pd_userinroles
+	ADD CONSTRAINT pd_userinroles_f_role_fkey FOREIGN KEY (f_role) REFERENCES core.pd_roles(id);
+
+ALTER TABLE core.pd_userinroles
+	ADD CONSTRAINT pd_userinroles_f_user_fkey FOREIGN KEY (f_user) REFERENCES core.pd_users(id);
+
+ALTER TABLE core.pd_userinroles
+	ADD CONSTRAINT pd_userinroles_pkey PRIMARY KEY (id);
+
+ALTER TABLE core.pd_users
+	ADD CONSTRAINT pd_users_uniq_c_login UNIQUE (c_login);
+
+ALTER TABLE core.sd_logs
+	ADD CONSTRAINT sd_rpc_log_pkey PRIMARY KEY (id);
+
+CREATE VIEW core.sv_objects AS
+	SELECT table1.table_name,
+    table1.table_type,
+    table1.table_title,
+    table1.primary_key,
+    table1.table_comment,
+    table1.table_schema
+   FROM ( SELECT (t.table_name)::character varying AS table_name,
+            (t.table_type)::character varying AS table_type,
+            (pgd.description)::character varying AS table_title,
+            (cc.column_name)::character varying AS primary_key,
+            ''::character varying AS table_comment,
+            t.table_schema
+           FROM ((((information_schema.tables t
+             LEFT JOIN pg_statio_all_tables st ON ((st.relname = (t.table_name)::name)))
+             LEFT JOIN pg_description pgd ON (((pgd.objoid = st.relid) AND (pgd.objsubid = 0))))
+             LEFT JOIN information_schema.table_constraints tc ON ((((t.table_name)::text = (tc.table_name)::text) AND ((t.table_catalog)::text = (tc.table_catalog)::text))))
+             LEFT JOIN information_schema.constraint_column_usage cc ON (((tc.constraint_name)::text = (cc.constraint_name)::text)))
+          WHERE (((t.table_catalog)::text = (current_database())::text) AND ((tc.constraint_type)::text = 'PRIMARY KEY'::text))
+        UNION
+         SELECT (t.table_name)::character varying AS table_name,
+            (t.table_type)::character varying AS table_type,
+            (pgd.description)::character varying AS table_title,
+            ''::character varying AS primary_key,
+            ''::character varying AS table_comment,
+            t.table_schema
+           FROM ((information_schema.tables t
+             LEFT JOIN pg_class pgc ON ((pgc.relname = (t.table_name)::name)))
+             LEFT JOIN pg_description pgd ON ((pgd.objoid = pgc.oid)))
+          WHERE (((t.table_type)::text = 'VIEW'::text) AND ((t.table_catalog)::text = (current_database())::text))
+        UNION
+         SELECT (r.routine_name)::character varying AS table_name,
+            (r.routine_type)::character varying AS table_type,
+            (pgd.description)::character varying AS table_title,
+            ''::character varying AS primary_key,
+            ''::character varying AS table_comment,
+            r.routine_schema AS table_schema
+           FROM ((information_schema.routines r
+             LEFT JOIN pg_proc pgp ON ((pgp.proname = (r.routine_name)::name)))
+             LEFT JOIN pg_description pgd ON ((pgd.objoid = pgp.oid)))
+          WHERE ((r.routine_catalog)::text = (current_database())::text)) table1
+  WHERE (((table1.table_schema)::text <> 'pg_catalog'::text) AND ((table1.table_schema)::text <> 'information_schema'::text) AND ((table1.table_schema)::text <> 'public'::text));
+
+ALTER VIEW core.sv_objects OWNER TO us;
+
+ALTER SEQUENCE core.sd_logs_id_seq
+	OWNED BY core.sd_logs.id;
+
+-- список ролей
+INSERT INTO core.pd_roles(c_name, c_description, n_weight)
+VALUES 
+('master', 'Мастер', 1000), 
+('admin', 'Администратор', 900),	
+('datalens', 'Пользователь', 800);
+
+-- первоначальные права доступа
+INSERT INTO core.pd_accesses(f_role, c_name, c_function, b_deletable, b_creatable, b_editable, b_full_control)
+VALUES
+(2, 'embed',NULL,	false,	false,	false,	false),
+(2,	'entries',NULL,	false,	true,	false,	false),
+(2,	'workbooks',NULL,	false,	true,	false,	false),
+(2,	'entries',NULL,	false,	false,	false,	false),
+(2,	'breadcrumbs',NULL,	false,	false,	false,	false),
+(2,	'collections',NULL,	false,	true,	false,	false),
+(2,	'collection-content',NULL,	false,	false,	false,	false),
+(2,	'workbook',NULL,	false,	true,	false,	false),
+(2,	'collection',NULL,	false,	true,	false,	false),
+(2,	'workbookInRoot',NULL,	false,	true,	false,	false),
+(2,	'collectionInRoot',NULL,	false,	true,	false,	false),
+(2,	'meta',NULL,	false,	false,	false,	false),
+(2,	'root-collection-permissions',NULL,	false,	false,	false,	false),
+(2,	'update',NULL,	false,	true,	false,	false),
+(2,	'rename',NULL,	false,	true,	false,	false),
+(2,	'roles',NULL,	false,	false,	false,	false),
+(2,	NULL, 'DL.*',	false,	false,	false,	false),
+(NULL,	NULL, 'DL.datalens.*',	false,	false,	false,	false),
+(3,	'embed',NULL,	false,	false,	false,	false),
+(3,	'entries',NULL,	false,	false,	false,	false),
+(3,	'workbooks',NULL, false,	false,	false,	false),
+(3,	'entries',NULL,	false,	false,	false,	false),
+(3,	'breadcrumbs',NULL,	false,	false,	false,	false),
+(3,	'collections',NULL,	false,	false,	false,	false),
+(3,	'collection-content',NULL,	false,	false,	false,	false),
+(3,	'workbook',NULL,	false,	false,	false,	false),
+(3,	'collection',NULL,	false,	false,	false,	false),
+(3,	'workbookInRoot',NULL,	false,	false,	false,	false),
+(3,	'collectionInRoot',NULL,	false,	false,	false,	false),
+(3,	'meta',NULL,	false,	false,	false,	false),
+(3,	'root-collection-permissions',NULL,	false,	false,	false,	false),
+(3,	'update',NULL,	false,	false,	false,	false),
+(3,	'rename',NULL,	false,	false,	false,	false),
+(3,	'roles',NULL,	false,	false,	false,	false);
+
+-- пользователь с максимальными правами
+SELECT core.sf_create_user('master', 'qwe-123', '', '["master", "admin"]');
+
+-- администратор
+SELECT core.sf_create_user('admin', 'qwe-123', '', '["admin"]');
+
+-- пользователь
+SELECT core.sf_create_user('user', 'qwe-123', '', '["datalens"]');
+
+COMMIT TRANSACTION;
