@@ -29,7 +29,7 @@ docker build -t akrasnov87/datalens-us:0.204.0 .
 docker push akrasnov87/datalens-us:0.204.0
 </pre>
 
-## Тестирвование
+## Тестирование
 
 В корне проекта создать файл .env и добавить туда строки:
 <pre>

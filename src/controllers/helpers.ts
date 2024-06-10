@@ -136,4 +136,88 @@ export default {
             res.status(502).send({result: false});
         }
     },
+    create_user: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.postData("datalens", "create_user", token, r.body);
+
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
+    update_user: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.postData("datalens", "update_user", token, r.body);
+                
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
+    password_reset: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.postData("datalens", "password_reset", token, r.body);
+                
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
+    update_roles: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.postData("datalens", "update_roles", token, r.body);
+                
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    },
+
+    users: async (req: Request, res: Response) => {
+        if (process.env.NODE_RPC_URL) {
+            var r: any = req;
+            if(r.rpc[0].statusCode == 200) {
+                var token = r.rpc[0].token;
+        
+                var result: any = await Utils.postData("datalens", "users", token, r.body);
+                
+                res.send(result);
+            } else {
+                res.status(r.rpc[0].statusCode).send(r.rpc[0]);
+            }
+        } else {
+            res.send('hey');
+        }
+    }
 };
