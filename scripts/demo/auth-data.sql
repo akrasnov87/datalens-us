@@ -156,46 +156,6 @@ COMMENT ON COLUMN core.pd_roles.c_change_user IS 'Автор изменения'
 
 COMMENT ON COLUMN core.pd_roles.sn_delete IS 'Удален';
 
-CREATE TABLE core.pd_user_devices (
-	id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
-	f_user integer NOT NULL,
-	c_device_name text DEFAULT 'unknown'::text NOT NULL,
-	c_device_name_uf text DEFAULT 'Неизвестное устройство'::text,
-	n_key integer,
-	c_ip text NOT NULL,
-	b_disabled boolean DEFAULT false NOT NULL,
-	d_last_date timestamp without time zone DEFAULT now() NOT NULL,
-	dx_created timestamp without time zone DEFAULT now() NOT NULL,
-	b_main boolean DEFAULT false NOT NULL,
-	b_verify boolean DEFAULT false NOT NULL
-);
-
-ALTER TABLE core.pd_user_devices OWNER TO us;
-
-COMMENT ON TABLE core.pd_user_devices IS 'Список авторизованных устройств';
-
-COMMENT ON COLUMN core.pd_user_devices.id IS 'Идентификатор';
-
-COMMENT ON COLUMN core.pd_user_devices.f_user IS 'Пользователь';
-
-COMMENT ON COLUMN core.pd_user_devices.c_device_name IS 'Системное имя';
-
-COMMENT ON COLUMN core.pd_user_devices.c_device_name_uf IS 'Пользовательское имя';
-
-COMMENT ON COLUMN core.pd_user_devices.n_key IS 'Ключ';
-
-COMMENT ON COLUMN core.pd_user_devices.c_ip IS 'IP адрес';
-
-COMMENT ON COLUMN core.pd_user_devices.b_disabled IS 'Отключено';
-
-COMMENT ON COLUMN core.pd_user_devices.d_last_date IS 'Последняя дата входа';
-
-COMMENT ON COLUMN core.pd_user_devices.dx_created IS 'Дата создания';
-
-COMMENT ON COLUMN core.pd_user_devices.b_main IS 'Признак главного устройства, нужнодля восстановления авторизации';
-
-COMMENT ON COLUMN core.pd_user_devices.b_verify IS 'Проверка пройдена. Первичный ключ был подтверждён';
-
 CREATE TABLE core.pd_userinroles (
 	id integer DEFAULT nextval('core.auto_id_pd_userinroles'::regclass) NOT NULL,
 	f_user integer NOT NULL,
@@ -488,56 +448,6 @@ ALTER FUNCTION core.sf_create_user(_login text, _password text, _email text, _cl
 
 COMMENT ON FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) IS 'Создание пользователя';
 
-CREATE OR REPLACE FUNCTION core.sf_gen_key(_f_user integer) RETURNS integer
-    LANGUAGE plpgsql STABLE
-    AS $$
-/**
- * @params _f_user {integer} - иден. пользователя
- * @params _n_key {integer} - предыдущий ключ безопасности
- *
- * @returns {integer} ключ безопасности
- */
-DECLARE
-	_n_new_key 		integer;
-	_b_key			boolean;
-	_n_max_number	integer = 99999000;
-	_n_min_key		integer;
-	_b_exists		boolean;
-BEGIN
-	SELECT u.b_key INTO _b_key 
-	FROM core.pd_users AS u
-	WHERE u.id = _f_user;
-	
-	IF _b_key THEN
-		-- плохой способ уменьшить вероятность получения одинакового ключа
-		SELECT t.t INTO _n_new_key 
-		FROM random_in_range(10000000, _n_max_number) AS t;	
-		
-		SELECT COUNT(*) > 0 INTO _b_exists
-		FROM core.pd_user_devices AS ud
-		WHERE ud.f_user = _f_user AND ud.n_key = _n_new_key;
-		
-		SELECT MIN(ud.n_key) INTO _n_min_key
-		FROM core.pd_user_devices AS ud
-		WHERE ud.f_user = _f_user;
-		
-		IF _b_exists THEN
-			PERFORM core.sf_write_log('Был создан ключ, который уже привязан к устройству.', _n_new_key::text, 0);
-			SELECT t.t INTO _n_new_key 
-			FROM random_in_range(1, _n_min_key) AS t;
-		END IF;
-	ELSE
-		RETURN _f_user;
-	END IF;
-	
-	RETURN _n_new_key;
-END
-$$;
-
-ALTER FUNCTION core.sf_gen_key(_f_user integer) OWNER TO us;
-
-COMMENT ON FUNCTION core.sf_gen_key(_f_user integer) IS 'Генерация ключа безопасности';
-
 CREATE OR REPLACE FUNCTION core.sf_reset_pwd(_login text, _new_password text) RETURNS text
     LANGUAGE plpgsql
     AS $$
@@ -595,67 +505,12 @@ CREATE OR REPLACE FUNCTION core.sf_update_auth(_c_version text, _f_user integer,
  * 
  * @returns {integer} - новый ключ доступа
  */
-DECLARE
-	_n_new_key 		integer;
 BEGIN
-	IF _c_version = 'Datalens Embed' THEN
-		IF _b_key_mode = TRUE AND (SELECT count(*) FROM core.pd_users AS u WHERE u.id = _f_user AND u.b_key = true) > 0 THEN
-			IF (SELECT COUNT(*) FROM core.pd_user_devices as ud WHERE ud.f_user = _f_user AND ud.c_device_name = _c_name AND ud.b_disabled = false) = 0 THEN
-				SELECT core.sf_gen_key(_f_user) INTO _n_new_key;
-
-				INSERT INTO core.pd_user_devices(f_user, n_key, c_ip, b_main, c_device_name, c_device_name_uf, b_verify)
-				VALUES(_f_user, _n_new_key, _c_ip, false, _c_name, _c_version, true);
-
-				RETURN _n_new_key;
-			ELSE
-				SELECT ud.n_key INTO _n_new_key 
-				FROM core.pd_user_devices as ud WHERE ud.f_user = _f_user AND ud.c_device_name = _c_name AND ud.b_disabled = false
-				LIMIT 1;
-				
-				RETURN _n_new_key;
-			END IF;
-		ELSE
-			RETURN NULL;
-		END IF;
-	ELSE
-		UPDATE core.pd_users AS u 
-		SET d_last_auth_date = now()
-		WHERE u.id = _f_user;
-	END IF;
-	
-	IF _b_key_mode = TRUE AND (SELECT count(*) FROM core.pd_users AS u WHERE u.id = _f_user AND u.b_key = true) > 0 THEN
-		SELECT core.sf_gen_key(_f_user) INTO _n_new_key;	
+	UPDATE core.pd_users AS u 
+	SET d_last_auth_date = now()
+	WHERE u.id = _f_user;
 		
-		IF (SELECT count(*) FROM core.pd_user_devices AS ud WHERE ud.f_user = _f_user AND ud.b_main = TRUE) = 0 THEN
-			-- пользователь авторизуется первый раз
-			INSERT INTO core.pd_user_devices(f_user, n_key, c_ip, b_main, c_device_name, b_verify)
-			VALUES(_f_user, _n_new_key, _c_ip, true, _c_name, true);
-		ELSEIF (SELECT count(*) FROM core.pd_user_devices AS ud WHERE ud.f_user = _f_user AND ud.n_key = _n_key) = 1 THEN
-			-- пользователь переавторизовывается
-			UPDATE core.pd_user_devices AS ud
-			SET n_key = _n_new_key,
-			d_last_date = now(),
-			c_ip = _c_ip,
-			b_verify = true,
-			c_device_name = _c_name
-			WHERE ud.f_user = _f_user AND ud.n_key = _n_key;
-		ELSEIF (SELECT count(*) FROM core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_verify = false) = 1 then
-			select ud.n_key into _n_new_key from core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_verify = false;
-			
-			return _n_new_key * -1;
-		ELSEIF (select count(*) from core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_main = true) = 1
-			 	and (select count(*) from core.pd_user_devices as ud where ud.f_user = _f_user) = 1 then
-			select ud.n_key into _n_new_key from core.pd_user_devices as ud where ud.f_user = _f_user and ud.b_main = true;
-			
-			return _n_new_key * -1;
-		else
-			RETURN NULL;
-		END IF;
-		
-		RETURN _n_new_key;
-	ELSE
-		RETURN core.sf_gen_key(_f_user);
-	END IF;
+	RETURN _f_user;
 END
 $$;
 
@@ -712,32 +567,6 @@ $$;
 ALTER FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) OWNER TO us;
 
 COMMENT ON FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) IS 'Замена пароля пользователя';
-
-CREATE OR REPLACE FUNCTION core.sf_user_devices(_f_user integer, _n_key integer) RETURNS TABLE(f_user integer, c_device_name text, c_device_name_uf text, c_ip text)
-    LANGUAGE plpgsql ROWS 100
-    AS $$
-/**
-	_f_user: integer - идентификатор пользователя
-	_n_key: integer - ключ, может быть null
-*/
-BEGIN
-	RETURN QUERY 
-		SELECT	ud.f_user,
-				ud.c_device_name,
-				ud.c_device_name_uf,
-				ud.c_ip
-		FROM core.pd_user_devices AS ud
-		WHERE ud.f_user = _f_user 
-			AND ud.b_verify = true
-			AND _n_key = ud.n_key
-		;
-		
-END;
-$$;
-
-ALTER FUNCTION core.sf_user_devices(_f_user integer, _n_key integer) OWNER TO us;
-
-COMMENT ON FUNCTION core.sf_user_devices(_f_user integer, _n_key integer) IS 'Системная функция. Получение информации об устройствах пользователя';
 
 CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_claims_name text)
     LANGUAGE plpgsql
@@ -906,12 +735,6 @@ ALTER TABLE core.pd_accesses
 
 ALTER TABLE core.pd_roles
 	ADD CONSTRAINT pd_roles_uniq_c_name UNIQUE (c_name);
-
-ALTER TABLE core.pd_user_devices
-	ADD CONSTRAINT "core.pd_user_devices_pkey" PRIMARY KEY (id);
-
-ALTER TABLE core.pd_user_devices
-	ADD CONSTRAINT pd_user_devices_f_user_fkey FOREIGN KEY (f_user) REFERENCES core.pd_users(id);
 
 ALTER TABLE core.pd_userinroles
 	ADD CONSTRAINT pd_userinroles_f_role_fkey FOREIGN KEY (f_role) REFERENCES core.pd_roles(id);
