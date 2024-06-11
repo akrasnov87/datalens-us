@@ -11,6 +11,8 @@ Created:
 
 - Созданы функции по работе с пользователями
 
+В новой версии была изменена БД. Для ручного изменения можно выполнить [скрипт](https://github.com/akrasnov87/us-db-ci_purgeable/blob/main/MIGRATION/0.1.1.sql). Либо "накатить" изменения из [исходного кода](https://github.com/akrasnov87/us-db-ci_purgeable)
+
 ## [0.204.0] 05.06.2024
 
 Created:
