@@ -468,7 +468,8 @@ BEGIN
 		UPDATE core.pd_users AS u
 		SET s_hash = public.crypt(_new_password, public.gen_salt('bf')),
 		c_password = null,
-		d_change_date = now()
+		d_change_date = now(),
+		d_last_change_password = now()
 		WHERE u.c_login = _login;
 
 		RETURN (SELECT 	u.c_email 
@@ -478,7 +479,8 @@ BEGIN
 		UPDATE core.pd_users AS u
 		SET c_password = _new_password,
 		s_hash = null,
-		d_change_date = now()
+		d_change_date = now(),
+		d_last_change_password = now()
 		WHERE u.c_login = _login;
 
 		RETURN (SELECT 	u.c_email 
@@ -545,7 +547,8 @@ BEGIN
 			UPDATE core.pd_users AS u
 			SET s_hash = public.crypt(_new_password, public.gen_salt('bf')),
 			c_password = null,
-			d_change_date = now()
+			d_change_date = now(),
+			d_last_change_password = now()
 			WHERE u.c_login = _login;
 			
 			RETURN TRUE;
@@ -553,7 +556,8 @@ BEGIN
 			UPDATE core.pd_users AS u
 			SET c_password = _new_password,
 			s_hash = null,
-			d_change_date = now()
+			d_change_date = now(),
+			d_last_change_password = now()
 			WHERE u.c_login = _login;
 			
 			RETURN TRUE;
@@ -841,7 +845,8 @@ VALUES
 (3,	'meta',NULL,	false,	false,	false,	false),
 (3,	'root-collection-permissions',NULL,	false,	false,	false,	false),
 (3,	'update',NULL,	false,	false,	false,	false),
-(3,	'rename',NULL,	false,	false,	false,	false),
+(3,	'rename',NULL,	false,	false,	f,
+		d_last_change_password = now()alse,	false),
 (3,	'roles',NULL,	false,	false,	false,	false);
 
 -- пользователь с максимальными правами

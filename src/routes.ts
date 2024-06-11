@@ -76,6 +76,31 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
             handler: helpersController.tables
         }),
 
+        createUser: makeRoute({
+            route: 'POST /create_user',
+            handler: helpersController.create_user
+        }),
+
+        updateUser: makeRoute({
+            route: 'POST /update_user',
+            handler: helpersController.update_user
+        }),
+
+        passwordReset: makeRoute({
+            route: 'POST /password_reset',
+            handler: helpersController.password_reset
+        }),
+
+        updateRoles: makeRoute({
+            route: 'POST /update_roles',
+            handler: helpersController.update_roles
+        }),
+
+        users: makeRoute({
+            route: 'POST /users',
+            handler: helpersController.users
+        }),
+
         auth: makeRoute({
             route: 'GET /auth',
             handler: authController,
