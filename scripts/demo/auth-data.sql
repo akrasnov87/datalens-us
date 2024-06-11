@@ -845,8 +845,7 @@ VALUES
 (3,	'meta',NULL,	false,	false,	false,	false),
 (3,	'root-collection-permissions',NULL,	false,	false,	false,	false),
 (3,	'update',NULL,	false,	false,	false,	false),
-(3,	'rename',NULL,	false,	false,	f,
-		d_last_change_password = now()alse,	false),
+(3,	'rename',NULL,	false,	false,	false,	false),
 (3,	'roles',NULL,	false,	false,	false,	false);
 
 -- пользователь с максимальными правами
