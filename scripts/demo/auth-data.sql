@@ -830,6 +830,7 @@ VALUES
 (2,	'rename',NULL,	false,	true,	false,	false),
 (2,	'roles',NULL,	false,	false,	false,	false),
 (2,	NULL, 'DL.*',	false,	false,	false,	false),
+(2,	NULL, 'opensource-demo.*',	false,	false,	false,	false),
 (NULL,	NULL, 'DL.datalens.*',	false,	false,	false,	false),
 (3,	'embed',NULL,	false,	false,	false,	false),
 (3,	'entries',NULL,	false,	false,	false,	false),
