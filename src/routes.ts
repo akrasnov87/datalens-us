@@ -5,7 +5,6 @@ import {isEnabledFeature, Feature} from './components/features';
 
 import authController from './controllers/auth';
 import homeController from './controllers/home';
-import embedController from './controllers/embed';
 import helpersController from './controllers/helpers';
 import entriesController from './controllers/entries';
 import locksController from './controllers/locks';
@@ -41,11 +40,6 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
             handler: homeController,
         }),
 
-        embed: makeRoute({
-            route: 'GET /embed',
-            handler: embedController,
-        }),
-
         encodeId: makeRoute({
             route: 'GET /encodeId',
             handler: helpersController.encodeId,
@@ -56,49 +50,9 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
             handler: helpersController.decodeId,
         }),
 
-        roles: makeRoute({
-            route: 'GET /roles',
-            handler: helpersController.roles,
-        }),
-
-        accesses: makeRoute({
-            route: 'GET /accesses',
-            handler: helpersController.accesses,
-        }),
-
-        updateAccesses: makeRoute({
-            route: 'GET /updateAccesses',
-            handler: helpersController.updateAccesses,
-        }),
-
-        tables: makeRoute({
-            route: 'POST /tables',
-            handler: helpersController.tables
-        }),
-
-        createUser: makeRoute({
-            route: 'POST /create_user',
-            handler: helpersController.create_user
-        }),
-
-        updateUser: makeRoute({
-            route: 'POST /update_user',
-            handler: helpersController.update_user
-        }),
-
-        passwordReset: makeRoute({
-            route: 'POST /password_reset',
-            handler: helpersController.password_reset
-        }),
-
-        updateRoles: makeRoute({
-            route: 'POST /update_roles',
-            handler: helpersController.update_roles
-        }),
-
-        users: makeRoute({
-            route: 'POST /users',
-            handler: helpersController.users
+        universalService: makeRoute({
+            route: 'POST /universal_service',
+            handler: helpersController.universal_service
         }),
 
         auth: makeRoute({

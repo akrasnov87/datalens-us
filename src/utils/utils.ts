@@ -399,56 +399,7 @@ export class Utils {
     };
 
     static getPermissions = async (token: String, item:any) => {
-        return new Promise(resolve => {
-            const url = require('url');
-
-            const data = JSON.stringify({
-                action: 'datalens',
-                method: 'permissions',
-                data: [item],
-                type: 'rpc',
-                tid: 0,
-            });
-    
-            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
-    
-            const options = {
-                hostname: urlRpc.hostname,
-                path: urlRpc.pathname,
-                method: 'POST',
-                port: urlRpc.port,
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'Content-Length': Buffer.byteLength(data),
-                    'rpc-authorization': token,
-                },
-            };
-    
-            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
-                .request(options, (response: any) => {
-                    let body = '';
-    
-                    response.on('data', (chunk: any) => {
-                        body += chunk;
-                    });
-    
-                    response.on('end', () => {
-                        try {
-                            const json = JSON.parse(body);
-                            resolve({err: null, data: json[0].result.records});
-                        } catch (error: any) {
-                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
-                            resolve({err: error, data: null});
-                        }
-                    });
-                })
-                .on('error', (error: any) => {
-                    resolve({err: error, data: null});
-                });
-    
-            postRequest.write(data);
-            postRequest.end();
-        });
+        return await this.postData("datalens", "permissions", token, [item], 0);
     }
 
     static authorize = async (login: any, password:any) => {
@@ -473,162 +424,7 @@ export class Utils {
     }
 
     static getEmbedToken = async (token: String, item:any) => {
-        return new Promise(resolve => {
-            const url = require('url');
-
-            const data = JSON.stringify({
-                action: 'datalens',
-                method: 'embed',
-                data: [item],
-                type: 'rpc',
-                tid: 0,
-            });
-    
-            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
-    
-            const options = {
-                hostname: urlRpc.hostname,
-                path: urlRpc.pathname,
-                method: 'POST',
-                port: urlRpc.port,
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'Content-Length': Buffer.byteLength(data),
-                    'rpc-authorization': token,
-                },
-            };
-    
-            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
-                .request(options, (response: any) => {
-                    let body = '';
-    
-                    response.on('data', (chunk: any) => {
-                        body += chunk;
-                    });
-    
-                    response.on('end', () => {
-                        try {
-                            const json = JSON.parse(body);
-                            resolve({err: null, data: json[0].result.records});
-                        } catch (error: any) {
-                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
-                            resolve({err: error, data: null});
-                        }
-                    });
-                })
-                .on('error', (error: any) => {
-                    resolve({err: error, data: null});
-                });
-    
-            postRequest.write(data);
-            postRequest.end();
-        });
-    }
-
-    static getRoles = async (token: String, item:any) => {
-        return new Promise(resolve => {
-            const url = require('url');
-
-            const data = JSON.stringify({
-                action: 'datalens',
-                method: 'roles',
-                data: [item],
-                type: 'rpc',
-                tid: 0,
-            });
-    
-            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
-    
-            const options = {
-                hostname: urlRpc.hostname,
-                path: urlRpc.pathname,
-                method: 'POST',
-                port: urlRpc.port,
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'Content-Length': Buffer.byteLength(data),
-                    'rpc-authorization': token,
-                },
-            };
-    
-            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
-                .request(options, (response: any) => {
-                    let body = '';
-    
-                    response.on('data', (chunk: any) => {
-                        body += chunk;
-                    });
-    
-                    response.on('end', () => {
-                        try {
-                            const json = JSON.parse(body);
-                            resolve({err: null, data: json[0].result.records});
-                        } catch (error: any) {
-                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
-                            resolve({err: error, data: null});
-                        }
-                    });
-                })
-                .on('error', (error: any) => {
-                    resolve({err: error, data: null});
-                });
-    
-            postRequest.write(data);
-            postRequest.end();
-        });
-    }
-
-    static getAccesses = async (token: String, item:any) => {
-        return new Promise(resolve => {
-            const url = require('url');
-
-            const data = JSON.stringify({
-                action: 'datalens',
-                method: 'accesses',
-                data: [item],
-                type: 'rpc',
-                tid: 0,
-            });
-    
-            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
-    
-            const options = {
-                hostname: urlRpc.hostname,
-                path: urlRpc.pathname,
-                method: 'POST',
-                port: urlRpc.port,
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'Content-Length': Buffer.byteLength(data),
-                    'rpc-authorization': token,
-                },
-            };
-    
-            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
-                .request(options, (response: any) => {
-                    let body = '';
-    
-                    response.on('data', (chunk: any) => {
-                        body += chunk;
-                    });
-    
-                    response.on('end', () => {
-                        try {
-                            const json = JSON.parse(body);
-                            resolve({err: null, data: json[0].result.records});
-                        } catch (error: any) {
-                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
-                            resolve({err: error, data: null});
-                        }
-                    });
-                })
-                .on('error', (error: any) => {
-                    resolve({err: error, data: null});
-                });
-    
-            postRequest.write(data);
-            postRequest.end();
-        });
+        return await this.postData("datalens", "embed", token, [item], 0);
     }
 
     static getTokenFromContext = (context: any) => {
@@ -653,112 +449,10 @@ export class Utils {
     }
 
     static updateAccesses = async (token: String, item:any) => {
-        return new Promise(resolve => {
-            const url = require('url');
-
-            const data = JSON.stringify({
-                action: 'datalens',
-                method: 'updateAccesses',
-                data: [item],
-                type: 'rpc',
-                tid: 0,
-            });
-    
-            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
-    
-            const options = {
-                hostname: urlRpc.hostname,
-                path: urlRpc.pathname,
-                method: 'POST',
-                port: urlRpc.port,
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'Content-Length': Buffer.byteLength(data),
-                    'rpc-authorization': token,
-                },
-            };
-    
-            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
-                .request(options, (response: any) => {
-                    let body = '';
-    
-                    response.on('data', (chunk: any) => {
-                        body += chunk;
-                    });
-    
-                    response.on('end', () => {
-                        try {
-                            const json = JSON.parse(body);
-                            resolve({err: null, data: json[0].result.records});
-                        } catch (error: any) {
-                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
-                            resolve({err: error, data: null});
-                        }
-                    });
-                })
-                .on('error', (error: any) => {
-                    resolve({err: error, data: null});
-                });
-    
-            postRequest.write(data);
-            postRequest.end();
-        });
+        return await this.postData("datalens", "updateAccesses", token, [item], 0);
     }
 
-    static getTables = async (token: String, items:any) => {
-        return new Promise(resolve => {
-            const url = require('url');
-
-            const data = JSON.stringify({
-                action: 'datalens',
-                method: 'tables',
-                data: items,
-                type: 'rpc',
-                tid: 0,
-            });
-    
-            const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
-    
-            const options = {
-                hostname: urlRpc.hostname,
-                path: urlRpc.pathname,
-                method: 'POST',
-                port: urlRpc.port,
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'Content-Length': Buffer.byteLength(data),
-                    'rpc-authorization': token,
-                },
-            };
-    
-            const postRequest = (urlRpc.protocol == 'http:' ? http : https)
-                .request(options, (response: any) => {
-                    let body = '';
-    
-                    response.on('data', (chunk: any) => {
-                        body += chunk;
-                    });
-    
-                    response.on('end', () => {
-                        try {
-                            const json = JSON.parse(body);
-                            resolve({err: null, data: json[0].result.records});
-                        } catch (error: any) {
-                            console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack + ' ' + body);
-                            resolve({err: error, data: null});
-                        }
-                    });
-                })
-                .on('error', (error: any) => {
-                    resolve({err: error, data: null});
-                });
-    
-            postRequest.write(data);
-            postRequest.end();
-        });
-    }
-
-    static postData = async (action: string, method: string, token: String, items: any) => {
+    static postData = async (action: string, method: string, token: String, items: any, tid: number) => {
         return new Promise(resolve => {
             const url = require('url');
 
@@ -767,7 +461,7 @@ export class Utils {
                 method: method,
                 data: items,
                 type: 'rpc',
-                tid: 0,
+                tid: tid,
             });
     
             const urlRpc = url.parse(process.env.NODE_RPC_URL, true);
