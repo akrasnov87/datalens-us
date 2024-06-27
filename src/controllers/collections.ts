@@ -1,5 +1,5 @@
 import {Request, Response} from '@gravity-ui/expresskit';
-import prepareResponse from '../components/response-presenter';
+import {prepareResponseAsync} from '../components/response-presenter';
 import Utils from '../utils';
 import {
     createCollection,
@@ -42,7 +42,7 @@ export default {
             result.operation,
         );
 
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);
@@ -67,7 +67,8 @@ export default {
 
         const formattedResponse = formatCollection(result);
 
-        const {code, response} = prepareResponse({data: formattedResponse}, req);
+
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },
@@ -111,7 +112,7 @@ export default {
 
         const formattedResponse = formatCollectionContent(result);
 
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
         res.status(code).send(response);
     },
@@ -119,7 +120,7 @@ export default {
     getRootPermissions: async (req: Request, res: Response) => {
         const result = await getRootCollectionPermissions({ctx: req.ctx});
 
-        const {code, response} = prepareResponse({data: result});
+        const {code, response} = await prepareResponseAsync({data: result});
 
         res.status(code).send(response);
     },
@@ -137,7 +138,7 @@ export default {
 
         const formattedResponse = formatGetCollectionBreadcrumbs(result);
 
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
         res.status(code).send(response);
     },
@@ -154,7 +155,7 @@ export default {
 
         const formattedResponse = formatCollectionModelsList(result);
 
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
         res.status(code).send(response);
     },
@@ -173,7 +174,7 @@ export default {
 
         const formattedResponse = formatCollectionModel(result);
 
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
         res.status(code).send(response);
     },
@@ -191,7 +192,7 @@ export default {
 
         const formattedResponse = formatCollectionModelsList(result);
 
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
         res.status(code).send(response);
     },
@@ -209,7 +210,7 @@ export default {
 
         const formattedResponse = formatCollectionModel(result);
 
-        const {code, response} = prepareResponse({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
         res.status(code).send(response);
     },

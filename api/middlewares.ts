@@ -1,11 +1,12 @@
 export {
     decodeId,
     waitDatabase,
-    setCiEnv,
     dlContext,
     finalRequestHandler,
     logError,
     checkReadOnlyMode,
     resolveWorkbookId,
     rpcAuthorization,
+    setCiEnv,
+    authZitadel,
 } from '../src/components/middlewares';

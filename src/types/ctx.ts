@@ -2,6 +2,7 @@ import {EmbedModel} from '../db/models/new/embed';
 import {JoinedEntryRevisionColumns} from '../db/presentations/joined-entry-revision';
 import {EmbeddingToken} from '../types/embedding';
 import {PrivatePermissions} from './models';
+import {ZitadelServiceUser} from './zitadel';
 
 export type UserCtxInfo = {
     userId: string;
@@ -26,5 +27,6 @@ export type CtxInfo = {
     privatePermissions: PrivatePermissions;
     projectId: string | null;
     embeddingInfo?: EmbeddingInfo;
-    superUser?: boolean
+    superUser?: boolean;
+    serviceUser?: ZitadelServiceUser;
 };

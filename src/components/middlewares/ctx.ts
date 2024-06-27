@@ -12,6 +12,7 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
         dlContext,
         onlyPublic,
         projectId,
+        serviceUser,
     } = res.locals;
 
     const privatePermissions = resolvePrivatePermissions(
@@ -28,6 +29,7 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
         onlyPublic,
         privatePermissions,
         projectId: projectId || null,
+        serviceUser,
     });
 
     if (process.env.NODE_RPC_URL) {
