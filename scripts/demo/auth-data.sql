@@ -1,6 +1,5 @@
 
 START TRANSACTION;
-
 SET TIMEZONE TO 'UTC';
 
 SET check_function_bodies = false;
@@ -127,6 +126,7 @@ CREATE TABLE core.pd_roles (
 	c_name text NOT NULL,
 	c_description text,
 	n_weight integer DEFAULT 0 NOT NULL,
+	b_base boolean DEFAULT false NOT NULL,
 	d_created_date timestamp without time zone DEFAULT now() NOT NULL,
 	c_created_user text DEFAULT 'iserv'::text NOT NULL,
 	d_change_date timestamp without time zone,
@@ -145,6 +145,8 @@ COMMENT ON COLUMN core.pd_roles.c_name IS 'Наименование';
 COMMENT ON COLUMN core.pd_roles.c_description IS 'Описание роли';
 
 COMMENT ON COLUMN core.pd_roles.n_weight IS 'Приоритет';
+
+COMMENT ON COLUMN core.pd_roles.b_base IS 'Признак базовой роли';
 
 COMMENT ON COLUMN core.pd_roles.d_created_date IS 'Дата создания записи';
 
@@ -204,7 +206,8 @@ CREATE TABLE core.pd_users (
 	d_change_date timestamp without time zone,
 	c_change_user text,
 	sn_delete boolean DEFAULT false NOT NULL,
-	d_expired_date timestamp without time zone
+	d_expired_date timestamp without time zone,
+	b_oidc boolean
 );
 
 ALTER TABLE core.pd_users OWNER TO us;
@@ -243,7 +246,9 @@ COMMENT ON COLUMN core.pd_users.sn_delete IS 'Удален';
 
 COMMENT ON COLUMN core.pd_users.d_expired_date IS 'Срок действия';
 
-CREATE OR REPLACE FUNCTION core.of_users(sender jsonb, params jsonb) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, c_claims_name text, jb_data jsonb)
+COMMENT ON COLUMN core.pd_users.b_oidc IS 'Признак, что пользователь создан через OIDC';
+
+CREATE OR REPLACE FUNCTION core.of_users(sender jsonb, params jsonb) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, c_claims_name text, b_oidc boolean, jb_data jsonb)
     LANGUAGE plpgsql
     AS $$
 
@@ -269,6 +274,7 @@ BEGIN
                 u.d_last_auth_date,         -- дата последней авторизации
                 u.c_email,                                                                      -- email
                 u.c_project_name,
+                u.b_oidc,
                 concat('.', ( SELECT string_agg(t.c_description, '.'::text) AS string_agg
                         FROM (  SELECT r.c_description
                             FROM core.pd_userinroles uir
@@ -420,6 +426,35 @@ $$;
 ALTER FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) OWNER TO us;
 
 COMMENT ON FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) IS 'Создание ссылки для "Поделиться"';
+
+CREATE OR REPLACE FUNCTION core.sf_create_oidc_user(_login text, _token text) RETURNS TABLE(msg text, user_id integer, n_code integer)
+    LANGUAGE plpgsql ROWS 1
+    AS $$
+/**
+	Создание пользователя
+	
+	_login: text 		- логин
+	_token: text 		- токен
+ * 
+ * @returns {integer} - иден. пользователя
+ */
+DECLARE
+	_f_user 					integer;
+BEGIN
+	
+	INSERT INTO core.pd_users(c_login, c_password, b_disabled, b_oidc)
+	VALUES (_login, _token, false, true) RETURNING id INTO _f_user;
+	
+	PERFORM core.pf_update_user_roles(_f_user, '["oidc", "datalens"]');
+	
+	RETURN QUERY 
+		SELECT '', _f_user, 0;
+END
+$$;
+
+ALTER FUNCTION core.sf_create_oidc_user(_login text, _token text) OWNER TO us;
+
+COMMENT ON FUNCTION core.sf_create_oidc_user(_login text, _token text) IS 'Создание пользователя авторизовавшегося через OIDC';
 
 CREATE OR REPLACE FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) RETURNS TABLE(msg text, user_id integer, n_code integer)
     LANGUAGE plpgsql ROWS 1
@@ -576,7 +611,7 @@ ALTER FUNCTION core.sf_update_pwd(_login text, _password text, _new_password tex
 
 COMMENT ON FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) IS 'Замена пароля пользователя';
 
-CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -592,7 +627,7 @@ ALTER FUNCTION core.sf_users(_f_user integer) OWNER TO us;
 
 COMMENT ON FUNCTION core.sf_users(_f_user integer) IS 'Системная функция. Получение информации о пользователе';
 
-CREATE OR REPLACE FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -616,7 +651,7 @@ ALTER FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) 
 
 COMMENT ON FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
 
-CREATE OR REPLACE FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -638,6 +673,7 @@ BEGIN
 				u.d_last_auth_date, -- дата последней авторизации
 				u.c_email, -- email
 				u.c_project_name,
+				u.b_oidc,
 			    concat('.', ( SELECT string_agg(t.c_description, '.'::text) AS string_agg
 			    		FROM ( 	SELECT r.c_description
 			    			FROM core.pd_userinroles uir
@@ -808,12 +844,15 @@ ALTER VIEW core.sv_objects OWNER TO us;
 ALTER SEQUENCE core.sd_logs_id_seq
 	OWNED BY core.sd_logs.id;
 
+START TRANSACTION;
+
 -- список ролей
-INSERT INTO core.pd_roles(c_name, c_description, n_weight)
+INSERT INTO core.pd_roles(c_name, c_description, n_weight, b_base)
 VALUES 
-('master', 'Мастер', 1000), 
-('admin', 'Администратор', 900),	
-('datalens', 'Пользователь', 800);
+('master', 'Мастер', 1000, false), 
+('admin', 'Администратор', 900, true),	
+('datalens', 'Пользователь', 800, true),	
+('oidc', 'Внешний пользователь', 700, false);
 
 -- первоначальные права доступа
 INSERT INTO core.pd_accesses(f_role, c_name, c_function, b_deletable, b_creatable, b_editable, b_full_control)
@@ -862,5 +901,7 @@ SELECT core.sf_create_user('admin', 'qwe-123', '', '["admin"]');
 
 -- пользователь
 SELECT core.sf_create_user('user', 'qwe-123', '', '["datalens"]');
+
+COMMIT TRANSACTION;	
 
 COMMIT TRANSACTION;
