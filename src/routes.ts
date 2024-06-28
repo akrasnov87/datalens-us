@@ -4,6 +4,7 @@ import {NodeKit} from '@gravity-ui/nodekit';
 import {isEnabledFeature, Feature} from './components/features';
 
 import authController from './controllers/auth';
+import oidcAuthController from './controllers/oidc-auth';
 import homeController from './controllers/home';
 import helpersController from './controllers/helpers';
 import entriesController from './controllers/entries';
@@ -58,6 +59,11 @@ export function getRoutes(nodekit: NodeKit, options: GetRoutesOptions) {
         auth: makeRoute({
             route: 'GET /auth',
             handler: authController,
+        }),
+
+        oidcAuth: makeRoute({
+            route: 'GET /oidc/auth',
+            handler: oidcAuthController,
         }),
 
         ping: {

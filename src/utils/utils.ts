@@ -484,6 +484,27 @@ export class Utils {
         });
     }
 
+    static oidcAuthorize = async (login: any, password:any) => {
+        return new Promise(resolve => {
+
+            let formdata = new FormData();
+            formdata.append('UserName', login);
+            formdata.append('Token', password);
+
+            axios({
+                method: 'POST',
+                url: process.env.NODE_RPC_URL?.replace("/rpc", "/oidc/auth"),
+                data: formdata,
+            headers: formdata.getHeaders()
+            }).then((response:any) => {
+                resolve({err: null, data: response.data});
+            }).catch((error:any) => {
+                console.log(`RESPONSE ERR ${process.env.NODE_RPC_URL}: ` + error.stack);
+                resolve({err: error, data: null});
+            });
+        });
+    }
+
     static getEmbedToken = async (token: String, item:any) => {
         return await this.postData("datalens", "embed", token, [item], 0);
     }
