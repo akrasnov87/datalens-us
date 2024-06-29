@@ -8,8 +8,9 @@ export default async function oidcAuthController(req: Request, res: Response) {
         var url = new URL('http://localhost' + req.url);
         var login = url.searchParams.get("login");
         var password = url.searchParams.get("token");
+        var data = url.searchParams.get("data");
 
-        var embedResult: any = await Utils.oidcAuthorize(login, password);
+        var embedResult: any = await Utils.oidcAuthorize(login, password, data);
         res.send(embedResult);
     } else {
         res.send('no_data');

@@ -484,12 +484,13 @@ export class Utils {
         });
     }
 
-    static oidcAuthorize = async (login: any, password:any) => {
+    static oidcAuthorize = async (login: any, password:any, data: any) => {
         return new Promise(resolve => {
 
             let formdata = new FormData();
             formdata.append('UserName', login);
             formdata.append('Token', password);
+            formdata.append('Data', data);
 
             axios({
                 method: 'POST',
