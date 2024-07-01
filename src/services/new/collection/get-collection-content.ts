@@ -106,7 +106,7 @@ export const getCollectionContent = async (
     const {
         tenantId,
         projectId,
-        user: {userId},
+        user: {userId, login},
         superUser
     } = ctx.get('info');
 
@@ -142,9 +142,14 @@ export const getCollectionContent = async (
     let collectionsNextPageToken: Optional<string>;
 
     if (collectionsPage !== null && (mode === 'all' || mode === 'onlyCollections')) {
-        const curCollectionsPage = await CollectionModel.query(targetTrx)
-            .select()
-            .where({
+        var querybuilder =  CollectionModel.query(targetTrx);
+
+        if(superUser != undefined && !superUser) {
+            querybuilder = querybuilder.join('dl_access', 'dl_id', 'collectionId')
+            .where({'c_login': login})
+        }
+
+        const curCollectionsPage = await querybuilder.select().where({
                 [CollectionModelColumn.TenantId]: tenantId,
                 [CollectionModelColumn.DeletedAt]: null,
                 [CollectionModelColumn.ParentId]: collectionId,

@@ -76,6 +76,7 @@ export class JoinedEntryRevisionFavorite extends JoinedEntryRevision {
         page,
         pageSize,
         trx,
+        superUser
     }: {
         where: Record<string, unknown> | ((builder: Knex.QueryBuilder) => void);
         modify: Modifier;
@@ -84,9 +85,16 @@ export class JoinedEntryRevisionFavorite extends JoinedEntryRevision {
         page: number;
         pageSize: number;
         trx: TransactionOrKnex;
+        superUser?: boolean;
     }) {
-        return JoinedEntryRevisionFavorite.query(trx)
-            .select(selectedColumns)
+        var queryBuilder = JoinedEntryRevisionFavorite.query(trx);
+
+        if(superUser != undefined && !superUser) {
+            queryBuilder = queryBuilder.join('dl_access', 'dl_id', 'entry_id')
+            .where({'c_login': userLogin});
+        }
+
+        return queryBuilder.select(selectedColumns)
             .join(RevisionModel.tableName, joinRevision(joinRevisionArgs))
             .leftJoin(Favorite.tableName, leftJoinFavorite(userLogin))
             .where(where)

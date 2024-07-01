@@ -95,7 +95,7 @@ export const getWorkbooksList = async (
     const {
         tenantId,
         projectId,
-        user: {userId},
+        user: {userId, login},
         superUser
     } = ctx.get('info');
 
@@ -131,8 +131,13 @@ export const getWorkbooksList = async (
         }
     }
 
-    const workbooksPage = await WorkbookModel.query(targetTrx)
-        .select()
+    var queryBuilder = WorkbookModel.query(targetTrx);
+    if(superUser != undefined && !superUser) {
+        queryBuilder = queryBuilder.join('dl_access', 'dl_id', 'workbookId')
+        .where({'c_login': login})
+    }
+    
+    const workbooksPage = await queryBuilder.select()
         .where({
             [WorkbookModelColumn.TenantId]: tenantId,
             [WorkbookModelColumn.CollectionId]: collectionId,

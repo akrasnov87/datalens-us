@@ -111,7 +111,7 @@ export const getWorkbookContent = async (
 
     const targetTrx = getReplica(trx);
 
-    const {user, tenantId} = ctx.get('info');
+    const {user, tenantId, superUser} = ctx.get('info');
 
     const workbook = await getWorkbook(
         {ctx, trx, skipValidation: true, skipCheckPermissions},
@@ -165,6 +165,7 @@ export const getWorkbookContent = async (
         userLogin: user.login,
         page,
         pageSize,
+        superUser
     });
 
     const nextPageToken = Utils.getNextPageToken(page, pageSize, entriesPage.total);

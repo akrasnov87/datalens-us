@@ -460,7 +460,17 @@ export class Utils {
     };
 
     static getPermissions = async (token: String, item:any) => {
-        return await this.postData("datalens", "permissions", token, [item], 0);
+        var validationFields = ['id', 'title', 'entryId'];
+        var data: any = {};
+        for(var i in item) {
+            if(validationFields.includes(i)) {
+                data[i] = item[i];
+            }
+        }
+
+        data = Utils.encodeIds(data);
+
+        return await this.postData("datalens", "permissions", token, [data], 0);
     }
 
     static authorize = async (login: any, password:any) => {

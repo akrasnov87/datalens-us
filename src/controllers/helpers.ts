@@ -85,6 +85,16 @@ export default {
             if(r.rpc[0].statusCode == 200) {
                 var token = r.rpc[0].token;
                 var body = r.body;
+                
+                for (var i = 0; i < body.data.length; i++) {
+                    var item = body.data[i];
+                    for (var name in item) {
+                        try {
+                            // специально прокидываю идентификаторы decode, нужно для фидльтрации безопасности
+                            item[`__${name}`] = Utils.decodeId(item[name]);
+                        } catch(e) {}
+                    }
+                }
         
                 var result: any = await Utils.postData(body.action, body.method, token, body.data || [{}], body.tid || 0);
 
