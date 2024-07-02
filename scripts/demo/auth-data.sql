@@ -82,7 +82,8 @@ CREATE TABLE core.pd_accesses (
 	d_created_date timestamp without time zone DEFAULT now() NOT NULL,
 	c_change_user text,
 	d_change_date timestamp without time zone,
-	sn_delete boolean DEFAULT false NOT NULL
+	sn_delete boolean DEFAULT false NOT NULL,
+	dl_id bigint
 );
 
 ALTER TABLE core.pd_accesses OWNER TO us;
@@ -120,6 +121,8 @@ COMMENT ON COLUMN core.pd_accesses.c_change_user IS 'Логин пользова
 COMMENT ON COLUMN core.pd_accesses.d_change_date IS 'Дата обновления записи';
 
 COMMENT ON COLUMN core.pd_accesses.sn_delete IS 'Признак удаления';
+
+COMMENT ON COLUMN core.pd_accesses.dl_id IS 'Вспомогательное поле для объектов Datalens';
 
 CREATE TABLE core.pd_roles (
 	id integer DEFAULT nextval('core.auto_id_pd_roles'::regclass) NOT NULL,
@@ -427,7 +430,7 @@ ALTER FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _create
 
 COMMENT ON FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) IS 'Создание ссылки для "Поделиться"';
 
-CREATE OR REPLACE FUNCTION core.sf_create_oidc_user(_login text, _token text) RETURNS TABLE(msg text, user_id integer, n_code integer)
+CREATE OR REPLACE FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) RETURNS TABLE(msg text, user_id integer, n_code integer)
     LANGUAGE plpgsql ROWS 1
     AS $$
 /**
@@ -442,8 +445,8 @@ DECLARE
 	_f_user 					integer;
 BEGIN
 	
-	INSERT INTO core.pd_users(c_login, c_password, b_disabled, b_oidc)
-	VALUES (_login, _token, false, true) RETURNING id INTO _f_user;
+	INSERT INTO core.pd_users(c_login, c_password, b_disabled, b_oidc, jb_data)
+	VALUES (_login, _token, false, true, _jb_data) RETURNING id INTO _f_user;
 	
 	PERFORM core.pf_update_user_roles(_f_user, '["oidc", "datalens"]');
 	
@@ -452,9 +455,9 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_create_oidc_user(_login text, _token text) OWNER TO us;
+ALTER FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) OWNER TO us;
 
-COMMENT ON FUNCTION core.sf_create_oidc_user(_login text, _token text) IS 'Создание пользователя авторизовавшегося через OIDC';
+COMMENT ON FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) IS 'Создание пользователя авторизовавшегося через OIDC';
 
 CREATE OR REPLACE FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) RETURNS TABLE(msg text, user_id integer, n_code integer)
     LANGUAGE plpgsql ROWS 1
@@ -841,10 +844,33 @@ CREATE VIEW core.sv_objects AS
 
 ALTER VIEW core.sv_objects OWNER TO us;
 
+CREATE VIEW public.dl_access AS
+	SELECT t.user_id,
+    t.object_id,
+    t.dl_id,
+    t.c_login
+   FROM ( SELECT DISTINCT u.id AS user_id,
+            split_part(a.c_function, '.'::text, 2) AS object_id,
+            a.dl_id,
+            u.c_login
+           FROM ((core.pd_users u
+             JOIN core.pd_userinroles uir ON ((uir.f_user = u.id)))
+             JOIN core.pd_accesses a ON (((a.f_user = u.id) AND (a.c_function IS NOT NULL))))
+          WHERE starts_with(a.c_function, 'DL.'::text)
+        UNION ALL
+         SELECT DISTINCT u.id AS user_id,
+            split_part(a.c_function, '.'::text, 2) AS object_id,
+            a.dl_id,
+            u.c_login
+           FROM ((core.pd_users u
+             JOIN core.pd_userinroles uir ON ((uir.f_user = u.id)))
+             JOIN core.pd_accesses a ON (((a.f_role = uir.f_role) AND (a.c_function IS NOT NULL))))
+          WHERE starts_with(a.c_function, 'DL.'::text)) t;
+
+ALTER VIEW public.dl_access OWNER TO us;
+
 ALTER SEQUENCE core.sd_logs_id_seq
 	OWNED BY core.sd_logs.id;
-
-START TRANSACTION;
 
 -- список ролей
 INSERT INTO core.pd_roles(c_name, c_description, n_weight, b_base)
@@ -873,9 +899,11 @@ VALUES
 (2,	'update',NULL,	false,	true,	false,	false),
 (2,	'rename',NULL,	false,	true,	false,	false),
 (2,	'roles',NULL,	false,	false,	false,	false),
+(2, 'rootCollection', NULL,	false,	false,	false,	false),
+(2, 'universal_service', NULL,	false,	true,	false,	false),
 (2,	NULL, 'DL.*',	false,	false,	false,	false),
 (2,	NULL, 'opensource-demo.*',	false,	false,	false,	false),
-(NULL,	NULL, 'DL.datalens.*',	false,	false,	false,	false),
+(2,	NULL, 'DL.datalens.*',	false,	false,	false,	false),
 (3,	'embed',NULL,	false,	false,	false,	false),
 (3,	'entries',NULL,	false,	false,	false,	false),
 (3,	'workbooks',NULL, false,	false,	false,	false),
@@ -891,7 +919,10 @@ VALUES
 (3,	'root-collection-permissions',NULL,	false,	false,	false,	false),
 (3,	'update',NULL,	false,	false,	false,	false),
 (3,	'rename',NULL,	false,	false,	false,	false),
-(3,	'roles',NULL,	false,	false,	false,	false);
+(3,	'roles',NULL,	false,	false,	false,	false),
+(3, 'universal_service', NULL,	false,	true,	false,	false),
+(3, 'rootCollection', NULL,	false,	false,	false,	false),
+(3,	NULL, 'DL.datalens.*',	false,	false,	false,	false);
 
 -- пользователь с максимальными правами
 SELECT core.sf_create_user('master', 'qwe-123', '', '["master", "admin"]');
@@ -901,7 +932,5 @@ SELECT core.sf_create_user('admin', 'qwe-123', '', '["admin"]');
 
 -- пользователь
 SELECT core.sf_create_user('user', 'qwe-123', '', '["datalens"]');
-
-COMMIT TRANSACTION;	
 
 COMMIT TRANSACTION;

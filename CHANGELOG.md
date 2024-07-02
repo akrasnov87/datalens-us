@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.214.0] 02.07.2024
+
+Created:
+
+- добавлен параметр `USE_AUTH_DATA` - создание таблиц и данных для авторизации через `datalens-auth`.
+
+Fixed:
+
+- обновлён скрипт создания БД для авторизации;
+- обновление версии с main 0.204.0 -> 0.214.0.
+
 ## [0.209.2a] 01.07.2024
 
 Fixed:

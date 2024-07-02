@@ -23,8 +23,10 @@ if [ "$USE_DEMO_DATA" = "1" ]; then
         node /opt/app/dist/server/db/scripts/demo/d3.js $PROJECT_ID
     fi
 
-    echo "Use auth demo data"
-    node /opt/app/dist/server/db/scripts/demo/auth.js 
+    if [ "$USE_AUTH_DATA" = "1" ]; then
+        echo "Use auth demo data"
+        node /opt/app/dist/server/db/scripts/demo/auth.js 
+    fi
 
     echo "Finish setting up demo data"
 fi

@@ -22,13 +22,13 @@ NODE_RPC_URL=http://localhost:7000/demo/rpc
 {"url":"/v1/collection-content?includePermissionsInfo=true&pageSize=50&orderField=createdAt&orderDirection=desc&onlyMy=false&mode=all","method":"GET","rawHeaders":["Accept","application/json, */*","x-request-id","dl.95099.8f2fd60e","host","host.docker.internal:8030","accept-encoding","gzip, deflate","accept-language","en","x-gateway-version","1.5.1","x-forwarded-for","172.22.0.1","x-rpc-authorization","bW9iaWxlOjEyMzQ1","user-agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 YaBrowser/24.1.0.0 Safari/537.36","origin","http://localhost:8080","referer","http://localhost:8080/collections?x-rpc-authorization=bW9iaWxlOjEyMzQ1","Connection","close"]}
 </pre>
 
-__Примечание__: для некоторых контейнеров введена маркеровка с буквой Z. Т.к. yandex'ом внедряется авторизация `Zitadel`ю На даннй момент последней актуальной версией без Zitadel является `akrasnov87/datalens-us:0.204.3`
+__Примечание__: для некоторых контейнеров введена маркеровка с буквой `a`. Эта буква обозначает сборку, которую окончательно ещё не проверяли, либо она промежуточная.
 
 ## Сборка
 <pre>
 docker login -u [username]
-docker build -t akrasnov87/datalens-us:0.204.0 .
-docker push akrasnov87/datalens-us:0.204.0
+docker build -t akrasnov87/datalens-us:0.214.0 .
+docker push akrasnov87/datalens-us:0.214.0
 </pre>
 
 ## Тестирование
