@@ -7,6 +7,8 @@ const FormData = require('form-data');
 
 import chunk from 'lodash/chunk';
 
+import chunk from 'lodash/chunk';
+
 import {EntryScope, USAPIResponse} from '../types/models';
 
 import {ID_VARIABLES, CODING_BASE, TRUE_FLAGS, COPY_START, COPY_END} from '../const';
