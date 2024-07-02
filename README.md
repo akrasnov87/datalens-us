@@ -65,6 +65,13 @@ npm run dev
 * PROJECT_ID - идентификатор проекта, по которому будет фильтр в таблицах piblic.workbooks и public.collections
 * NODE_RPC_URL - имя сервиса для разграничения прав доступа
 
+* OIDC - признак подключения OIDC-провайдера авторизации
+* OIDC_ISSUER - адрес страницы для получения параметров OIDC авторизации
+* OIDC_BASE_URL - обработчик авторизации (локальный, например ~/auth/v1/oidc)
+* OIDC_CLIENT_ID - идентификатор клиента
+* OIDC_SECRET - секретный ключ
+* OIDC_NAME - наименование провайдера на клиенте
+
 __Внимание__: если требуется отладка [datalens-backend](https://github.com/akrasnov87/datalens-backend), то нужно чтобы `MASTER_TOKEN`(ы) совпадали. 
 
 ## Получение последних изменений
