@@ -614,7 +614,7 @@ ALTER FUNCTION core.sf_update_pwd(_login text, _password text, _new_password tex
 
 COMMENT ON FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) IS 'Замена пароля пользователя';
 
-CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, userName text, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -630,7 +630,7 @@ ALTER FUNCTION core.sf_users(_f_user integer) OWNER TO us;
 
 COMMENT ON FUNCTION core.sf_users(_f_user integer) IS 'Системная функция. Получение информации о пользователе';
 
-CREATE OR REPLACE FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, userName text, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -654,7 +654,7 @@ ALTER FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) 
 
 COMMENT ON FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
 
-CREATE OR REPLACE FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, userName text, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -677,6 +677,7 @@ BEGIN
 				u.c_email, -- email
 				u.c_project_name,
 				u.b_oidc,
+				u.jb_data#>>'{name}' AS username,
 			    concat('.', ( SELECT string_agg(t.c_description, '.'::text) AS string_agg
 			    		FROM ( 	SELECT r.c_description
 			    			FROM core.pd_userinroles uir
