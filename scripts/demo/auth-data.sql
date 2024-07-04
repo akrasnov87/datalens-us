@@ -124,6 +124,43 @@ COMMENT ON COLUMN core.pd_accesses.sn_delete IS 'Признак удаления
 
 COMMENT ON COLUMN core.pd_accesses.dl_id IS 'Вспомогательное поле для объектов Datalens';
 
+CREATE TABLE IF NOT EXISTS core.pd_projects
+(
+    id serial NOT NULL,
+    c_name text COLLATE pg_catalog."default" NOT NULL,
+    c_description text COLLATE pg_catalog."default",
+    b_base boolean NOT NULL DEFAULT false,
+    d_created_date timestamp without time zone NOT NULL DEFAULT now(),
+    c_created_user text COLLATE pg_catalog."default" NOT NULL DEFAULT 'iserv'::text,
+    d_change_date timestamp without time zone,
+    c_change_user text COLLATE pg_catalog."default",
+    sn_delete boolean NOT NULL DEFAULT false,
+    CONSTRAINT pd_projects_pkey PRIMARY KEY (id),
+    CONSTRAINT pd_projects_uniq_c_name UNIQUE (c_name)
+)
+
+ALTER TABLE IF EXISTS core.pd_projects OWNER to us;
+
+COMMENT ON TABLE core.pd_projects IS 'Проекты';
+
+COMMENT ON COLUMN core.pd_projects.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_projects.c_name IS 'Наименование';
+
+COMMENT ON COLUMN core.pd_projects.c_description IS 'Описание';
+
+COMMENT ON COLUMN core.pd_projects.b_base IS 'Признак базового проект';
+
+COMMENT ON COLUMN core.pd_projects.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_projects.c_created_user IS 'Автор создания';
+
+COMMENT ON COLUMN core.pd_projects.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_projects.c_change_user IS 'Автор изменения';
+
+COMMENT ON COLUMN core.pd_projects.sn_delete IS 'Удален';
+
 CREATE TABLE core.pd_roles (
 	id integer DEFAULT nextval('core.auto_id_pd_roles'::regclass) NOT NULL,
 	c_name text NOT NULL,
@@ -879,7 +916,11 @@ VALUES
 ('master', 'Мастер', 1000, false), 
 ('admin', 'Администратор', 900, true),	
 ('datalens', 'Пользователь', 800, true),	
-('oidc', 'Внешний пользователь', 700, false);
+('oidc', 'Внешний пользователь', 700, true);
+
+-- проекты
+INSERT INTO core.pd_projects(c_name, c_description, b_base)
+VALUES ('datalens-demo', 'Демонстрационные данные', true);
 
 -- первоначальные права доступа
 INSERT INTO core.pd_accesses(f_role, c_name, c_function, b_deletable, b_creatable, b_editable, b_full_control)

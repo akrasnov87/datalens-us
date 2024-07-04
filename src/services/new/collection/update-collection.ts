@@ -21,6 +21,9 @@ const validateArgs = makeSchemaValidator({
         title: {
             type: 'string',
         },
+        project: {
+            type: 'string',
+        },
         description: {
             type: 'string',
         },
@@ -30,6 +33,7 @@ const validateArgs = makeSchemaValidator({
 export interface UpdateCollectionArgs {
     collectionId: string;
     title?: string;
+    project?: string | null;
     description?: string;
 }
 
@@ -37,10 +41,12 @@ export const updateCollection = async (
     {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
     args: UpdateCollectionArgs,
 ) => {
-    const {collectionId, title: newTitle, description: newDescription} = args;
+    const {collectionId, title: newTitle, project: newProject, description: newDescription} = args;
 
     const {
         user: {userId},
+        projectId,
+        superUser
     } = ctx.get('info');
 
     const {accessServiceEnabled} = ctx.config;
@@ -104,6 +110,7 @@ export const updateCollection = async (
         .patch({
             [CollectionModelColumn.Title]: newTitle,
             [CollectionModelColumn.TitleLower]: newTitle?.toLowerCase(),
+            [CollectionModelColumn.ProjectId]: superUser ? (newProject || projectId) : projectId,
             [CollectionModelColumn.Description]: newDescription,
             [CollectionModelColumn.UpdatedBy]: userId,
             [CollectionModelColumn.UpdatedAt]: raw(CURRENT_TIMESTAMP),

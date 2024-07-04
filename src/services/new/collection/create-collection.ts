@@ -28,6 +28,7 @@ const validateArgs = makeSchemaValidator({
 
 export interface CreateCollectionArgs {
     title: string;
+    project?: string | null;
     description?: string;
     parentId: Nullable<string>;
 }
@@ -36,7 +37,7 @@ export const createCollection = async (
     {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
     args: CreateCollectionArgs,
 ) => {
-    const {title, description, parentId} = args;
+    const {title, project, description, parentId} = args;
 
     logInfo(ctx, 'CREATE_COLLECTION_START', {
         title,
@@ -53,6 +54,7 @@ export const createCollection = async (
         tenantId,
         projectId,
         isPrivateRoute,
+        superUser
     } = ctx.get('info');
 
     const {accessServiceEnabled, accessBindingsServiceEnabled} = ctx.config;
@@ -105,7 +107,7 @@ export const createCollection = async (
                 [CollectionModelColumn.Description]: description ?? null,
                 [CollectionModelColumn.ParentId]: parentId,
                 [CollectionModelColumn.TenantId]: tenantId,
-                [CollectionModelColumn.ProjectId]: projectId,
+                [CollectionModelColumn.ProjectId]: superUser ? (project || projectId) : projectId,
                 [CollectionModelColumn.CreatedBy]: userId,
                 [CollectionModelColumn.UpdatedBy]: userId,
             })

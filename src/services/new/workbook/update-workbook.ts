@@ -21,6 +21,9 @@ const validateArgs = makeSchemaValidator({
         title: {
             type: 'string',
         },
+        project: {
+            type: 'string',
+        },
         description: {
             type: 'string',
         },
@@ -30,6 +33,7 @@ const validateArgs = makeSchemaValidator({
 export interface UpdateWorkbookArgs {
     workbookId: string;
     title?: string;
+    project?: string;
     description?: string;
 }
 
@@ -37,7 +41,7 @@ export const updateWorkbook = async (
     {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
     args: UpdateWorkbookArgs,
 ) => {
-    const {workbookId, title: newTitle, description: newDescription} = args;
+    const {workbookId, title: newTitle, project: newProject, description: newDescription} = args;
 
     logInfo(ctx, 'UPDATE_WORKBOOK_START', {
         workbookId: Utils.encodeId(workbookId),
@@ -53,6 +57,8 @@ export const updateWorkbook = async (
 
     const {
         user: {userId},
+        projectId,
+        superUser
     } = ctx.get('info');
 
     const targetTrx = getPrimary(trx);
@@ -104,6 +110,7 @@ export const updateWorkbook = async (
         .patch({
             [WorkbookModelColumn.Title]: newTitle,
             [WorkbookModelColumn.TitleLower]: newTitle?.toLowerCase(),
+            [WorkbookModelColumn.ProjectId]: superUser ? (newProject || projectId) : projectId,
             [WorkbookModelColumn.Description]: newDescription,
             [WorkbookModelColumn.UpdatedBy]: userId,
             [WorkbookModelColumn.UpdatedAt]: raw(CURRENT_TIMESTAMP),

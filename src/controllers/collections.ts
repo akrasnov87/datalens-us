@@ -32,6 +32,7 @@ export default {
             {ctx: req.ctx},
             {
                 title: body.title,
+                project: body.project,
                 description: body.description as Optional<string>,
                 parentId: body.parentId as Nullable<string>,
             },
@@ -204,6 +205,7 @@ export default {
             {
                 collectionId: params.collectionId,
                 title: body.title as Optional<string>,
+                project: body.project as Optional<string>,
                 description: body.description as Optional<string>,
             },
         );

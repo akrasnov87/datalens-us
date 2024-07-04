@@ -29,6 +29,7 @@ const validateArgs = makeSchemaValidator({
 export interface CreateWorkbookArgs {
     collectionId: Nullable<string>;
     title: string;
+    project?: string;
     description?: string;
 }
 
@@ -36,7 +37,7 @@ export const createWorkbook = async (
     {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
     args: CreateWorkbookArgs,
 ) => {
-    const {title, description, collectionId} = args;
+    const {title, project, description, collectionId} = args;
 
     logInfo(ctx, 'CREATE_WORKBOOK_START', {
         title,
@@ -55,6 +56,7 @@ export const createWorkbook = async (
         tenantId,
         projectId,
         isPrivateRoute,
+        superUser
     } = ctx.get('info');
 
     const targetTrx = getPrimary(trx);
@@ -105,7 +107,7 @@ export const createWorkbook = async (
                 [WorkbookModelColumn.TitleLower]: title.toLowerCase(),
                 [WorkbookModelColumn.Description]: description ?? null,
                 [WorkbookModelColumn.TenantId]: tenantId,
-                [WorkbookModelColumn.ProjectId]: projectId,
+                [WorkbookModelColumn.ProjectId]: superUser ? (project || projectId) : projectId,
                 [WorkbookModelColumn.CollectionId]: collectionId,
                 [WorkbookModelColumn.CreatedBy]: userId,
                 [WorkbookModelColumn.UpdatedBy]: userId,

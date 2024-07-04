@@ -42,6 +42,7 @@ export default {
             {
                 collectionId: body.collectionId ?? null,
                 title: body.title,
+                project: body.project,
                 description: body.description,
             },
         );
@@ -164,6 +165,7 @@ export default {
             {
                 workbookId: params.workbookId,
                 title: body.title,
+                project: body.project,
                 description: body.description,
             },
         );
