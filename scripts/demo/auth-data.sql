@@ -1,16 +1,16 @@
-
-START TRANSACTION;
 SET TIMEZONE TO 'UTC';
 
 SET check_function_bodies = false;
 
+START TRANSACTION;
+
 SET search_path = pg_catalog;
 
-CREATE SCHEMA core;
+CREATE SCHEMA IF NOT EXISTS core;
 
 ALTER SCHEMA core OWNER TO us;
 
-CREATE SEQUENCE core.auto_id_pd_accesses
+CREATE SEQUENCE IF NOT EXISTS core.auto_id_pd_accesses
 	START WITH 1
 	INCREMENT BY 1
 	NO MAXVALUE
@@ -19,7 +19,7 @@ CREATE SEQUENCE core.auto_id_pd_accesses
 
 ALTER SEQUENCE core.auto_id_pd_accesses OWNER TO us;
 
-CREATE SEQUENCE core.auto_id_pd_roles
+CREATE SEQUENCE IF NOT EXISTS core.auto_id_pd_roles
 	START WITH 1
 	INCREMENT BY 1
 	NO MAXVALUE
@@ -28,7 +28,7 @@ CREATE SEQUENCE core.auto_id_pd_roles
 
 ALTER SEQUENCE core.auto_id_pd_roles OWNER TO us;
 
-CREATE SEQUENCE core.auto_id_pd_userinroles
+CREATE SEQUENCE IF NOT EXISTS core.auto_id_pd_userinroles
 	START WITH 1
 	INCREMENT BY 1
 	NO MAXVALUE
@@ -37,7 +37,7 @@ CREATE SEQUENCE core.auto_id_pd_userinroles
 
 ALTER SEQUENCE core.auto_id_pd_userinroles OWNER TO us;
 
-CREATE SEQUENCE core.auto_id_pd_users
+CREATE SEQUENCE IF NOT EXISTS core.auto_id_pd_users
 	START WITH 1
 	INCREMENT BY 1
 	NO MAXVALUE
@@ -46,9 +46,35 @@ CREATE SEQUENCE core.auto_id_pd_users
 
 ALTER SEQUENCE core.auto_id_pd_users OWNER TO us;
 
+-- DEPCY: This SEQUENCE is a dependency of COLUMN: core.pd_projects.id
+
+CREATE SEQUENCE IF NOT EXISTS core.pd_projects_id_seq
+	AS integer
+	START WITH 1
+	INCREMENT BY 1
+	NO MAXVALUE
+	NO MINVALUE
+	CACHE 1;
+
+ALTER SEQUENCE core.pd_projects_id_seq OWNER TO us;
+
+CREATE TABLE IF NOT EXISTS core.pd_projects (
+	id integer DEFAULT nextval('core.pd_projects_id_seq'::regclass) NOT NULL,
+	c_name text NOT NULL,
+	c_description text,
+	b_base boolean DEFAULT false NOT NULL,
+	d_created_date timestamp without time zone DEFAULT now() NOT NULL,
+	c_created_user text DEFAULT 'iserv'::text NOT NULL,
+	d_change_date timestamp without time zone,
+	c_change_user text,
+	sn_delete boolean DEFAULT false NOT NULL
+);
+
+ALTER TABLE core.pd_projects OWNER TO us;
+
 -- DEPCY: This SEQUENCE is a dependency of COLUMN: core.sd_logs.id
 
-CREATE SEQUENCE core.sd_logs_id_seq
+CREATE SEQUENCE IF NOT EXISTS core.sd_logs_id_seq
 	START WITH 1
 	INCREMENT BY 1
 	NO MAXVALUE
@@ -57,7 +83,7 @@ CREATE SEQUENCE core.sd_logs_id_seq
 
 ALTER SEQUENCE core.sd_logs_id_seq OWNER TO us;
 
-CREATE TABLE core.sd_logs (
+CREATE TABLE IF NOT EXISTS core.sd_logs (
 	id bigint DEFAULT nextval('core.sd_logs_id_seq'::regclass) NOT NULL,
 	d_date date NOT NULL,
 	jb_data jsonb NOT NULL,
@@ -66,7 +92,7 @@ CREATE TABLE core.sd_logs (
 
 ALTER TABLE core.sd_logs OWNER TO us;
 
-CREATE TABLE core.pd_accesses (
+CREATE TABLE IF NOT EXISTS core.pd_accesses (
 	id smallint DEFAULT nextval('core.auto_id_pd_accesses'::regclass) NOT NULL,
 	f_user integer,
 	f_role smallint,
@@ -88,80 +114,7 @@ CREATE TABLE core.pd_accesses (
 
 ALTER TABLE core.pd_accesses OWNER TO us;
 
-COMMENT ON TABLE core.pd_accesses IS 'Права доступа';
-
-COMMENT ON COLUMN core.pd_accesses.id IS 'Идентификатор';
-
-COMMENT ON COLUMN core.pd_accesses.f_user IS 'Пользователь';
-
-COMMENT ON COLUMN core.pd_accesses.f_role IS 'Роль';
-
-COMMENT ON COLUMN core.pd_accesses.c_name IS 'Табл./Предст./Функц.';
-
-COMMENT ON COLUMN core.pd_accesses.c_criteria IS 'Серверный фильтр';
-
-COMMENT ON COLUMN core.pd_accesses.c_function IS 'Функция RPC или её часть';
-
-COMMENT ON COLUMN core.pd_accesses.c_columns IS 'Запрещенные колонки';
-
-COMMENT ON COLUMN core.pd_accesses.b_deletable IS 'Разрешено удалени';
-
-COMMENT ON COLUMN core.pd_accesses.b_creatable IS 'Разрешено создание';
-
-COMMENT ON COLUMN core.pd_accesses.b_editable IS 'Разрешено редактирование';
-
-COMMENT ON COLUMN core.pd_accesses.b_full_control IS 'Дополнительный доступ';
-
-COMMENT ON COLUMN core.pd_accesses.c_created_user IS 'Логин пользователя создавшего запись';
-
-COMMENT ON COLUMN core.pd_accesses.d_created_date IS 'Дата создания записи';
-
-COMMENT ON COLUMN core.pd_accesses.c_change_user IS 'Логин пользователя обновившего запись';
-
-COMMENT ON COLUMN core.pd_accesses.d_change_date IS 'Дата обновления записи';
-
-COMMENT ON COLUMN core.pd_accesses.sn_delete IS 'Признак удаления';
-
-COMMENT ON COLUMN core.pd_accesses.dl_id IS 'Вспомогательное поле для объектов Datalens';
-
-CREATE TABLE IF NOT EXISTS core.pd_projects
-(
-    id serial NOT NULL,
-    c_name text COLLATE pg_catalog."default" NOT NULL,
-    c_description text COLLATE pg_catalog."default",
-    b_base boolean NOT NULL DEFAULT false,
-    d_created_date timestamp without time zone NOT NULL DEFAULT now(),
-    c_created_user text COLLATE pg_catalog."default" NOT NULL DEFAULT 'iserv'::text,
-    d_change_date timestamp without time zone,
-    c_change_user text COLLATE pg_catalog."default",
-    sn_delete boolean NOT NULL DEFAULT false,
-    CONSTRAINT pd_projects_pkey PRIMARY KEY (id),
-    CONSTRAINT pd_projects_uniq_c_name UNIQUE (c_name)
-)
-
-ALTER TABLE IF EXISTS core.pd_projects OWNER to us;
-
-COMMENT ON TABLE core.pd_projects IS 'Проекты';
-
-COMMENT ON COLUMN core.pd_projects.id IS 'Идентификатор';
-
-COMMENT ON COLUMN core.pd_projects.c_name IS 'Наименование';
-
-COMMENT ON COLUMN core.pd_projects.c_description IS 'Описание';
-
-COMMENT ON COLUMN core.pd_projects.b_base IS 'Признак базового проект';
-
-COMMENT ON COLUMN core.pd_projects.d_created_date IS 'Дата создания записи';
-
-COMMENT ON COLUMN core.pd_projects.c_created_user IS 'Автор создания';
-
-COMMENT ON COLUMN core.pd_projects.d_change_date IS 'Дата обновления записи';
-
-COMMENT ON COLUMN core.pd_projects.c_change_user IS 'Автор изменения';
-
-COMMENT ON COLUMN core.pd_projects.sn_delete IS 'Удален';
-
-CREATE TABLE core.pd_roles (
+CREATE TABLE IF NOT EXISTS core.pd_roles (
 	id integer DEFAULT nextval('core.auto_id_pd_roles'::regclass) NOT NULL,
 	c_name text NOT NULL,
 	c_description text,
@@ -176,29 +129,7 @@ CREATE TABLE core.pd_roles (
 
 ALTER TABLE core.pd_roles OWNER TO us;
 
-COMMENT ON TABLE core.pd_roles IS 'Роли';
-
-COMMENT ON COLUMN core.pd_roles.id IS 'Идентификатор';
-
-COMMENT ON COLUMN core.pd_roles.c_name IS 'Наименование';
-
-COMMENT ON COLUMN core.pd_roles.c_description IS 'Описание роли';
-
-COMMENT ON COLUMN core.pd_roles.n_weight IS 'Приоритет';
-
-COMMENT ON COLUMN core.pd_roles.b_base IS 'Признак базовой роли';
-
-COMMENT ON COLUMN core.pd_roles.d_created_date IS 'Дата создания записи';
-
-COMMENT ON COLUMN core.pd_roles.c_created_user IS 'Автор создания';
-
-COMMENT ON COLUMN core.pd_roles.d_change_date IS 'Дата обновления записи';
-
-COMMENT ON COLUMN core.pd_roles.c_change_user IS 'Автор изменения';
-
-COMMENT ON COLUMN core.pd_roles.sn_delete IS 'Удален';
-
-CREATE TABLE core.pd_userinroles (
+CREATE TABLE IF NOT EXISTS core.pd_userinroles (
 	id integer DEFAULT nextval('core.auto_id_pd_userinroles'::regclass) NOT NULL,
 	f_user integer NOT NULL,
 	f_role integer NOT NULL,
@@ -211,25 +142,7 @@ CREATE TABLE core.pd_userinroles (
 
 ALTER TABLE core.pd_userinroles OWNER TO us;
 
-COMMENT ON TABLE core.pd_userinroles IS 'Пользователи в ролях';
-
-COMMENT ON COLUMN core.pd_userinroles.id IS 'Идентификатор';
-
-COMMENT ON COLUMN core.pd_userinroles.f_user IS 'Пользователь';
-
-COMMENT ON COLUMN core.pd_userinroles.f_role IS 'Роль';
-
-COMMENT ON COLUMN core.pd_userinroles.c_created_user IS 'Логин пользователя создавшего запись';
-
-COMMENT ON COLUMN core.pd_userinroles.d_created_date IS 'Дата создания записи';
-
-COMMENT ON COLUMN core.pd_userinroles.c_change_user IS 'Логин пользователя обновившего запись';
-
-COMMENT ON COLUMN core.pd_userinroles.d_change_date IS 'Дата обновления записи';
-
-COMMENT ON COLUMN core.pd_userinroles.sn_delete IS 'Признак удаления';
-
-CREATE TABLE core.pd_users (
+CREATE TABLE IF NOT EXISTS core.pd_users (
 	id integer DEFAULT nextval('core.auto_id_pd_users'::regclass) NOT NULL,
 	c_login text NOT NULL,
 	c_password text,
@@ -252,43 +165,7 @@ CREATE TABLE core.pd_users (
 
 ALTER TABLE core.pd_users OWNER TO us;
 
-COMMENT ON TABLE core.pd_users IS 'Пользователи / Организации';
-
-COMMENT ON COLUMN core.pd_users.id IS 'Идентификатор';
-
-COMMENT ON COLUMN core.pd_users.c_login IS 'Логин';
-
-COMMENT ON COLUMN core.pd_users.c_password IS 'Пароль';
-
-COMMENT ON COLUMN core.pd_users.s_hash IS 'Hash';
-
-COMMENT ON COLUMN core.pd_users.c_email IS 'Адрес электронной почты';
-
-COMMENT ON COLUMN core.pd_users.c_project_name IS 'Имя проекта';
-
-COMMENT ON COLUMN core.pd_users.d_last_auth_date IS 'Дата последней авторизации';
-
-COMMENT ON COLUMN core.pd_users.d_last_change_password IS 'Дата изменения пароля';
-
-COMMENT ON COLUMN core.pd_users.b_key IS 'Используется доступ по ключу';
-
-COMMENT ON COLUMN core.pd_users.b_disabled IS 'Отключен';
-
-COMMENT ON COLUMN core.pd_users.d_created_date IS 'Дата создания записи';
-
-COMMENT ON COLUMN core.pd_users.c_created_user IS 'Логин пользователья создавшего запись';
-
-COMMENT ON COLUMN core.pd_users.d_change_date IS 'Дата обновления записи';
-
-COMMENT ON COLUMN core.pd_users.c_change_user IS 'Логин пользователья изменившего запись';
-
-COMMENT ON COLUMN core.pd_users.sn_delete IS 'Удален';
-
-COMMENT ON COLUMN core.pd_users.d_expired_date IS 'Срок действия';
-
-COMMENT ON COLUMN core.pd_users.b_oidc IS 'Признак, что пользователь создан через OIDC';
-
-CREATE OR REPLACE FUNCTION core.of_users(sender jsonb, params jsonb) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, c_claims_name text, b_oidc boolean, jb_data jsonb)
+CREATE OR REPLACE FUNCTION core.of_users(sender jsonb, params jsonb) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, c_claims_name text, b_base boolean, jb_data jsonb)
     LANGUAGE plpgsql
     AS $$
 
@@ -313,7 +190,7 @@ BEGIN
                 u.d_change_date,            -- дата модификации
                 u.d_last_auth_date,         -- дата последней авторизации
                 u.c_email,                                                                      -- email
-                u.c_project_name,
+                CASE WHEN u.c_project_name IS NULL THEN (SELECT p.c_name FROM core.pd_projects AS p WHERE p.b_base LIMIT 1) ELSE u.c_project_name END,
                 u.b_oidc,
                 concat('.', ( SELECT string_agg(t.c_description, '.'::text) AS string_agg
                         FROM (  SELECT r.c_description
@@ -321,14 +198,15 @@ BEGIN
                             JOIN core.pd_roles r ON uir.f_role = r.id
                             WHERE uir.f_user = u.id AND uir.sn_delete = false
                             ORDER BY r.n_weight DESC) t), '.') AS c_claims_name,                -- название ролей
+				CASE WHEN u.c_login = 'master' THEN true ELSE false END,
                 u.jb_data 
-        FROM core.pd_users AS u;
+        FROM core.pd_users AS u
+		WHERE CASE WHEN params#>>'{filter}' IS NULL THEN 1=1 ELSE u.c_login ilike ('%' || (params#>>'{filter}')::text || '%') END
+		ORDER BY u.c_login;
 END;
 $$;
 
 ALTER FUNCTION core.of_users(sender jsonb, params jsonb) OWNER TO us;
-
-COMMENT ON FUNCTION core.of_users(sender jsonb, params jsonb) IS 'Получение списка пользователей';
 
 CREATE OR REPLACE FUNCTION core.pf_accesses(n_user_id integer) RETURNS TABLE(table_name text, record_criteria text, rpc_function text, column_name text, is_editable boolean, is_deletable boolean, is_creatable boolean, is_fullcontrol boolean, access integer)
     LANGUAGE plpgsql
@@ -358,8 +236,6 @@ $$;
 
 ALTER FUNCTION core.pf_accesses(n_user_id integer) OWNER TO us;
 
-COMMENT ON FUNCTION core.pf_accesses(n_user_id integer) IS 'Системная функция. Получение прав доступа для пользователя. Используется "vaccine-node"JS';
-
 CREATE OR REPLACE FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) RETURNS integer
     LANGUAGE plpgsql
     AS $$
@@ -382,8 +258,6 @@ END
 $$;
 
 ALTER FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) OWNER TO us;
-
-COMMENT ON FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) IS 'Обновление ролей у пользователя';
 
 CREATE OR REPLACE FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) RETURNS integer
     LANGUAGE plpgsql
@@ -415,8 +289,6 @@ BEGIN
 $$;
 
 ALTER FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) OWNER TO us;
-
-COMMENT ON FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) IS 'Системная функция для обработки прав. Для внешнего использования не применять';
 
 CREATE OR REPLACE FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) RETURNS TABLE(decode_id bigint, encode_id text, existsing boolean)
     LANGUAGE plpgsql ROWS 1
@@ -465,8 +337,6 @@ $$;
 
 ALTER FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) OWNER TO us;
 
-COMMENT ON FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) IS 'Создание ссылки для "Поделиться"';
-
 CREATE OR REPLACE FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) RETURNS TABLE(msg text, user_id integer, n_code integer)
     LANGUAGE plpgsql ROWS 1
     AS $$
@@ -493,8 +363,6 @@ END
 $$;
 
 ALTER FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) OWNER TO us;
-
-COMMENT ON FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) IS 'Создание пользователя авторизовавшегося через OIDC';
 
 CREATE OR REPLACE FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) RETURNS TABLE(msg text, user_id integer, n_code integer)
     LANGUAGE plpgsql ROWS 1
@@ -524,8 +392,6 @@ END
 $$;
 
 ALTER FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) OWNER TO us;
-
-COMMENT ON FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) IS 'Создание пользователя';
 
 CREATE OR REPLACE FUNCTION core.sf_reset_pwd(_login text, _new_password text) RETURNS text
     LANGUAGE plpgsql
@@ -571,8 +437,6 @@ $$;
 
 ALTER FUNCTION core.sf_reset_pwd(_login text, _new_password text) OWNER TO us;
 
-COMMENT ON FUNCTION core.sf_reset_pwd(_login text, _new_password text) IS 'Сброс пароля пользователя';
-
 CREATE OR REPLACE FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) RETURNS integer
     LANGUAGE plpgsql
     AS $$
@@ -596,8 +460,6 @@ END
 $$;
 
 ALTER FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) OWNER TO us;
-
-COMMENT ON FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) IS 'Обновление информации об авторизации';
 
 CREATE OR REPLACE FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) RETURNS boolean
     LANGUAGE plpgsql
@@ -649,9 +511,7 @@ $$;
 
 ALTER FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) OWNER TO us;
 
-COMMENT ON FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) IS 'Замена пароля пользователя';
-
-CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, userName text, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users(_f_user integer) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, username text, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -665,9 +525,7 @@ $$;
 
 ALTER FUNCTION core.sf_users(_f_user integer) OWNER TO us;
 
-COMMENT ON FUNCTION core.sf_users(_f_user integer) IS 'Системная функция. Получение информации о пользователе';
-
-CREATE OR REPLACE FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, userName text, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, username text, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -689,9 +547,7 @@ $$;
 
 ALTER FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) OWNER TO us;
 
-COMMENT ON FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
-
-CREATE OR REPLACE FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, userName text, c_claims_name text)
+CREATE OR REPLACE FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) RETURNS TABLE(id integer, c_login text, c_claims text, b_disabled boolean, d_created_date timestamp without time zone, d_change_date timestamp without time zone, d_last_auth_date timestamp without time zone, c_email text, c_project_name text, b_oidc boolean, username text, c_claims_name text)
     LANGUAGE plpgsql
     AS $$
 /**
@@ -727,8 +583,6 @@ END;
 $$;
 
 ALTER FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) OWNER TO us;
-
-COMMENT ON FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
 
 CREATE OR REPLACE FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) RETURNS integer
     LANGUAGE plpgsql
@@ -786,8 +640,6 @@ $$;
 
 ALTER FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) OWNER TO us;
 
-COMMENT ON FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) IS 'Проверка пользователя на авторизацию';
-
 CREATE OR REPLACE FUNCTION public.random_in_range(integer, integer) RETURNS integer
     LANGUAGE sql
     AS $_$
@@ -796,9 +648,9 @@ $_$;
 
 ALTER FUNCTION public.random_in_range(integer, integer) OWNER TO us;
 
-CREATE INDEX pd_users_b_disabled_sn_delete_idx ON core.pd_users USING btree (b_disabled, sn_delete);
+CREATE INDEX IF NOT EXISTS pd_users_b_disabled_sn_delete_idx ON core.pd_users USING btree (b_disabled, sn_delete);
 
-CREATE INDEX sd_logs_d_date_idx ON core.sd_logs USING btree (d_date);
+CREATE INDEX IF NOT EXISTS sd_logs_d_date_idx ON core.sd_logs USING btree (d_date);
 
 -- DEPCY: This CONSTRAINT is a dependency of CONSTRAINT: core.pd_accesses.pd_accesses_f_role_fkey
 
@@ -818,6 +670,12 @@ ALTER TABLE core.pd_accesses
 
 ALTER TABLE core.pd_accesses
 	ADD CONSTRAINT pd_accesses_pkey PRIMARY KEY (id);
+
+ALTER TABLE core.pd_projects
+	ADD CONSTRAINT pd_projects_pkey PRIMARY KEY (id);
+
+ALTER TABLE core.pd_projects
+	ADD CONSTRAINT pd_projects_uniq_c_name UNIQUE (c_name);
 
 ALTER TABLE core.pd_roles
 	ADD CONSTRAINT pd_roles_uniq_c_name UNIQUE (c_name);
@@ -907,8 +765,171 @@ CREATE VIEW public.dl_access AS
 
 ALTER VIEW public.dl_access OWNER TO us;
 
+ALTER SEQUENCE core.pd_projects_id_seq
+	OWNED BY core.pd_projects.id;
+
 ALTER SEQUENCE core.sd_logs_id_seq
 	OWNED BY core.sd_logs.id;
+
+COMMENT ON TABLE core.pd_projects IS 'Проекты';
+
+COMMENT ON COLUMN core.pd_projects.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_projects.c_name IS 'Наименование';
+
+COMMENT ON COLUMN core.pd_projects.c_description IS 'Описание';
+
+COMMENT ON COLUMN core.pd_projects.b_base IS 'Признак базового проект';
+
+COMMENT ON COLUMN core.pd_projects.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_projects.c_created_user IS 'Автор создания';
+
+COMMENT ON COLUMN core.pd_projects.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_projects.c_change_user IS 'Автор изменения';
+
+COMMENT ON COLUMN core.pd_projects.sn_delete IS 'Удален';
+
+COMMENT ON TABLE core.pd_accesses IS 'Права доступа';
+
+COMMENT ON COLUMN core.pd_accesses.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_accesses.f_user IS 'Пользователь';
+
+COMMENT ON COLUMN core.pd_accesses.f_role IS 'Роль';
+
+COMMENT ON COLUMN core.pd_accesses.c_name IS 'Табл./Предст./Функц.';
+
+COMMENT ON COLUMN core.pd_accesses.c_criteria IS 'Серверный фильтр';
+
+COMMENT ON COLUMN core.pd_accesses.c_function IS 'Функция RPC или её часть';
+
+COMMENT ON COLUMN core.pd_accesses.c_columns IS 'Запрещенные колонки';
+
+COMMENT ON COLUMN core.pd_accesses.b_deletable IS 'Разрешено удалени';
+
+COMMENT ON COLUMN core.pd_accesses.b_creatable IS 'Разрешено создание';
+
+COMMENT ON COLUMN core.pd_accesses.b_editable IS 'Разрешено редактирование';
+
+COMMENT ON COLUMN core.pd_accesses.b_full_control IS 'Дополнительный доступ';
+
+COMMENT ON COLUMN core.pd_accesses.c_created_user IS 'Логин пользователя создавшего запись';
+
+COMMENT ON COLUMN core.pd_accesses.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_accesses.c_change_user IS 'Логин пользователя обновившего запись';
+
+COMMENT ON COLUMN core.pd_accesses.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_accesses.sn_delete IS 'Признак удаления';
+
+COMMENT ON COLUMN core.pd_accesses.dl_id IS 'Вспомогательное поле для объектов Datalens';
+
+COMMENT ON TABLE core.pd_roles IS 'Роли';
+
+COMMENT ON COLUMN core.pd_roles.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_roles.c_name IS 'Наименование';
+
+COMMENT ON COLUMN core.pd_roles.c_description IS 'Описание роли';
+
+COMMENT ON COLUMN core.pd_roles.n_weight IS 'Приоритет';
+
+COMMENT ON COLUMN core.pd_roles.b_base IS 'Признак базовой роли';
+
+COMMENT ON COLUMN core.pd_roles.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_roles.c_created_user IS 'Автор создания';
+
+COMMENT ON COLUMN core.pd_roles.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_roles.c_change_user IS 'Автор изменения';
+
+COMMENT ON COLUMN core.pd_roles.sn_delete IS 'Удален';
+
+COMMENT ON TABLE core.pd_userinroles IS 'Пользователи в ролях';
+
+COMMENT ON COLUMN core.pd_userinroles.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_userinroles.f_user IS 'Пользователь';
+
+COMMENT ON COLUMN core.pd_userinroles.f_role IS 'Роль';
+
+COMMENT ON COLUMN core.pd_userinroles.c_created_user IS 'Логин пользователя создавшего запись';
+
+COMMENT ON COLUMN core.pd_userinroles.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_userinroles.c_change_user IS 'Логин пользователя обновившего запись';
+
+COMMENT ON COLUMN core.pd_userinroles.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_userinroles.sn_delete IS 'Признак удаления';
+
+COMMENT ON TABLE core.pd_users IS 'Пользователи / Организации';
+
+COMMENT ON COLUMN core.pd_users.id IS 'Идентификатор';
+
+COMMENT ON COLUMN core.pd_users.c_login IS 'Логин';
+
+COMMENT ON COLUMN core.pd_users.c_password IS 'Пароль';
+
+COMMENT ON COLUMN core.pd_users.s_hash IS 'Hash';
+
+COMMENT ON COLUMN core.pd_users.c_email IS 'Адрес электронной почты';
+
+COMMENT ON COLUMN core.pd_users.c_project_name IS 'Имя проекта';
+
+COMMENT ON COLUMN core.pd_users.d_last_auth_date IS 'Дата последней авторизации';
+
+COMMENT ON COLUMN core.pd_users.d_last_change_password IS 'Дата изменения пароля';
+
+COMMENT ON COLUMN core.pd_users.b_key IS 'Используется доступ по ключу';
+
+COMMENT ON COLUMN core.pd_users.b_disabled IS 'Отключен';
+
+COMMENT ON COLUMN core.pd_users.d_created_date IS 'Дата создания записи';
+
+COMMENT ON COLUMN core.pd_users.c_created_user IS 'Логин пользователья создавшего запись';
+
+COMMENT ON COLUMN core.pd_users.d_change_date IS 'Дата обновления записи';
+
+COMMENT ON COLUMN core.pd_users.c_change_user IS 'Логин пользователья изменившего запись';
+
+COMMENT ON COLUMN core.pd_users.sn_delete IS 'Удален';
+
+COMMENT ON COLUMN core.pd_users.d_expired_date IS 'Срок действия';
+
+COMMENT ON COLUMN core.pd_users.b_oidc IS 'Признак, что пользователь создан через OIDC';
+
+COMMENT ON FUNCTION core.of_users(sender jsonb, params jsonb) IS 'Получение списка пользователей';
+
+COMMENT ON FUNCTION core.pf_accesses(n_user_id integer) IS 'Системная функция. Получение прав доступа для пользователя. Используется "vaccine-node"JS';
+
+COMMENT ON FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) IS 'Обновление ролей у пользователя';
+
+COMMENT ON FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) IS 'Системная функция для обработки прав. Для внешнего использования не применять';
+
+COMMENT ON FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) IS 'Создание ссылки для "Поделиться"';
+
+COMMENT ON FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) IS 'Создание пользователя авторизовавшегося через OIDC';
+
+COMMENT ON FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) IS 'Создание пользователя';
+
+COMMENT ON FUNCTION core.sf_reset_pwd(_login text, _new_password text) IS 'Сброс пароля пользователя';
+
+COMMENT ON FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) IS 'Обновление информации об авторизации';
+
+COMMENT ON FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) IS 'Замена пароля пользователя';
+
+COMMENT ON FUNCTION core.sf_users(_f_user integer) IS 'Системная функция. Получение информации о пользователе';
+
+COMMENT ON FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
+
+COMMENT ON FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
+
+COMMENT ON FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) IS 'Проверка пользователя на авторизацию';
 
 -- список ролей
 INSERT INTO core.pd_roles(c_name, c_description, n_weight, b_base)
