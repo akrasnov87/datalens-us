@@ -541,7 +541,15 @@ export class Utils {
         }
     }
 
-    static updateAccesses = async (token: String, item:any) => {
+    static updateAccesses = async (token: String, item:any) => {       
+
+        for (var name in item) {
+            try {
+                // специально прокидываю идентификаторы decode, нужно для фидльтрации безопасности
+                item[`__${name}`] = Utils.decodeId(item[name]);
+            } catch(e) {}
+        }
+
         return await this.postData("datalens", "updateAccesses", token, [item], 0);
     }
 

@@ -139,7 +139,7 @@ export default {
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);
             if(token) {
-                await Utils.updateAccesses(token, { dl: response.entryId, '*': true });
+                await Utils.updateAccesses(token, { id: response.entryId, '*': true });
             }
         }
 
