@@ -85,6 +85,10 @@ export default {
             if(r.rpc[0].statusCode == 200) {
                 var token = r.rpc[0].token;
                 var body = r.body;
+                if(body.data.length > 0 && Array.isArray(body.data[0])) {
+                    // значит передаётся массив объектов
+                    body.data = body.data[0];
+                }
                 
                 for (var i = 0; i < body.data.length; i++) {
                     var item = body.data[i];
