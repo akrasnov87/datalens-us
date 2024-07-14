@@ -946,6 +946,7 @@ VALUES ('datalens-demo', 'Демонстрационные данные', true);
 -- первоначальные права доступа
 INSERT INTO core.pd_accesses(f_role, c_name, c_function, b_deletable, b_creatable, b_editable, b_full_control)
 VALUES
+(1,	NULL, 'DL.*',	false,	false,	false,	false),
 (2, 'embed',NULL,	false,	false,	false,	false),
 (2,	'entries',NULL,	false,	true,	false,	false),
 (2,	'workbooks',NULL,	false,	true,	false,	false),
@@ -964,7 +965,6 @@ VALUES
 (2,	'roles',NULL,	false,	false,	false,	false),
 (2, 'rootCollection', NULL,	false,	false,	false,	false),
 (2, 'universal_service', NULL,	false,	true,	false,	false),
-(2,	NULL, 'DL.*',	false,	false,	false,	false),
 (2,	NULL, 'opensource-demo.*',	false,	false,	false,	false),
 (2,	NULL, 'DL.datalens.*',	false,	false,	false,	false),
 (3,	'embed',NULL,	false,	false,	false,	false),
