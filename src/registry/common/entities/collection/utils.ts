@@ -9,7 +9,12 @@ export const bulkFetchCollectionsAllPermissions: BulkFetchCollectionsAllPermissi
         items.map(async ({model}) => {
             const collection = new Collection({ctx, model});
             try {
-                await collection.enableAllPermissions();
+                if (ctx.config.accessServiceEnabled) {
+                    await collection.fetchAllPermissions({parentIds: []});
+                } else {
+                    await collection.enableAllPermissions();
+                }
+
                 return collection;
             } catch (error) {
                 return collection;

@@ -1,8 +1,11 @@
 import type {AppContext} from '@gravity-ui/nodekit';
 import type {CollectionModel} from '../../../../db/models/new/collection';
+import {AppError} from '@gravity-ui/nodekit';
 import {CollectionConstructor, CollectionInstance} from './types';
-import {Permissions} from '../../../../entities/collection/types';
+import {CollectionPermission, Permissions} from '../../../../entities/collection/types';
 import {Utils} from '../../../../utils/utils';
+import {US_ERRORS} from '../../../../const';
+import {ZitadelUserRole} from '../../../../types/zitadel';
 
 export const Collection: CollectionConstructor = class Collection implements CollectionInstance {
     ctx: AppContext;
@@ -14,17 +17,29 @@ export const Collection: CollectionConstructor = class Collection implements Col
         this.model = model;
     }
 
-    async register() {}
+    private getAllPermissions() {
+        const {zitadelUserRole: role} = this.ctx.get('info');
 
-    async checkPermission() {}
+        const isEditorOrAdmin = role === ZitadelUserRole.Editor || role === ZitadelUserRole.Admin;
 
-    async fetchAllPermissions() {}
+        const permissions = {
+            listAccessBindings: true,
+            updateAccessBindings: isEditorOrAdmin,
+            createCollection: isEditorOrAdmin,
+            createWorkbook: isEditorOrAdmin,
+            limitedView: true,
+            view: true,
+            update: isEditorOrAdmin,
+            copy: isEditorOrAdmin,
+            move: isEditorOrAdmin,
+            delete: isEditorOrAdmin,
+        };
 
-    setPermissions(permissions: Permissions) {
-        this.permissions = permissions;
+        return permissions;
     }
 
-    async enableAllPermissions() {
+    private async getRpcAllPermissions() {
+
         var context: any = this.ctx;
         
         var response:any = null;
@@ -35,7 +50,7 @@ export const Collection: CollectionConstructor = class Collection implements Col
             }
         }
 
-        this.permissions = Object.assign({
+        return Object.assign({
             listAccessBindings: true,
             updateAccessBindings: true,
             createCollection: true,
@@ -47,5 +62,48 @@ export const Collection: CollectionConstructor = class Collection implements Col
             move: true,
             delete: true,
         }, (response && response.data) ? response.data[0] : {});
+    }
+
+    async register() {}
+
+    async checkPermission(args: {
+        parentIds: string[];
+        permission: CollectionPermission;
+    }): Promise<void> {
+        const permissions = process.env.NODE_RPC_URL ? await this.getRpcAllPermissions() : this.getAllPermissions();
+
+        if (permissions[args.permission] === false) {
+            throw new AppError(US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED, {
+                code: US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED,
+            });
+        }
+
+        return Promise.resolve();
+    }
+
+    async enableAllPermissions() {
+        const permissions = {
+            listAccessBindings: true,
+            updateAccessBindings: true,
+            createCollection: true,
+            createWorkbook: true,
+            limitedView: true,
+            view: true,
+            update: true,
+            copy: true,
+            move: true,
+            delete: true,
+        };
+
+        return permissions;
+    }
+
+    setPermissions(permissions: Permissions) {
+        this.permissions = permissions;
+    }
+
+    async fetchAllPermissions() {
+        this.permissions = process.env.NODE_RPC_URL ? await this.getRpcAllPermissions() : this.getAllPermissions();
+        return Promise.resolve();
     }
 };

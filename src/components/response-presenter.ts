@@ -55,6 +55,9 @@ export async function prepareResponseAsync({data}: {data: any}, req?: any): Prom
     if (response.chart) {
         response.chart = await Utils.macrotasksEncodeData(response.chart);
     }
+    if (response.entry) {
+        response.entry = await Utils.macrotasksEncodeData(response.entry);
+    }
 
     if(req) {
         response.permissions = Object.assign(response.permissions || {}, ((req.rpc && req.rpc.length > 0) ? req.rpc[0].permissions : {}));

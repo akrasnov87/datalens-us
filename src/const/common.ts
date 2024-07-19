@@ -120,6 +120,7 @@ export const ALLOWED_SCOPE_VALUES = [
     'connection',
     'widget',
     'config',
+    'presentation',
 ];
 
 export const ID_VARIABLES = [
@@ -133,8 +134,10 @@ export const ID_VARIABLES = [
     'publishedId',
     'lockId',
     'workbookId',
+    'workbookIds',
     'presetId',
     'collectionId',
+    'collectionIds',
     'parentId',
     'colorPaletteId',
     'revIds',
