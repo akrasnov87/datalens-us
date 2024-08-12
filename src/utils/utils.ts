@@ -13,6 +13,8 @@ import {ID_VARIABLES, CODING_BASE, TRUE_FLAGS, COPY_START, COPY_END} from '../co
 
 import {EntryScope as EntryScopeEnum, EntryType} from '../db/models/new/entry/types';
 
+const MAX_PAGE_LIMIT = 10000;
+
 const PROFILES: {
     [key: string]: any;
 } = {};
@@ -605,4 +607,7 @@ export class Utils {
             postRequest.end();
         });
     }
+    static getCorrectedPageLimit = (limit?: number, maxPageLimit = MAX_PAGE_LIMIT) => {
+        return limit ? Math.min(Math.abs(limit), maxPageLimit) : maxPageLimit;
+    };
 }
