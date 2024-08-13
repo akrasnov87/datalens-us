@@ -5,9 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.224.1] 12.08.2024
+
+Fixed:
+
+- обновление версии с main;
+- исправлена ошибка с созданием новых воркбуков и коллекций.
+
 ## [0.224.0] 22.07.2024
 
-ОБновление версии: 0.214.0 -> 0.224.0
+Обновление версии: 0.214.0 -> 0.224.0
 
 Fixed:
 

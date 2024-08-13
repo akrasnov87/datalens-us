@@ -4,6 +4,7 @@ import {OrganizationPermission, ProjectPermission} from '../../../../components/
 import {US_ERRORS} from '../../../../const';
 import {ZitadelUserRole} from '../../../../types/zitadel';
 
+
 const throwAccessServicePermissionDenied = () => {
     throw new AppError(US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED, {
         code: US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED,
