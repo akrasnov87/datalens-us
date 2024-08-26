@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS core.sd_logs (
 ALTER TABLE core.sd_logs OWNER TO us;
 
 CREATE TABLE IF NOT EXISTS core.pd_accesses (
-	id smallint DEFAULT nextval('core.auto_id_pd_accesses'::regclass) NOT NULL,
+	id integer DEFAULT nextval('core.auto_id_pd_accesses'::regclass) NOT NULL,
 	f_user integer,
 	f_role smallint,
 	c_name text,
@@ -364,9 +364,19 @@ $$;
 
 ALTER FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) OWNER TO us;
 
-CREATE OR REPLACE FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) RETURNS TABLE(msg text, user_id integer, n_code integer)
-    LANGUAGE plpgsql ROWS 1
-    AS $$
+CREATE OR REPLACE FUNCTION core.sf_create_user(
+	_login text,
+	_password text,
+	_email text,
+	_claims json,
+	_project_name text)
+    RETURNS TABLE(msg text, user_id integer, n_code integer) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1
+
+AS $BODY$
 /**
 	Создание пользователя
 	
@@ -374,6 +384,7 @@ CREATE OR REPLACE FUNCTION core.sf_create_user(_login text, _password text, _ema
 	_password: text 	- пароль
  	_email: text 		- адрес эл. почты
  	_claims: json 		- роли в формате json, например ["master", "datalens"]
+	_project_name: text - проект по умолчанию
  * 
  * @returns {integer} - иден. пользователя
  */
@@ -382,16 +393,17 @@ DECLARE
 BEGIN
 	
 	-- все проверки пройдены
-	INSERT INTO core.pd_users(c_login, s_hash, c_email, b_disabled)
-	VALUES (_login, public.crypt(_password, public.gen_salt('bf')), _email, false) RETURNING id INTO _f_user;
+	INSERT INTO core.pd_users(c_login, s_hash, c_email, b_disabled, c_project_name)
+	VALUES (_login, public.crypt(_password, public.gen_salt('bf')), _email, false, _project_name) RETURNING id INTO _f_user;
 	
 	PERFORM core.pf_update_user_roles(_f_user, _claims);
 	
 	RETURN QUERY SELECT '', _f_user, 0;
 END
-$$;
+$BODY$;
 
-ALTER FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) OWNER TO us;
+ALTER FUNCTION core.sf_create_user(text, text, text, json, text)
+    OWNER TO us;
 
 CREATE OR REPLACE FUNCTION core.sf_reset_pwd(_login text, _new_password text) RETURNS text
     LANGUAGE plpgsql
@@ -915,7 +927,7 @@ COMMENT ON FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _c
 
 COMMENT ON FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) IS 'Создание пользователя авторизовавшегося через OIDC';
 
-COMMENT ON FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json) IS 'Создание пользователя';
+COMMENT ON FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json, _project_name text) IS 'Создание пользователя';
 
 COMMENT ON FUNCTION core.sf_reset_pwd(_login text, _new_password text) IS 'Сброс пароля пользователя';
 
@@ -988,12 +1000,12 @@ VALUES
 (3,	NULL, 'DL.datalens.*',	false,	false,	false,	false);
 
 -- пользователь с максимальными правами
-SELECT core.sf_create_user('master', 'qwe-123', '', '["master", "admin"]');
+SELECT core.sf_create_user('master', 'qwe-123', '', '["master", "admin"]', 'datalens-demo');
 
 -- администратор
-SELECT core.sf_create_user('admin', 'qwe-123', '', '["admin"]');
+SELECT core.sf_create_user('admin', 'qwe-123', '', '["admin"]', 'datalens-demo');
 
 -- пользователь
-SELECT core.sf_create_user('user', 'qwe-123', '', '["datalens"]');
+SELECT core.sf_create_user('user', 'qwe-123', '', '["datalens"]', 'datalens-demo');
 
 COMMIT TRANSACTION;
