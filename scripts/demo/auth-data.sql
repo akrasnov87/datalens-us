@@ -319,8 +319,8 @@ BEGIN
 		VALUES (_embedding_secret_id, public.encode_id(_embedding_secret_id), _workbook_id, _public_key, _created_by, now());
 	
 		INSERT INTO public.embeds(
-		embed_id, title, embedding_secret_id, entry_id, deps_ids, unsigned_params, created_by, created_at)
-		VALUES (_embed_id, public.encode_id(_embed_id), _embedding_secret_id, _entity_id, '{}', '{}', _created_by, now());
+		embed_id, title, embedding_secret_id, entry_id, deps_ids, unsigned_params, created_by, created_at, updated_by)
+		VALUES (_embed_id, public.encode_id(_embed_id), _embedding_secret_id, _entity_id, '{}', '{}', _created_by, now(), _created_by);
 	ELSE
 		SELECT true INTO _existsing;
 
@@ -966,12 +966,13 @@ VALUES
 (2,	'breadcrumbs',NULL,	false,	false,	false,	false),
 (2,	'collections',NULL,	false,	true,	false,	false),
 (2,	'collection-content',NULL,	false,	false,	false,	false),
+(2, 'structure-items',NULL,	false,	false,	false,	false),
 (2,	'workbook',NULL,	false,	true,	false,	false),
 (2,	'collection',NULL,	false,	true,	false,	false),
 (2,	'workbookInRoot',NULL,	false,	true,	false,	false),
 (2,	'collectionInRoot',NULL,	false,	true,	false,	false),
 (2,	'meta',NULL,	false,	false,	false,	false),
-(2,	'root-collection-permissions',NULL,	false,	false,	false,	false),
+(2,	'root-collection-permissions', NULL,	false,	false,	false,	false),
 (2,	'update',NULL,	false,	true,	false,	false),
 (2,	'rename',NULL,	false,	true,	false,	false),
 (2,	'roles',NULL,	false,	false,	false,	false),
@@ -985,7 +986,8 @@ VALUES
 (3,	'entries',NULL,	false,	false,	false,	false),
 (3,	'breadcrumbs',NULL,	false,	false,	false,	false),
 (3,	'collections',NULL,	false,	false,	false,	false),
-(3,	'collection-content',NULL,	false,	false,	false,	false),
+(3,	'collection-content', NULL,	false,	false,	false,	false),
+(3, 'structure-items',NULL,	false,	false,	false,	false),
 (3,	'workbook',NULL,	false,	false,	false,	false),
 (3,	'collection',NULL,	false,	false,	false,	false),
 (3,	'workbookInRoot',NULL,	false,	false,	false,	false),

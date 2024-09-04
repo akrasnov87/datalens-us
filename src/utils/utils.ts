@@ -176,6 +176,12 @@ export class Utils {
         return results;
     }
 
+    static waitNextMacrotask = async () => {
+        return new Promise((resolve) => {
+            setImmediate(resolve);
+        });
+    };
+
     static encodeId(bigIntId: any) {
         let encodedId = '';
 
