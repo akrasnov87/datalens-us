@@ -765,7 +765,7 @@ CREATE VIEW public.dl_access AS
              JOIN core.pd_userinroles uir ON ((uir.f_user = u.id)))
              JOIN core.pd_accesses a ON (((a.f_user = u.id) AND (a.c_function IS NOT NULL))))
           WHERE starts_with(a.c_function, 'DL.'::text)
-        UNION ALL
+        UNION
          SELECT DISTINCT u.id AS user_id,
             split_part(a.c_function, '.'::text, 2) AS object_id,
             a.dl_id,
@@ -967,8 +967,9 @@ VALUES
 (2,	'collections',NULL,	false,	true,	false,	false),
 (2,	'collection-content',NULL,	false,	false,	false,	false),
 (2, 'structure-items',NULL,	false,	false,	false,	false),
-(2,	'workbook',NULL,	false,	true,	false,	false),
-(2,	'collection',NULL,	false,	true,	false,	false),
+(2,	'workbook', NULL,	false,	true,	false,	false),
+(2, 'move-workbooks', NULL,	false,	true,	false,	false),
+(2,	'collection', NULL,	false,	true,	false,	false),
 (2,	'workbookInRoot',NULL,	false,	true,	false,	false),
 (2,	'collectionInRoot',NULL,	false,	true,	false,	false),
 (2,	'meta',NULL,	false,	false,	false,	false),
@@ -989,6 +990,7 @@ VALUES
 (3,	'collection-content', NULL,	false,	false,	false,	false),
 (3, 'structure-items',NULL,	false,	false,	false,	false),
 (3,	'workbook',NULL,	false,	false,	false,	false),
+(3, 'move-workbooks', NULL,	false,	true,	false,	false),
 (3,	'collection',NULL,	false,	false,	false,	false),
 (3,	'workbookInRoot',NULL,	false,	false,	false,	false),
 (3,	'collectionInRoot',NULL,	false,	false,	false,	false),
