@@ -9,6 +9,7 @@ import {
     EntryColumns,
     RevisionColumns,
     UsPermission,
+    Mode,
 } from '../../../types/models';
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
 import {
@@ -16,11 +17,12 @@ import {
     DEFAULT_QUERY_TIMEOUT,
     RETURN_COLUMNS,
     BiTrackingLogs,
+    ModeValues,
 } from '../../../const';
 import {getWorkbook} from '../../new/workbook/get-workbook';
 import {checkWorkbookPermission, getEntryPermissionsByWorkbook} from '../../new/workbook/utils';
 import {WorkbookPermission} from '../../../entities/workbook';
-import Utils, {logInfo, makeUserId} from '../../../utils';
+import Utils, {makeUserId} from '../../../utils';
 import {getId} from '../../../db';
 
 export const validateCreateEntryInWorkbook = makeSchemaValidator({
@@ -36,7 +38,7 @@ export const validateCreateEntryInWorkbook = makeSchemaValidator({
         },
         scope: {
             type: 'string',
-            enum: ['connection', 'dataset', 'dash', 'widget', 'presentation'],
+            enum: ['connection', 'dataset', 'dash', 'widget', 'presentation', 'report'],
         },
         type: {
             type: 'string',
@@ -46,6 +48,10 @@ export const validateCreateEntryInWorkbook = makeSchemaValidator({
         },
         mirrored: {
             type: 'boolean',
+        },
+        mode: {
+            type: 'string',
+            enum: ModeValues,
         },
         meta: {
             type: ['object', 'null'],
@@ -77,6 +83,7 @@ export type CreateEntryInWorkbookData = {
     links?: SyncLinks;
     hidden?: EntryColumns['hidden'];
     mirrored?: EntryColumns['mirrored'];
+    mode?: Mode;
     unversionedData?: EntryColumns['unversionedData'];
     meta?: RevisionColumns['meta'];
     data?: RevisionColumns['data'];
@@ -93,13 +100,29 @@ export async function createEntryInWorkbook(
         links,
         hidden,
         mirrored,
+        mode = 'save',
         unversionedData,
         meta,
         data,
         includePermissionsInfo,
     }: CreateEntryInWorkbookData,
 ) {
-    logInfo(ctx, 'CREATE_ENTRY_IN_WORKBOOK_CALL');
+    ctx.log('CREATE_ENTRY_IN_WORKBOOK_CALL');
+
+    validateCreateEntryInWorkbook({
+        workbookId,
+        name,
+        scope,
+        type,
+        links,
+        hidden,
+        mirrored,
+        mode,
+        unversionedData,
+        meta,
+        data,
+        includePermissionsInfo,
+    });
 
     const {tenantId, isPrivateRoute, user} = ctx.get('info');
     const createdBy = makeUserId(user.userId);
@@ -130,7 +153,7 @@ export async function createEntryInWorkbook(
 
         const syncedLinks = await Entry.syncLinks({entryId, links, ctx, trxOverride: trx});
 
-        await Entry.query(trx).insert({
+        const newData = {
             workbookId,
             entryId,
             savedId: revId,
@@ -146,7 +169,10 @@ export async function createEntryInWorkbook(
             deletedAt: null,
             hidden,
             mirrored,
-        });
+            ...(mode === 'publish' ? {publishedId: revId} : {}),
+        };
+
+        await Entry.query(trx).insert(newData);
 
         await Revision.query(trx).insert({
             revId,
@@ -182,7 +208,7 @@ export async function createEntryInWorkbook(
         resultEntry.permissions = permissions;
     }
 
-    logInfo(ctx, BiTrackingLogs.CreateEntry, {
+    ctx.log(BiTrackingLogs.CreateEntry, {
         entryId: Utils.encodeId(resultEntry.entryId),
     });
 

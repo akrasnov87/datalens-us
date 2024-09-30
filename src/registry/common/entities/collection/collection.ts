@@ -17,10 +17,13 @@ export const Collection: CollectionConstructor = class Collection implements Col
         this.model = model;
     }
 
-    private getAllPermissions() {
-        const {zitadelUserRole: role} = this.ctx.get('info');
+    private isEditorOrAdmin() {
+        const {zitadelUserRole: role, superUser} = this.ctx.get('info');
+        return role === ZitadelUserRole.Editor || role === ZitadelUserRole.Admin || superUser;
+    }
 
-        const isEditorOrAdmin = role === ZitadelUserRole.Editor || role === ZitadelUserRole.Admin;
+    private getAllPermissions() {
+        const isEditorOrAdmin = this.isEditorOrAdmin();
 
         const permissions = {
             listAccessBindings: true,
@@ -64,7 +67,17 @@ export const Collection: CollectionConstructor = class Collection implements Col
         }, (response && response.data) ? response.data[0] : {});
     }
 
-    async register() {}
+    async register() {
+        const isEditorOrAdmin = this.isEditorOrAdmin();
+
+        if (!isEditorOrAdmin) {
+            throw new AppError(US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED, {
+                code: US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED,
+            });
+        }
+
+        return Promise.resolve();
+    }
 
     async checkPermission(args: {
         parentIds: string[];

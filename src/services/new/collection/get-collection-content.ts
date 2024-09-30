@@ -6,7 +6,7 @@ import {makeSchemaValidator} from '../../../components/validation-schema-compile
 import {US_ERRORS} from '../../../const';
 import {CollectionPermission} from '../../../entities/collection';
 import {CollectionModel, CollectionModelColumn} from '../../../db/models/new/collection';
-import Utils, {logInfo} from '../../../utils';
+import Utils from '../../../utils';
 import {getWorkbooksList} from '../workbook';
 import {getCollection} from './get-collection';
 import {registry} from '../../../registry';
@@ -82,7 +82,7 @@ export const getCollectionContent = async (
         mode = 'all',
     } = args;
 
-    logInfo(ctx, 'GET_COLLECTION_CONTENT_START', {
+    ctx.log('GET_COLLECTION_CONTENT_START', {
         collectionId: collectionId ? Utils.encodeId(collectionId) : null,
         includePermissionsInfo,
         filterString,
@@ -172,21 +172,22 @@ export const getCollectionContent = async (
                 orderField === 'title' ? CollectionModelColumn.SortTitle : orderField,
                 orderDirection,
             )
-            .page(collectionsPage, pageSize)
+            .limit(pageSize)
+            .offset(pageSize * collectionsPage)
             .timeout(CollectionModel.DEFAULT_QUERY_TIMEOUT);
 
-        collectionsNextPageToken = Utils.getNextPageToken(
-            collectionsPage,
+        collectionsNextPageToken = Utils.getOptimisticNextPageToken({
+            page: collectionsPage,
             pageSize,
-            curCollectionsPage.total,
-        );
+            curPage: curCollectionsPage,
+        });
 
-        if (curCollectionsPage.results.length > 0) {
+        if (curCollectionsPage.length > 0) {
             if (accessServiceEnabled && !skipCheckPermissions) {
                 const contentParentIds = collectionId ? [collectionId, ...parentIds] : [];
 
                 const checkedCollections = await Promise.all(
-                    curCollectionsPage.results.map(async (model) => {
+                    curCollectionsPage.map(async (model) => {
                         const collection = new Collection({ctx, model});
 
                         try {
@@ -225,7 +226,7 @@ export const getCollectionContent = async (
                 }
             } else {
                 await Promise.all(
-                    curCollectionsPage.results.map(async (model) => {
+                    curCollectionsPage.map(async (model) => {
                         const collection = new Collection({ctx, model});
                         try {
                             if (includePermissionsInfo) {
@@ -268,7 +269,7 @@ export const getCollectionContent = async (
         workbooksNextPageToken = result.nextPageToken;
     }
 
-    logInfo(ctx, 'GET_COLLECTION_CONTENT_FINISH', {
+    ctx.log('GET_COLLECTION_CONTENT_FINISH', {
         collectionsLength: collections.length,
         workbooksLength: workbooks.length,
     });

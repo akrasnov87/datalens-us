@@ -7,7 +7,7 @@ import {makeSchemaValidator} from '../../../components/validation-schema-compile
 import {transaction} from 'objection';
 import {US_ERRORS} from '../../../const';
 import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
-import Utils, {logInfo} from '../../../utils';
+import Utils from '../../../utils';
 import {registry} from '../../../registry';
 
 const validateArgs = makeSchemaValidator({
@@ -39,7 +39,7 @@ export const createWorkbook = async (
 ) => {
     const {title, project, description, collectionId} = args;
 
-    logInfo(ctx, 'CREATE_WORKBOOK_START', {
+    ctx.log('CREATE_WORKBOOK_START', {
         title,
         description,
         collectionId: collectionId ? Utils.encodeId(collectionId) : null,
@@ -99,7 +99,7 @@ export const createWorkbook = async (
     let operation: any;
 
     const result = await transaction(targetTrx, async (transactionTrx) => {
-        logInfo(ctx, 'CREATE_WORKBOOK_IN_DB_START');
+        ctx.log('CREATE_WORKBOOK_IN_DB_START');
 
         const model = await WorkbookModel.query(transactionTrx)
             .insert({
@@ -115,7 +115,7 @@ export const createWorkbook = async (
             .returning('*')
             .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);
 
-        logInfo(ctx, 'CREATE_WORKBOOK_IN_DB_FINISH', {
+        ctx.log('CREATE_WORKBOOK_IN_DB_FINISH', {
             workbookId: Utils.encodeId(model.workbookId),
         });
 
@@ -135,7 +135,7 @@ export const createWorkbook = async (
         return workbook;
     });
 
-    logInfo(ctx, 'CREATE_WORKBOOK_FINISH', {
+    ctx.log('CREATE_WORKBOOK_FINISH', {
         workbookId: Utils.encodeId(result.model.workbookId),
     });
 

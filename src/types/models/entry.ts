@@ -1,4 +1,12 @@
-export type EntryScope = 'dataset' | 'pdf' | 'folder' | 'dash' | 'connection' | 'widget' | 'config';
+export type EntryScope =
+    | 'dataset'
+    | 'pdf'
+    | 'folder'
+    | 'dash'
+    | 'connection'
+    | 'widget'
+    | 'config'
+    | 'report';
 
 export type EntryInnerMeta = {
     oldKey: string;
@@ -33,3 +41,5 @@ export interface EntryType {
     // eslint-disable-next-line camelcase
     is_release?: any;
 }
+
+export type Mode = 'save' | 'publish';

@@ -43,10 +43,13 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
         }, (response && response.data) ? response.data[0] : {});
     }
 
-    private getAllPermissions() {
-        const {zitadelUserRole: role} = this.ctx.get('info');
+    private isEditorOrAdmin() {
+        const {zitadelUserRole: role, superUser} = this.ctx.get('info');
+        return role === ZitadelUserRole.Editor || role === ZitadelUserRole.Admin || superUser;
+    }
 
-        const isEditorOrAdmin = role === ZitadelUserRole.Editor || role === ZitadelUserRole.Admin;
+    private getAllPermissions() {
+        const isEditorOrAdmin = this.isEditorOrAdmin();
 
         const permissions = {
             listAccessBindings: true,
@@ -64,7 +67,15 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
         return permissions;
     }
 
-    async register(_args: {parentIds: string[]}): Promise<unknown> {
+    async register() {
+        const isEditorOrAdmin = this.isEditorOrAdmin();
+
+        if (!isEditorOrAdmin) {
+            throw new AppError(US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED, {
+                code: US_ERRORS.ACCESS_SERVICE_PERMISSION_DENIED,
+            });
+        }
+
         return Promise.resolve();
     }
 

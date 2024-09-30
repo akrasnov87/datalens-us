@@ -20,11 +20,13 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
         req.headers[DL_COMPONENT_HEADER] as string,
     );
 
+    const user = {userId, login};
+
     req.originalContext.set('info', {
         requestId: req.id,
         tenantId,
         workbookId,
-        user: {userId, login},
+        user,
         isPrivateRoute,
         dlContext,
         onlyPublic,
@@ -53,5 +55,12 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
 
         }
     }
+    req.ctx.log('REQUEST_INFO', {
+        ctxTenantId: tenantId,
+        ctxProjectId: projectId,
+        requestedBy: user,
+        dlContext,
+    });
+
     next();
 };

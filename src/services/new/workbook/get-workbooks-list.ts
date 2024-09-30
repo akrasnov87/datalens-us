@@ -5,7 +5,7 @@ import {makeSchemaValidator} from '../../../components/validation-schema-compile
 import {US_ERRORS, DEFAULT_PAGE, DEFAULT_PAGE_SIZE} from '../../../const';
 import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
 import {CollectionModel} from '../../../db/models/new/collection';
-import Utils, {logInfo} from '../../../utils';
+import Utils from '../../../utils';
 import {WorkbookPermission} from '../../../entities/workbook';
 import {CollectionPermission} from '../../../entities/collection';
 import {getParents} from '../collection/utils';
@@ -75,7 +75,7 @@ export const getWorkbooksList = async (
         onlyMy = false,
     } = args;
 
-    logInfo(ctx, 'GET_WORKBOOKS_LIST_START', {
+    ctx.log('GET_WORKBOOKS_LIST_START', {
         collectionId: collectionId ? Utils.encodeId(collectionId) : null,
         filterString,
         page,
@@ -159,18 +159,23 @@ export const getWorkbooksList = async (
             orderField === 'title' ? WorkbookModelColumn.SortTitle : orderField,
             orderDirection,
         )
-        .page(page, pageSize)
+        .limit(pageSize)
+        .offset(pageSize * page)
         .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);
 
-    const nextPageToken = Utils.getNextPageToken(page, pageSize, workbooksPage.total);
+    const nextPageToken = Utils.getOptimisticNextPageToken({
+        page,
+        pageSize,
+        curPage: workbooksPage,
+    });
 
     let workbooks: InstanceType<typeof Workbook>[] = [];
 
-    if (workbooksPage.results.length > 0) {
+    if (workbooksPage.length > 0) {
         if (accessServiceEnabled && !skipCheckPermissions) {
             const parentIds = parents.map((model) => model.collectionId);
 
-            workbooks = workbooksPage.results.map((model) => {
+            workbooks = workbooksPage.map((model) => {
                 return new Workbook({ctx, model});
             });
 
@@ -212,7 +217,7 @@ export const getWorkbooksList = async (
             }
         } else {
             await Promise.all(
-                workbooksPage.results.map(async (model) => {
+                workbooksPage.map(async (model) => {
                     const workbook = new Workbook({ctx, model});
                     try {
                         if (includePermissionsInfo) {

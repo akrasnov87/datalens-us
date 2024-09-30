@@ -2,13 +2,12 @@ import {AppError, AppContext} from '@gravity-ui/nodekit';
 import {ServiceArgs} from '../types';
 import {US_ERRORS} from '../../../const';
 import {OrganizationPermission, ProjectPermission} from '../../../components/iam';
-import {logInfo} from '../../../utils';
 import {registry} from '../../../registry';
 import {Feature, isEnabledFeature} from '../../../components/features';
 import { Utils } from '../../../utils/utils';
 
 export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
-    logInfo(ctx, 'GET_ROOT_COLLECTION_PERMISSIONS_START');
+    ctx.log('GET_ROOT_COLLECTION_PERMISSIONS_START');
 
     const {accessServiceEnabled, zitadelEnabled} = ctx.config;
 
@@ -40,7 +39,7 @@ export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
         result.createWorkbookInRoot = createWorkbookInRoot;
     }
 
-    logInfo(ctx, 'GET_ROOT_COLLECTION_PERMISSIONS_FINISH');
+    ctx.log('GET_ROOT_COLLECTION_PERMISSIONS_FINISH');
 
     return result;
 };

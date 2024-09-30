@@ -3,7 +3,7 @@ import {getReplica} from '../utils';
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
 import {DEFAULT_PAGE, DEFAULT_PAGE_SIZE} from '../../../const';
 import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
-import Utils, {logInfo} from '../../../utils';
+import Utils from '../../../utils';
 
 const validateArgs = makeSchemaValidator({
     type: 'object',
@@ -31,7 +31,7 @@ export const getAllWorkbooks = async (
 ) => {
     const {page = DEFAULT_PAGE, pageSize = DEFAULT_PAGE_SIZE} = args;
 
-    logInfo(ctx, 'GET_ALL_WORKBOOKS_START', {
+    ctx.log('GET_ALL_WORKBOOKS_START', {
         page,
         pageSize,
     });
@@ -45,18 +45,23 @@ export const getAllWorkbooks = async (
         .where({
             [WorkbookModelColumn.DeletedAt]: null,
         })
-        .page(page, pageSize)
+        .limit(pageSize)
+        .offset(pageSize * page)
         .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);
 
-    const nextPageToken = Utils.getNextPageToken(page, pageSize, workbooksPage.total);
+    const nextPageToken = Utils.getOptimisticNextPageToken({
+        page,
+        pageSize,
+        curPage: workbooksPage,
+    });
 
     ctx.log('GET_ALL_WORKBOOKS_FINISH', {
-        workbooksCount: workbooksPage.results.length,
+        workbooksCount: workbooksPage.length,
         nextPageToken,
     });
 
     return {
-        workbooks: workbooksPage.results,
+        workbooks: workbooksPage,
         nextPageToken,
     };
 };

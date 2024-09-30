@@ -3,7 +3,7 @@ import {getReplica} from '../utils';
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
 import {CollectionPermission} from '../../../entities/collection';
 import {CollectionModel} from '../../../db/models/new/collection';
-import Utils, {logInfo} from '../../../utils';
+import Utils from '../../../utils';
 import {registry} from '../../../registry';
 import {Feature, isEnabledFeature} from '../../../components/features';
 import {getCollection} from '../collection';
@@ -24,10 +24,13 @@ const validateArgs = makeSchemaValidator({
             type: 'string',
         },
         page: {
-            type: ['number', 'null'],
+            type: 'number',
+            minimum: 0,
         },
         pageSize: {
             type: 'number',
+            minimum: 1,
+            maximum: 200,
         },
         orderField: {
             type: 'string',
@@ -50,7 +53,7 @@ export interface GetStructureItemsContentArgs {
     collectionId: Nullable<string>;
     includePermissionsInfo?: boolean;
     filterString?: string;
-    page?: Nullable<number>;
+    page?: number;
     pageSize?: number;
     orderField?: OrderField;
     orderDirection?: OrderDirection;
@@ -75,7 +78,7 @@ export const getStructureItems = async (
         mode = 'all',
     } = args;
 
-    logInfo(ctx, 'GET_STRUCTURE_ITEMS_START', {
+    ctx.log('GET_STRUCTURE_ITEMS_START', {
         collectionId: collectionId ? Utils.encodeId(collectionId) : null,
         includePermissionsInfo,
         filterString,
@@ -141,16 +144,21 @@ export const getStructureItems = async (
 
         const curPage = await query
             .orderBy(orderField === 'title' ? 'sortTitle' : orderField, orderDirection)
-            .page(page, pageSize)
+            .limit(pageSize)
+            .offset(pageSize * page)
             .timeout(CollectionModel.DEFAULT_QUERY_TIMEOUT);
 
-        nextPageToken = Utils.getNextPageToken(page, pageSize, curPage.total);
+        nextPageToken = Utils.getOptimisticNextPageToken({
+            page: page,
+            pageSize,
+            curPage,
+        });
 
-        if (curPage.results.length > 0) {
+        if (curPage.length > 0) {
             const allParentIds = collectionId ? [collectionId, ...parentIds] : [];
             items = await processPermissions({
                 ctx,
-                models: curPage.results,
+                models: curPage,
                 parentIds: allParentIds,
                 skipCheckPermissions,
                 includePermissionsInfo,

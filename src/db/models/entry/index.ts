@@ -1,6 +1,6 @@
 import {transaction} from 'objection';
 import {Model, getId} from '../..';
-import Utils, {logInfo, makeUserId} from '../../../utils';
+import Utils, {makeUserId} from '../../../utils';
 import Revision from '../revision';
 import Tenant from '../tenant';
 import Link from '../links';
@@ -147,6 +147,7 @@ class Entry extends Model {
             unversionedData,
             hidden = false,
             mirrored = false,
+            mode = 'save',
             recursion,
             requestedBy,
             data,
@@ -175,6 +176,7 @@ class Entry extends Model {
             links,
             hidden,
             mirrored,
+            mode,
             recursion,
             createdBy,
             requestedBy,
@@ -211,6 +213,7 @@ class Entry extends Model {
             permissionsMode,
             initialPermissions,
             mirrored,
+            mode,
         });
 
         if (!isValid) {
@@ -440,25 +443,26 @@ class Entry extends Model {
 
             const syncedLinks = await Entry.syncLinks({entryId, links, ctx, trxOverride: TRX});
 
-            const targetCreatedEntry = await Entry.query(TRX)
-                .insert({
-                    entryId,
-                    savedId: revId,
-                    key: keyFormatted,
-                    displayKey,
-                    tenantId,
-                    scope,
-                    type,
-                    innerMeta,
-                    unversionedData,
-                    createdBy: createdBy,
-                    updatedBy: createdBy,
-                    isDeleted,
-                    deletedAt,
-                    hidden,
-                    mirrored,
-                })
-                .returning('*');
+            const newData = {
+                entryId,
+                savedId: revId,
+                key: keyFormatted,
+                displayKey,
+                tenantId,
+                scope,
+                type,
+                innerMeta,
+                unversionedData,
+                createdBy: createdBy,
+                updatedBy: createdBy,
+                isDeleted,
+                deletedAt,
+                hidden,
+                mirrored,
+                ...(mode === 'publish' ? {publishedId: revId} : {}),
+            };
+
+            const targetCreatedEntry = await Entry.query(TRX).insert(newData).returning('*');
 
             await Revision.query(TRX).insert({
                 revId: revId,
@@ -515,7 +519,7 @@ class Entry extends Model {
             return allCreatedEntries;
         });
 
-        logInfo(ctx, BiTrackingLogs.CreateEntry, {
+        ctx.log(BiTrackingLogs.CreateEntry, {
             entryId: result && !Array.isArray(result) ? Utils.encodeId(result.entryId) : null,
         });
 
@@ -545,6 +549,7 @@ class Entry extends Model {
             meta,
             hidden = false,
             mirrored = false,
+            mode,
             recursion,
             requestedBy,
             data,
@@ -568,6 +573,7 @@ class Entry extends Model {
             links,
             hidden,
             mirrored,
+            mode,
             recursion,
             permissionsMode,
             initialPermissions,
@@ -589,6 +595,7 @@ class Entry extends Model {
                     meta,
                     hidden,
                     mirrored,
+                    mode,
                     recursion,
                     data,
                     unversionedData,
@@ -636,7 +643,7 @@ class Entry extends Model {
             return entries;
         });
 
-        logInfo(ctx, BiTrackingLogs.PrivateCreateEntry, {
+        ctx.log(BiTrackingLogs.PrivateCreateEntry, {
             entryId: result && !Array.isArray(result) ? Utils.encodeId(result.entryId) : null,
         });
 

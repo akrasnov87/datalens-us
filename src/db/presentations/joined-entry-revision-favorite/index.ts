@@ -1,5 +1,5 @@
 import type {Knex} from 'knex';
-import {TransactionOrKnex, raw, Modifier, Page} from 'objection';
+import {TransactionOrKnex, raw, Modifier} from 'objection';
 import {
     selectedColumns as joinedEntryRevisionColumns,
     joinRevision,
@@ -99,9 +99,10 @@ export class JoinedEntryRevisionFavorite extends JoinedEntryRevision {
             .leftJoin(Favorite.tableName, leftJoinFavorite(userLogin))
             .where(where)
             .modify(modify)
-            .page(page, pageSize)
+            .limit(pageSize)
+            .offset(pageSize * page)
             .timeout(JoinedEntryRevisionFavorite.DEFAULT_QUERY_TIMEOUT) as unknown as Promise<
-            Page<Entry & JoinedEntryRevisionFavoriteColumns>
+            (Entry & JoinedEntryRevisionFavoriteColumns)[]
         >;
     }
 }
