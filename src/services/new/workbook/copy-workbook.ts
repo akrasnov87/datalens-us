@@ -108,7 +108,7 @@ export const copyWorkbook = async (
     if (
         projectIdOverride === undefined &&
         projectId &&
-        originWorkbookModel.projectId !== projectId
+        originWorkbookModel.projectId !== projectId && !superUser
     ) {
         throw new AppError(US_ERRORS.WORKBOOK_NOT_EXISTS, {
             code: US_ERRORS.WORKBOOK_NOT_EXISTS,
@@ -187,7 +187,7 @@ export const copyWorkbook = async (
                 [WorkbookModelColumn.TitleLower]: correctedNewTitle.toLowerCase(),
                 [WorkbookModelColumn.Description]: originWorkbookModel.description,
                 [WorkbookModelColumn.TenantId]: targetTenantId,
-                [WorkbookModelColumn.ProjectId]: targetProjectId,
+                [WorkbookModelColumn.ProjectId]: superUser ? originWorkbookModel.projectId : targetProjectId,
                 [WorkbookModelColumn.CollectionId]: newCollectionId,
                 [WorkbookModelColumn.Meta]: originWorkbookModel.meta,
                 [WorkbookModelColumn.CreatedBy]: userId,
