@@ -266,6 +266,12 @@ export default {
             result.operation,
         );
         const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        if(process.env.NODE_RPC_URL) {
+            var token = Utils.getTokenFromContext(req.ctx);
+            if(token) {
+                await Utils.updateAccesses(token, { id: response.workbookId, '*': true });
+            }
+        }
         res.status(code).send(response);
     },
 

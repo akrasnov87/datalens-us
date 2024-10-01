@@ -118,7 +118,7 @@ export const copyWorkbook = async (
     const originTenantId = originWorkbookModel.tenantId;
     const targetTenantId = tenantIdOverride ?? tenantId;
 
-    const targetProjectId = projectIdOverride ?? projectId;
+    const targetProjectId = (projectIdOverride ?? projectId) || originWorkbookModel.projectId;
 
     const originWorkbook = new Workbook({
         ctx,
@@ -187,7 +187,7 @@ export const copyWorkbook = async (
                 [WorkbookModelColumn.TitleLower]: correctedNewTitle.toLowerCase(),
                 [WorkbookModelColumn.Description]: originWorkbookModel.description,
                 [WorkbookModelColumn.TenantId]: targetTenantId,
-                [WorkbookModelColumn.ProjectId]: superUser ? originWorkbookModel.projectId : targetProjectId,
+                [WorkbookModelColumn.ProjectId]: targetProjectId,
                 [WorkbookModelColumn.CollectionId]: newCollectionId,
                 [WorkbookModelColumn.Meta]: originWorkbookModel.meta,
                 [WorkbookModelColumn.CreatedBy]: userId,
