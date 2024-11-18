@@ -37,7 +37,6 @@ export const deleteCollections = async (
     const {
         tenantId,
         projectId,
-        user: {userId},
         superUser
     } = ctx.get('info');
 
