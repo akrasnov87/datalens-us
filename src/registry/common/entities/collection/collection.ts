@@ -3,9 +3,10 @@ import type {CollectionModel} from '../../../../db/models/new/collection';
 import {AppError} from '@gravity-ui/nodekit';
 import {CollectionConstructor, CollectionInstance} from './types';
 import {CollectionPermission, Permissions} from '../../../../entities/collection/types';
-import {Utils} from '../../../../utils/utils';
 import {US_ERRORS} from '../../../../const';
 import {ZitadelUserRole} from '../../../../types/zitadel';
+import {getMockedOperation} from '../../../../entities/utils';
+import Utils from '../../../../utils';
 
 export const Collection: CollectionConstructor = class Collection implements CollectionInstance {
     ctx: AppContext;
@@ -76,7 +77,7 @@ export const Collection: CollectionConstructor = class Collection implements Col
             });
         }
 
-        return Promise.resolve();
+        return Promise.resolve(getMockedOperation(Utils.encodeId(this.model.collectionId)));
     }
 
     async checkPermission(args: {
@@ -113,6 +114,10 @@ export const Collection: CollectionConstructor = class Collection implements Col
 
     setPermissions(permissions: Permissions) {
         this.permissions = permissions;
+    }
+
+    async deletePermissions(): Promise<void> {
+        this.permissions = undefined;
     }
 
     async fetchAllPermissions() {

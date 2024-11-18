@@ -76,6 +76,32 @@ export class Utils {
         return parentFolderKey ? parentFolderKey : '/';
     }
 
+    static getFullParentFolderKeys(keyFormatted = '') {
+        let parentFolderKey = keyFormatted;
+
+        const parentFolderKeys = [];
+
+        while (parentFolderKey.length) {
+            const newParentFolderKey = Utils.getParentFolderKey({
+                keyFormatted: parentFolderKey,
+            });
+
+            if (newParentFolderKey) {
+                parentFolderKey = newParentFolderKey;
+
+                parentFolderKeys.push(newParentFolderKey);
+
+                if (newParentFolderKey.split('/').length <= 2) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        return parentFolderKeys;
+    }
+
     static isRoot(key: string | undefined) {
         return key === '/';
     }
@@ -417,18 +443,6 @@ export class Utils {
         }
 
         return dsnList;
-    }
-
-    /** @deprecated use getOptimisticNextPageToken */
-    static getNextPageToken(page: number, pageSize: number, total: number) {
-        const lastPage = Math.ceil(total / pageSize) - 1;
-        let nextPageToken;
-
-        if (page >= 0 && page < lastPage) {
-            nextPageToken = String(page + 1);
-        }
-
-        return nextPageToken;
     }
 
     static getOptimisticNextPageToken({

@@ -2,6 +2,11 @@ import {TransactionOrKnex} from 'objection';
 import {AppContext} from '@gravity-ui/nodekit';
 import {getReplica} from '../../utils';
 import {CollectionModel, CollectionModelColumn} from '../../../../db/models/new/collection';
+import {WorkbookInstance} from '../../../../registry/common/entities/workbook/types';
+import {CollectionInstance} from '../../../../registry/common/entities/collection/types';
+import {ServiceArgs} from '../../types';
+import {registry} from '../../../../registry';
+import {WorkbookModel} from '../../../../db/models/new/workbook';
 
 interface Ctx {
     ctx: AppContext;
@@ -73,4 +78,100 @@ export const getCollectionsParentIds = async ({
 }: GetCollectionsParentIds) => {
     const parents = await getParents({ctx, trx, collectionIds});
     return parents.map((item) => item.collectionId);
+};
+
+export const getParentsIdsFromMap = (
+    collectionId: string | null,
+    parentsMap: Map<string, Nullable<string>>,
+): string[] => {
+    let id: Nullable<string> = collectionId;
+    const arr: string[] = id ? [id] : [];
+
+    while (id !== null) {
+        const curr: Nullable<string> = parentsMap.get(id) || null;
+
+        if (curr) arr.push(curr);
+
+        id = curr;
+    }
+
+    return arr;
+};
+
+const makeParentsMap = (collectionModels: CollectionModel[]) => {
+    const parentsMap = new Map<string, Nullable<string>>();
+
+    collectionModels.forEach((parent: CollectionModel) => {
+        parentsMap.set(parent.collectionId, parent.parentId);
+    });
+
+    return parentsMap;
+};
+
+export const makeWorkbooksWithParentsMap = async (
+    {trx, ctx}: ServiceArgs,
+    {
+        models,
+    }: {
+        models: WorkbookModel[];
+    },
+): Promise<Map<WorkbookInstance, string[]>> => {
+    const workbooksWithParentsMap = new Map<WorkbookInstance, string[]>();
+    const collectionIds = models.map((item) => item.collectionId).filter((item) => Boolean(item));
+
+    const parents = await getParents({
+        ctx,
+        trx: getReplica(trx),
+        collectionIds,
+    });
+
+    const parentsMap = makeParentsMap(parents);
+
+    const {Workbook} = registry.common.classes.get();
+
+    models.forEach((model) => {
+        const collectionId = model.collectionId;
+
+        const parentsForWorkbook = getParentsIdsFromMap(collectionId, parentsMap);
+
+        const workbook = new Workbook({ctx, model});
+
+        workbooksWithParentsMap.set(workbook, parentsForWorkbook);
+    });
+
+    return workbooksWithParentsMap;
+};
+
+export const makeCollectionsWithParentsMap = async (
+    {ctx, trx}: ServiceArgs,
+    {
+        models,
+    }: {
+        models: CollectionModel[];
+    },
+): Promise<Map<CollectionInstance, string[]>> => {
+    const collectionsWithParentsMap = new Map<CollectionInstance, string[]>();
+    const collectionIds = models.map((item) => item.collectionId).filter((item) => Boolean(item));
+
+    const parents = await getParents({
+        ctx,
+        trx: getReplica(trx),
+        collectionIds,
+    });
+
+    const parentsMap = makeParentsMap(parents);
+
+    const {Collection} = registry.common.classes.get();
+
+    models.forEach((model) => {
+        const parentId = model.parentId;
+
+        const parentsForCollection = getParentsIdsFromMap(parentId, parentsMap);
+
+        const collection = new Collection({ctx, model});
+
+        collectionsWithParentsMap.set(collection, parentsForCollection);
+    });
+
+    return collectionsWithParentsMap;
 };

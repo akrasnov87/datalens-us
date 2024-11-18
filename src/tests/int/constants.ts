@@ -1,9 +1,7 @@
-export const systemId = 'systemId';
+export const systemUserId = 'systemId';
 export const systemLogin = 'system';
 
-export const testUserLogin = 'unknown';
+export const testUserId = 'test-user-id';
+export const testUserLogin = 'test-user-login';
 
-export const testTenantId = 'common';
-export const testProjectId = null;
-
-export const ZITADEL_USER_ROLE_HEADER = 'zitadel-user-role';
+export const testOtherUserId = 'test-other-user-id';

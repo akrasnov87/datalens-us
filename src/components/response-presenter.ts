@@ -65,6 +65,10 @@ export async function prepareResponseAsync({data}: {data: any}, req?: any): Prom
     if(req) {
         response.permissions = Object.assign(response.permissions || {}, ((req.rpc && req.rpc.length > 0) ? req.rpc[0].permissions : {}));
     }
+    
+    if (response.relations) {
+        response.relations = await Utils.macrotasksEncodeData(response.relations);
+    }
 
     return {
         code: 200,

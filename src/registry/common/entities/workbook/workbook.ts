@@ -4,8 +4,9 @@ import {AppError} from '@gravity-ui/nodekit';
 import {WorkbookConstructor, WorkbookInstance} from './types';
 import {Permissions, WorkbookPermission} from '../../../../entities/workbook/types';
 import {US_ERRORS} from '../../../../const';
-import {Utils} from '../../../../utils/utils';
 import {ZitadelUserRole} from '../../../../types/zitadel';
+import {getMockedOperation} from '../../../../entities/utils';
+import Utils from '../../../../utils';
 
 export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
     implements WorkbookInstance
@@ -76,7 +77,7 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             });
         }
 
-        return Promise.resolve();
+        return Promise.resolve(getMockedOperation(Utils.encodeId(this.model.workbookId)));
     }
 
     async checkPermission(args: {
@@ -103,7 +104,11 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
         this.permissions = permissions;
     }
 
-    async enableAllPermissions() {
+    async deletePermissions(): Promise<void> {
+        this.permissions = undefined;
+    }
+
+    enableAllPermissions() {
         const permissions = {
             listAccessBindings: true,
             updateAccessBindings: true,

@@ -1,3 +1,4 @@
+import {EntryScope} from '../db/models/new/entry/types';
 import {Mode} from '../types/models';
 
 export const TRUE_FLAGS = ['1', 'true', true];
@@ -162,11 +163,14 @@ export const AJV_PATTERN_KEYS_NOT_OBJECT = {
     },
 };
 
+export const COOKIE_HEADER = 'cookie';
+export const AUTHORIZATION_HEADER = 'authorization';
+export const DL_AUTH_HEADER_KEY = 'bearer';
+
 export const US_MASTER_TOKEN_HEADER = 'x-us-master-token';
 export const DL_COMPONENT_HEADER = 'x-dl-component';
 export const DL_WORKBOOK_ID_HEADER = 'x-dl-workbookid';
 export const DL_SERVICE_USER_ACCESS_TOKEN = 'x-dl-service-user-access-token';
-export const DL_AUTH_HEADER_KEY = 'bearer';
 
 export const COMPARISON_OPERATORS: {[key: string]: string} = {
     eq: '=',
@@ -241,3 +245,11 @@ export const INTER_TENANT_GET_ENTRIES_SCHEMA = {
 };
 
 export const ModeValues: Mode[] = ['save', 'publish'];
+
+export const ALLOWED_ENTRIES_SCOPE = [
+    EntryScope.Dash,
+    EntryScope.Widget,
+    EntryScope.Dataset,
+    EntryScope.Connection,
+    EntryScope.Report,
+] as const;
