@@ -26,7 +26,8 @@
     "pg-error-constants": "^1.0.0",
     "power-radix": "^2.5.6",
     "utility-types": "^3.10.0",
-    "uuid": "^3.4.0"
+    "uuid": "^3.4.0",
+    "form-data": "4.0.1"
   },
   "devDependencies": {
     "@gravity-ui/eslint-config": "^2.0.0",

@@ -1,104 +1,70 @@
-# use native build platform for build js files only once
-FROM --platform=${BUILDPLATFORM} ubuntu:22.04 AS native-build-stage
-
-ARG NODE_MAJOR=20
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/cert.pem
-
-RUN apt-get update && apt-get -y upgrade
-
-# node
-RUN apt-get -y install ca-certificates curl gnupg
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-
-RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-
-RUN apt-get update && apt-get -y install nodejs g++ make
-
-RUN useradd -m -u 1000 app && mkdir /opt/app && chown app:app /opt/app
-
-WORKDIR /opt/app
-
-COPY package.json package-lock.json .npmrc /opt/app/
-RUN npm ci
-
-COPY ./dist /opt/app/dist
-COPY ./src /opt/app/src
-COPY ./typings /opt/app/typings
-COPY tsconfig.json /opt/app/
-
-RUN npm run build && chown app /opt/app/dist/run
-
-# runtime base image for both platform
-FROM ubuntu:22.04 AS base-stage
-
-ARG NODE_MAJOR=20
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get -y upgrade
-
-# node
-RUN apt-get -y install ca-certificates curl gnupg
-RUN mkdir -p /etc/apt/keyrings
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-
-RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-
-RUN apt-get update
-RUN apt-get -y install nodejs
-
-# install postgresql-client
-RUN apt-get -y install  postgresql-client
-
-# remove unnecessary packages
-RUN apt-get -y purge curl gnupg gnupg2 && \
-    apt-get -y autoremove && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+FROM ubuntu:22.04
 
 # timezone setting
 ENV TZ="Etc/UTC"
-RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
 
-# user app
-RUN useradd -m -u 1000 app && mkdir /opt/app && chown app:app /opt/app
+# add node.js repository
+RUN apt-get update && \
+    apt-get install -y ca-certificates curl gnupg && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
-# install package dependencies for production
-FROM base-stage AS install-stage
+# add postgresql repository
+RUN install -d /usr/share/postgresql-common/pgdg && \
+    curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
+    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt jammy-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
 
 # install system dependencies
-RUN apt-get update && apt-get -y install g++ make
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata && \
+    apt-get -y install nginx supervisor nodejs postgresql-client-13 build-essential
 
-WORKDIR /opt/app
+# cleanup tmp and defaults
+RUN rm -rf /etc/nginx/sites-enabled/default /var/lib/apt/lists/*
 
-COPY package.json package-lock.json .npmrc /opt/app/
-
-RUN npm ci && npm prune --production
-
-# production running stage
-FROM base-stage AS runtime-stage
-
-ARG USER=app
 ARG app_version
+ARG CERT
+ARG USER=app
+
 ENV APP_VERSION=$app_version
+ENV NODE_ENV=production
+
+RUN mkdir -p /opt/app
+
+RUN useradd -ms /bin/bash --uid 1000 ${USER}
 
 WORKDIR /opt/app
 
-COPY package.json package-lock.json /opt/app/
-COPY ./scripts /opt/app/scripts
 
-COPY --from=install-stage /opt/app/node_modules /opt/app/node_modules
-COPY --from=native-build-stage /opt/app/dist /opt/app/dist
+COPY deploy/nginx /etc/nginx
+COPY deploy/supervisor /etc/supervisor/conf.d
+COPY package.json package-lock.json /opt/app/
+COPY . .
+
+# prepare rootless permissions for supervisor and nginx
+RUN chown -R ${USER} /var/log/supervisor/ && \
+    mkdir /var/run/supervisor && \
+    chown -R ${USER} /var/run/supervisor && \
+    mkdir -p /var/cache/nginx && chown -R ${USER} /var/cache/nginx && \
+    mkdir -p /var/log/nginx  && chown -R ${USER} /var/log/nginx && \
+    mkdir -p /var/lib/nginx  && chown -R ${USER} /var/lib/nginx && \
+    touch /run/nginx.pid && chown -R ${USER} /run/nginx.pid 
+
+# build app
+RUN npm ci -q --no-progress --include=dev --also=dev
+RUN npm run build
+RUN npm prune --production
+RUN rm -rf /tmp/*
 
 RUN chown -R ${USER} /opt/app/dist/run
-RUN sed -i 's/\r//g' /opt/app/scripts/preflight.sh
+
+# adding certificate
+RUN echo $CERT > /usr/local/share/ca-certificates/cert.pem
+ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/cert.pem
+RUN update-ca-certificates
 
 USER app
 
-ENV NODE_ENV=production
-ENV APP_PORT=8083
-
-ENTRYPOINT ["./scripts/preflight.sh"]
+ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf" ]

@@ -1,5 +1,4 @@
 import {CTX} from '../../../../types/models';
-import {registry} from '../../../../registry';
 import {GetEntryResult} from '../../../../services/new/entry/get-entry';
 
 export const formatGetEntryResponse = async (ctx: CTX, result: GetEntryResult) => {
@@ -8,6 +7,7 @@ export const formatGetEntryResponse = async (ctx: CTX, result: GetEntryResult) =
     const {privatePermissions, onlyPublic} = ctx.get('info');
     const _ctx: any = ctx;
     const rpc = _ctx.appParams.rpc;
+    const registry = ctx.get('registry');
 
     let isHiddenUnversionedData = false;
     if (!privatePermissions.ownedScopes.includes(joinedEntryRevisionFavorite?.scope!)) {
