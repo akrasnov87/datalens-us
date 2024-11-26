@@ -67,4 +67,7 @@ RUN update-ca-certificates
 
 USER app
 
+ENV NODE_ENV=production
+ENV APP_PORT=8083
+
 ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf" ]

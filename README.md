@@ -106,3 +106,10 @@ git pull upstream main
     ]
 }
 </pre>
+
+## Тегирование
+
+<pre>
+git tag [версия]
+git push origin [версия]
+</pre>
