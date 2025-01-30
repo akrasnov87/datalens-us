@@ -71,7 +71,6 @@ controller.api = {
     responses: {
         200: {
             description: collectionContent.schema.description ?? '',
-            project: collectionContent.schema.projectId ?? '',
             content: {
                 [CONTENT_TYPE_JSON]: {
                     schema: collectionContent.schema,

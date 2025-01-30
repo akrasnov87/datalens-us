@@ -15,7 +15,7 @@ const requestSchema = {
     body: z.object({
         title: z.string().optional(),
         description: z.string().optional(),
-        projectId: z.string().optional(),
+        project: z.string().optional(),
     }),
 };
 
@@ -80,7 +80,6 @@ controller.api = {
     responses: {
         200: {
             description: collectionModel.schema.description ?? '',
-            project: collectionModel.schema.projectId ?? '',
             content: {
                 [CONTENT_TYPE_JSON]: {
                     schema: collectionModel.schema,

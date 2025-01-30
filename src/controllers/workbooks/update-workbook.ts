@@ -63,7 +63,6 @@ controller.api = {
     responses: {
         200: {
             description: workbookModel.schema.description ?? '',
-            project: workbookModel.schema.projectId ?? '',
             content: {
                 [CONTENT_TYPE_JSON]: {
                     schema: workbookModel.schema,

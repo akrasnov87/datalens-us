@@ -9,7 +9,7 @@ const schema = z
         title: z.string(),
         description: z.string().nullable(),
         tenantId: z.string(),
-        projectId: z.string(),
+        projectId: z.string().nullable(),
         meta: z.object({}),
         createdBy: z.string(),
         createdAt: z.string(),

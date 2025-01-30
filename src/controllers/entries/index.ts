@@ -15,6 +15,7 @@ import {
     updateEntry,
 } from '../../services/entry';
 import EntryService from '../../services/entry.service';
+import Utils from '../../utils';
 import NavigationService from '../../services/navigation.service';
 import {
     GetEntryArgs,
@@ -143,8 +144,9 @@ export default {
 
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);
-            if(token) {
-                await Utils.updateAccesses(token, { id: response.entryId, '*': true });
+            if(token && response) {
+                var r:any = response;
+                await Utils.updateAccesses(token, { id: r.entryId, '*': true });
             }
         }
 

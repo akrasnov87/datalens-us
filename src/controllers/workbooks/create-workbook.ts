@@ -69,7 +69,6 @@ controller.api = {
     responses: {
         200: {
             description: workbookInstanceWithOperation.schema.description ?? '',
-            project: workbookInstanceWithOperation.schema.projectId ?? '',
             content: {
                 [CONTENT_TYPE_JSON]: {
                     schema: workbookInstanceWithOperation.schema.omit({permissions: true}),
