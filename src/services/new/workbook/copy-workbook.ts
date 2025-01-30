@@ -1,44 +1,19 @@
+import {AppContext, AppError} from '@gravity-ui/nodekit';
 import {TransactionOrKnex, transaction} from 'objection';
-import {AppError, AppContext} from '@gravity-ui/nodekit';
-import {getParentIds} from '../collection/utils/get-parents';
-import {ServiceArgs} from '../types';
-import {getPrimary, getReplica} from '../utils';
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
+
 import {US_ERRORS} from '../../../const';
-import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
-import {JoinedEntryRevisionColumns} from '../../../db/presentations/joined-entry-revision';
-import {RevisionModel} from '../../../db/models/new/revision';
 import Link from '../../../db/models/links';
 import {Entry} from '../../../db/models/new/entry';
+import {RevisionModel} from '../../../db/models/new/revision';
+import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
+import {JoinedEntryRevisionColumns} from '../../../db/presentations/joined-entry-revision';
 import {WorkbookPermission} from '../../../entities/workbook';
 import Utils from '../../../utils';
 import {copyToWorkbook} from '../../entry/actions';
 import {getCollection} from '../collection';
-
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['workbookId', 'collectionId', 'title'],
-    properties: {
-        workbookId: {
-            type: 'string',
-        },
-        collectionId: {
-            type: ['string', 'null'],
-        },
-        title: {
-            type: 'string',
-        },
-        projectIdOverride: {
-            type: ['string', 'null'],
-        },
-        tenantIdOverride: {
-            type: 'string',
-        },
-        accessBindingsServiceEnabled: {
-            type: 'boolean',
-        },
-    },
-});
+import {getParentIds} from '../collection/utils/get-parents';
+import {ServiceArgs} from '../types';
+import {getPrimary, getReplica} from '../utils';
 
 export interface CopyWorkbookArgs {
     workbookId: string;
@@ -46,20 +21,13 @@ export interface CopyWorkbookArgs {
     title: string;
     projectIdOverride?: Nullable<string>;
     tenantIdOverride?: string;
-    accessBindingsServiceEnabled?: boolean;
 }
 
 export const copyWorkbook = async (
-    {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: CopyWorkbookArgs,
 ) => {
-    const {
-        workbookId,
-        collectionId: newCollectionId,
-        title: newTitle,
-        projectIdOverride,
-        tenantIdOverride,
-    } = args;
+    const {workbookId, collectionId: newCollectionId, title: newTitle, projectIdOverride, tenantIdOverride} = args;
 
     ctx.log('COPY_WORKBOOK_START', {
         workbookId: Utils.encodeId(workbookId),
@@ -69,15 +37,11 @@ export const copyWorkbook = async (
         tenantIdOverride,
     });
 
-    if (!skipValidation) {
-        validateArgs(args);
-    }
-
     const {accessServiceEnabled, accessBindingsServiceEnabled} = ctx.config;
 
     const {
-        tenantId,
         projectId,
+        tenantId,
         user: {userId},
         superUser
     } = ctx.get('info');
@@ -132,12 +96,7 @@ export const copyWorkbook = async (
         );
     }
 
-    if (
-        accessServiceEnabled &&
-        !skipCheckPermissions &&
-        tenantIdOverride === undefined &&
-        projectIdOverride === undefined
-    ) {
+    if (accessServiceEnabled && !skipCheckPermissions && tenantIdOverride === undefined && projectIdOverride === undefined) {
         let originWorkbookParentIds: string[] = [];
 
         if (originWorkbook.model.collectionId !== null) {
@@ -175,10 +134,10 @@ export const copyWorkbook = async (
         const correctedNewTitle = await getUniqWorkbookTitle({
             newTitle,
             tenantId: targetTenantId,
-            projectId: targetProjectId,
             collectionId: newCollectionId,
             trx: transactionTrx,
-            superUser: superUser
+            superUser: superUser,
+            projectId: targetProjectId
         });
 
         const copiedWorkbook = await WorkbookModel.query(transactionTrx)
@@ -255,18 +214,18 @@ export const copyWorkbook = async (
 
 async function getUniqWorkbookTitle({
     newTitle,
-    projectId,
     tenantId,
     collectionId,
     trx,
-    superUser
+    superUser,
+    projectId
 }: {
     newTitle: WorkbookModel['title'];
-    projectId: WorkbookModel['projectId'];
     tenantId: WorkbookModel['tenantId'];
     collectionId: WorkbookModel['collectionId'];
     trx: TransactionOrKnex;
     superUser: boolean | undefined;
+    projectId: WorkbookModel['projectId'];
 }) {
     let uniqTitle = newTitle;
 

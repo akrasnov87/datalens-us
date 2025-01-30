@@ -1,65 +1,75 @@
 import {Request, Response} from '@gravity-ui/expresskit';
-import {prepareResponseAsync} from '../components/response-presenter';
-import Utils from '../utils';
 
+import {prepareResponseAsync} from '../../components/response-presenter';
+import Utils from '../../utils';
 import {
-    createWorkbook,
+    OrderDirection,
+    OrderField,
+    copyWorkbookTemplate,
+    getAllWorkbooks,
     getWorkbook,
     getWorkbookContent,
     getWorkbooksList,
+    restoreWorkbook,
+    setWorkbookIsTemplate,
+} from '../../services/new/workbook';
+import {
+    formatGetWorkbookContent,
+    formatRestoreWorkbook,
+    formatSetWorkbookIsTemplate,
+    formatWorkbook,
+    formatWorkbookModel,
+    formatWorkbookModelWithOperation,
+    formatWorkbookModelsList,
+    formatWorkbooksList,
+} from '../../services/new/workbook/formatters';
+import {getWorkbooksListByIds} from '../../services/new/workbook/get-workbooks-list-by-ids';
+import {isTrueArg} from '../../utils/env-utils';
+
+import {copyWorkbook} from './copy-workbook';
+import {createWorkbook} from './create-workbook';
+import {deleteWorkbook} from './delete-workbook';
+import {deleteWorkbooksList} from './delete-workbooks-list';
+import {moveWorkbook} from './move-workbook';
+import {moveWorkbooksList} from './move-workbooks-list';
+import {updateWorkbook} from './update-workbook';
+
+export default {
+    createWorkbook,
     updateWorkbook,
     moveWorkbook,
     moveWorkbooksList,
-    setWorkbookIsTemplate,
+    deleteWorkbook,
+    deleteWorkbooksList,
     copyWorkbook,
-    copyWorkbookTemplate,
-    getAllWorkbooks,
-    OrderField,
-    OrderDirection,
-    restoreWorkbook,
-    deleteWorkbooks,
-} from '../services/new/workbook';
-import {
-    formatWorkbookModel,
-    formatWorkbookModelsList,
-    formatWorkbook,
-    formatWorkbookWithOperation,
-    formatWorkbookModelWithOperation,
-    formatWorkbooksList,
-    formatSetWorkbookIsTemplate,
-    formatRestoreWorkbook,
-    formatGetWorkbookContent,
-} from '../services/new/workbook/formatters';
-import {getWorkbooksListByIds} from '../services/new/workbook/get-workbooks-list-by-ids';
+// export default {
+//     create: async (req: Request, res: Response) => {
+//         const {body} = req;
 
-export default {
-    create: async (req: Request, res: Response) => {
-        const {body} = req;
+//         const result = await createWorkbook(
+//             {
+//                 ctx: req.ctx,
+//             },
+//             {
+//                 collectionId: body.collectionId ?? null,
+//                 title: body.title,
+//                 project: body.project,
+//                 description: body.description,
+//             },
+//         );
 
-        const result = await createWorkbook(
-            {
-                ctx: req.ctx,
-            },
-            {
-                collectionId: body.collectionId ?? null,
-                title: body.title,
-                project: body.project,
-                description: body.description,
-            },
-        );
+//         const formattedResponse = formatWorkbookWithOperation(result.workbook, result.operation);
 
-        const formattedResponse = formatWorkbookWithOperation(result.workbook, result.operation);
+//         const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
+//         if(process.env.NODE_RPC_URL) {
+//             var token = Utils.getTokenFromContext(req.ctx);
+//             if(token) {
+//                 await Utils.updateAccesses(token, { id: response.workbookId, '*': true });
+//             }
+//         }
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
-        if(process.env.NODE_RPC_URL) {
-            var token = Utils.getTokenFromContext(req.ctx);
-            if(token) {
-                await Utils.updateAccesses(token, { id: response.workbookId, '*': true });
-            }
-        }
-
-        res.status(code).send(response);
-    },
+//         res.status(code).send(response);
+//     },
 
     get: async (req: Request, res: Response) => {
         const {params, query} = req;
@@ -70,7 +80,7 @@ export default {
             },
             {
                 workbookId: params.workbookId,
-                includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
+                includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
             },
         );
 
@@ -87,7 +97,7 @@ export default {
             {ctx: req.ctx},
             {
                 workbookId: params.workbookId,
-                includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
+                includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
                 page: (query.page && Number(query.page)) as number | undefined,
                 pageSize: (query.pageSize && Number(query.pageSize)) as number | undefined,
                 createdBy: query.createdBy as any,
@@ -141,13 +151,13 @@ export default {
             {ctx: req.ctx},
             {
                 collectionId: (query.collectionId as Optional<string>) ?? null,
-                includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
+                includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
                 filterString: query.filterString as Optional<string>,
                 page: (query.page && Number(query.page)) as number | undefined,
                 pageSize: (query.pageSize && Number(query.pageSize)) as number | undefined,
                 orderField: query.orderField as Optional<OrderField>,
                 orderDirection: query.orderDirection as Optional<OrderDirection>,
-                onlyMy: Utils.isTrueArg(query.onlyMy),
+                onlyMy: isTrueArg(query.onlyMy),
             },
         );
 
@@ -171,125 +181,125 @@ export default {
         res.status(code).send(response);
     },
 
-    update: async (req: Request, res: Response) => {
-        const {body, params} = req;
+    // update: async (req: Request, res: Response) => {
+    //     const {body, params} = req;
 
-        const result = await updateWorkbook(
-            {
-                ctx: req.ctx,
-            },
-            {
-                workbookId: params.workbookId,
-                title: body.title,
-                project: body.project,
-                description: body.description,
-            },
-        );
+    //     const result = await updateWorkbook(
+    //         {
+    //             ctx: req.ctx,
+    //         },
+    //         {
+    //             workbookId: params.workbookId,
+    //             title: body.title,
+    //             project: body.project,
+    //             description: body.description,
+    //         },
+    //     );
 
-        const formattedResponse = formatWorkbookModel(result);
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
-        res.status(code).send(response);
-    },
+    //     const formattedResponse = formatWorkbookModel(result);
+    //     const {code, response} = await prepareResponseAsync({data: formattedResponse});
+    //     res.status(code).send(response);
+    // },
 
-    move: async (req: Request, res: Response) => {
-        const {body, params} = req;
+    // move: async (req: Request, res: Response) => {
+    //     const {body, params} = req;
 
-        const result = await moveWorkbook(
-            {
-                ctx: req.ctx,
-            },
-            {
-                workbookId: params.workbookId,
-                collectionId: body.collectionId,
-                title: body.title,
-            },
-        );
+    //     const result = await moveWorkbook(
+    //         {
+    //             ctx: req.ctx,
+    //         },
+    //         {
+    //             workbookId: params.workbookId,
+    //             collectionId: body.collectionId,
+    //             title: body.title,
+    //         },
+    //     );
 
-        const formattedResponse = formatWorkbookModel(result);
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
-        res.status(code).send(response);
-    },
+    //     const formattedResponse = formatWorkbookModel(result);
+    //     const {code, response} = await prepareResponseAsync({data: formattedResponse});
+    //     res.status(code).send(response);
+    // },
 
-    moveList: async (req: Request, res: Response) => {
-        const {body} = req;
+    // moveList: async (req: Request, res: Response) => {
+    //     const {body} = req;
 
-        const result = await moveWorkbooksList(
-            {ctx: req.ctx},
-            {
-                workbookIds: body.workbookIds,
-                collectionId: body.collectionId as string,
-            },
-        );
+    //     const result = await moveWorkbooksList(
+    //         {ctx: req.ctx},
+    //         {
+    //             workbookIds: body.workbookIds,
+    //             collectionId: body.collectionId as string,
+    //         },
+    //     );
 
-        const formattedResponse = formatWorkbookModelsList(result);
+    //     const formattedResponse = formatWorkbookModelsList(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+    //     const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
-        res.status(code).send(response);
-    },
+    //     res.status(code).send(response);
+    // },
 
-    delete: async (req: Request, res: Response) => {
-        const {params} = req;
+    // delete: async (req: Request, res: Response) => {
+    //     const {params} = req;
 
-        const result = await deleteWorkbooks(
-            {
-                ctx: req.ctx,
-            },
-            {
-                workbookIds: [params.workbookId],
-            },
-        );
+    //     const result = await deleteWorkbooks(
+    //         {
+    //             ctx: req.ctx,
+    //         },
+    //         {
+    //             workbookIds: [params.workbookId],
+    //         },
+    //     );
 
-        const {code, response} = await prepareResponseAsync({data: result.workbooks[0]});
+    //     const {code, response} = await prepareResponseAsync({data: result.workbooks[0]});
 
-        res.status(code).send(response);
-    },
+    //     res.status(code).send(response);
+    // },
 
-    deleteList: async (req: Request, res: Response) => {
-        const {body} = req;
+    // deleteList: async (req: Request, res: Response) => {
+    //     const {body} = req;
 
-        const result = await deleteWorkbooks(
-            {ctx: req.ctx},
-            {
-                workbookIds: body.workbookIds,
-            },
-        );
+    //     const result = await deleteWorkbooks(
+    //         {ctx: req.ctx},
+    //         {
+    //             workbookIds: body.workbookIds,
+    //         },
+    //     );
 
-        const formattedResponse = formatWorkbookModelsList(result);
+    //     const formattedResponse = formatWorkbookModelsList(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+    //     const {code, response} = await prepareResponseAsync({data: formattedResponse});
 
-        res.status(code).send(response);
-    },
+    //     res.status(code).send(response);
+    // },
 
-    copy: async (req: Request, res: Response) => {
-        const {body, params} = req;
+    // copy: async (req: Request, res: Response) => {
+    //     const {body, params} = req;
 
-        const result = await copyWorkbook(
-            {
-                ctx: req.ctx,
-            },
-            {
-                workbookId: params.workbookId,
-                collectionId: body.collectionId ?? null,
-                // newTitle for compatibility
-                title: body.title ?? body.newTitle,
-            },
-        );
+    //     const result = await copyWorkbook(
+    //         {
+    //             ctx: req.ctx,
+    //         },
+    //         {
+    //             workbookId: params.workbookId,
+    //             collectionId: body.collectionId ?? null,
+    //             // newTitle for compatibility
+    //             title: body.title ?? body.newTitle,
+    //         },
+    //     );
 
-        const formattedResponse = formatWorkbookModelWithOperation(
-            result.workbook,
-            result.operation,
-        );
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
-        if(process.env.NODE_RPC_URL) {
-            var token = Utils.getTokenFromContext(req.ctx);
-            if(token) {
-                await Utils.updateAccesses(token, { id: response.workbookId, '*': true });
-            }
-        }
-        res.status(code).send(response);
-    },
+    //     const formattedResponse = formatWorkbookModelWithOperation(
+    //         result.workbook,
+    //         result.operation,
+    //     );
+    //     const {code, response} = await prepareResponseAsync({data: formattedResponse});
+    //     if(process.env.NODE_RPC_URL) {
+    //         var token = Utils.getTokenFromContext(req.ctx);
+    //         if(token) {
+    //             await Utils.updateAccesses(token, { id: response.workbookId, '*': true });
+    //         }
+    //     }
+    //     res.status(code).send(response);
+    // },
 
     setIsTemplate: async (req: Request, res: Response) => {
         const {body, params} = req;

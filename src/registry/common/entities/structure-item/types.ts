@@ -1,10 +1,12 @@
 import type {AppContext} from '@gravity-ui/nodekit';
+
 import type {CollectionModel} from '../../../../db/models/new/collection';
+import {WorkbookModel} from '../../../../db/models/new/workbook';
 import type {
     CollectionPermission,
     Permissions as CollectionPermissions,
 } from '../../../../entities/collection/types';
-import {WorkbookModel} from '../../../../db/models/new/workbook';
+import {Operation} from '../../../../entities/types';
 import {
     WorkbookPermission,
     Permissions as WorkbookPermissions,
@@ -16,7 +18,7 @@ export interface StructureItemInstance {
     model: CollectionModel | WorkbookModel;
     permissions?: CollectionPermissions | WorkbookPermissions;
 
-    register(args: {parentIds: string[]}): Promise<unknown>;
+    register(args: {parentIds: string[]}): Promise<Operation>;
 
     checkPermission(args: {
         parentIds: string[];

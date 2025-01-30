@@ -1,11 +1,8 @@
-import {getPrimary} from '../utils';
 import {transaction} from 'objection';
 
-import {ServiceArgs} from '../types';
-
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
-
 import Utils from '../../../utils';
+import {ServiceArgs} from '../types';
+import {getPrimary} from '../utils';
 
 import {moveCollection} from './move-collection';
 
@@ -14,29 +11,11 @@ export interface MoveListCollectionsArgs {
     parentId: Nullable<string>;
 }
 
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['collectionIds', 'parentId'],
-    properties: {
-        collectionIds: {
-            type: 'array',
-            items: {type: 'string'},
-        },
-        parentId: {
-            type: ['string', 'null'],
-        },
-    },
-});
-
 export const moveCollectionsList = async (
-    {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: MoveListCollectionsArgs,
 ) => {
     const {collectionIds, parentId} = args;
-
-    if (!skipValidation) {
-        validateArgs(args);
-    }
 
     const targetTrx = getPrimary(trx);
 
@@ -53,7 +32,6 @@ export const moveCollectionsList = async (
                         {
                             ctx,
                             trx: transactionTrx,
-                            skipValidation,
                             skipCheckPermissions,
                         },
                         {

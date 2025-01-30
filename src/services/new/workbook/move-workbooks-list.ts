@@ -1,11 +1,8 @@
-import {getPrimary} from '../utils';
 import {transaction} from 'objection';
 
-import {ServiceArgs} from '../types';
-
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
-
 import Utils from '../../../utils';
+import {ServiceArgs} from '../types';
+import {getPrimary} from '../utils';
 
 import {moveWorkbook} from './move-workbook';
 
@@ -14,29 +11,11 @@ export interface MoveListWorkbooksArgs {
     collectionId: Nullable<string>;
 }
 
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['workbookIds', 'collectionId'],
-    properties: {
-        workbookIds: {
-            type: 'array',
-            items: {type: 'string'},
-        },
-        collectionId: {
-            type: ['string', 'null'],
-        },
-    },
-});
-
 export const moveWorkbooksList = async (
-    {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: MoveListWorkbooksArgs,
 ) => {
     const {workbookIds, collectionId} = args;
-
-    if (!skipValidation) {
-        validateArgs(args);
-    }
 
     const targetTrx = getPrimary(trx);
 
@@ -53,7 +32,6 @@ export const moveWorkbooksList = async (
                         {
                             ctx,
                             trx: transactionTrx,
-                            skipValidation,
                             skipCheckPermissions,
                         },
                         {

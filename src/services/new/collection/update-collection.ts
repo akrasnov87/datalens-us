@@ -1,34 +1,16 @@
 import {AppError} from '@gravity-ui/nodekit';
-import {getCollection} from './get-collection';
-import {checkCollectionByTitle} from './check-collection-by-title';
-import {getParentIds} from './utils/get-parents';
+import {raw} from 'objection';
+
+import {CURRENT_TIMESTAMP, US_ERRORS} from '../../../const';
+import {CollectionModel, CollectionModelColumn} from '../../../db/models/new/collection';
+import {CollectionPermission} from '../../../entities/collection';
+import Utils from '../../../utils';
 import {ServiceArgs} from '../types';
 import {getPrimary} from '../utils';
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
-import {CURRENT_TIMESTAMP, US_ERRORS} from '../../../const';
-import {raw} from 'objection';
-import {CollectionModel, CollectionModelColumn} from '../../../db/models/new/collection';
-import Utils from '../../../utils';
-import {CollectionPermission} from '../../../entities/collection';
 
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['collectionId'],
-    properties: {
-        collectionId: {
-            type: 'string',
-        },
-        title: {
-            type: 'string',
-        },
-        project: {
-            type: 'string',
-        },
-        description: {
-            type: 'string',
-        },
-    },
-});
+import {checkCollectionByTitle} from './check-collection-by-title';
+import {getCollection} from './get-collection';
+import {getParentIds} from './utils/get-parents';
 
 export interface UpdateCollectionArgs {
     collectionId: string;
@@ -38,7 +20,7 @@ export interface UpdateCollectionArgs {
 }
 
 export const updateCollection = async (
-    {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: UpdateCollectionArgs,
 ) => {
     const {collectionId, title: newTitle, project: newProject, description: newDescription} = args;
@@ -56,10 +38,6 @@ export const updateCollection = async (
         newTitle,
         newDescription,
     });
-
-    if (!skipValidation) {
-        validateArgs(args);
-    }
 
     const targetTrx = getPrimary(trx);
 

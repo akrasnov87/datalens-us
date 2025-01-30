@@ -17,7 +17,7 @@ export const WorkbookModelColumn = {
     DeletedAt: 'deletedAt',
     DeletedBy: 'deletedBy',
     IsTemplate: 'isTemplate',
-    SortTitle: 'sortTitle',
+    SortTitle: 'sortTitle'
 } as const;
 
 export class WorkbookModel extends Model {

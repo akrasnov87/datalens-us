@@ -1,38 +1,26 @@
 import {AppError} from '@gravity-ui/nodekit';
+import {transaction} from 'objection';
+
+import {US_ERRORS} from '../../../const';
+import Lock from '../../../db/models/lock';
+import {Entry, EntryColumn} from '../../../db/models/new/entry';
+import {WorkbookPermission} from '../../../entities/workbook';
+import {WorkbookInstance} from '../../../registry/common/entities/workbook/types';
+import Utils, {makeUserId} from '../../../utils';
+import {markEntryAsDeleted} from '../../entry/crud';
 import {getParentIds} from '../collection/utils/get-parents';
 import {ServiceArgs} from '../types';
 import {getPrimary} from '../utils';
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
-import {US_ERRORS} from '../../../const';
-import {transaction} from 'objection';
-import Lock from '../../../db/models/lock';
-import {Entry, EntryColumn} from '../../../db/models/new/entry';
-import Utils, {makeUserId} from '../../../utils';
-import {WorkbookPermission} from '../../../entities/workbook';
-import {markEntryAsDeleted} from '../../entry/crud';
+
 import {getWorkbooksListByIds} from './get-workbooks-list-by-ids';
 import {markWorkbooksAsDeleted} from './utils';
-import {WorkbookInstance} from '../../../registry/common/entities/workbook/types';
-
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['workbookIds'],
-    properties: {
-        workbookIds: {
-            type: 'array',
-            items: {
-                type: 'string',
-            },
-        },
-    },
-});
 
 export interface DeleteWorkbooksArgs {
     workbookIds: string[];
 }
 
 export const deleteWorkbooks = async (
-    {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: DeleteWorkbooksArgs,
 ) => {
     const {workbookIds} = args;
@@ -40,10 +28,6 @@ export const deleteWorkbooks = async (
     ctx.log('DELETE_WORKBOOKS_START', {
         workbookIds: await Utils.macrotasksMap(workbookIds, (id) => Utils.encodeId(id)),
     });
-
-    if (!skipValidation) {
-        validateArgs(args);
-    }
 
     const {accessServiceEnabled} = ctx.config;
 
@@ -60,8 +44,6 @@ export const deleteWorkbooks = async (
 
     const workbooksMap: Map<WorkbookInstance, string[]> = new Map();
 
-    let parentIds: string[] = [];
-
     const checkDeletePermissionPromises = workbooks.map(async (workbook) => {
         if (workbook.model.isTemplate) {
             throw new AppError("Workbook template can't be deleted", {
@@ -69,31 +51,31 @@ export const deleteWorkbooks = async (
             });
         }
 
-        if (accessServiceEnabled) {
-            if (workbook.model.collectionId !== null) {
-                parentIds = await getParentIds({
-                    ctx,
-                    trx: targetTrx,
-                    collectionId: workbook.model.collectionId,
-                });
-            }
+        let parentIds: string[] = [];
 
-            workbooksMap.set(workbook, parentIds);
-
-            if (!skipCheckPermissions) {
-                await workbook.checkPermission({
-                    parentIds,
-                    permission: WorkbookPermission.Delete,
-                });
-            }
+        if (workbook.model.collectionId !== null) {
+            parentIds = await getParentIds({
+                ctx,
+                trx: targetTrx,
+                collectionId: workbook.model.collectionId,
+            });
         }
+
+        if (accessServiceEnabled && !skipCheckPermissions) {
+            await workbook.checkPermission({
+                parentIds,
+                permission: WorkbookPermission.Delete,
+            });
+        }
+
+        workbooksMap.set(workbook, parentIds);
     });
 
     await Promise.all(checkDeletePermissionPromises);
 
     const result = await transaction(targetTrx, async (transactionTrx) => {
         const deletedWorkbooks = await markWorkbooksAsDeleted(
-            {ctx, trx, skipCheckPermissions: true},
+            {ctx, trx: transactionTrx, skipCheckPermissions: true},
             {workbooksMap},
         );
 

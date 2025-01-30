@@ -1,12 +1,15 @@
 import type {AppContext} from '@gravity-ui/nodekit';
-import type {WorkbookModel} from '../../../../db/models/new/workbook';
 import {AppError} from '@gravity-ui/nodekit';
-import {WorkbookConstructor, WorkbookInstance} from './types';
-import {Permissions, WorkbookPermission} from '../../../../entities/workbook/types';
+
+import {UserRole} from '../../../../components/auth/constants/role';
 import {US_ERRORS} from '../../../../const';
-import {ZitadelUserRole} from '../../../../types/zitadel';
+import type {WorkbookModel} from '../../../../db/models/new/workbook';
 import {getMockedOperation} from '../../../../entities/utils';
+import {Permissions, WorkbookPermission} from '../../../../entities/workbook/types';
+import {ZitadelUserRole} from '../../../../types/zitadel';
 import Utils from '../../../../utils';
+
+import {WorkbookConstructor, WorkbookInstance} from './types';
 
 export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
     implements WorkbookInstance
@@ -43,31 +46,6 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             delete: true,
         }, (response && response.data) ? response.data[0] : {});
     }
-
-    private isEditorOrAdmin() {
-        const {zitadelUserRole: role, superUser} = this.ctx.get('info');
-        return role === ZitadelUserRole.Editor || role === ZitadelUserRole.Admin || superUser;
-    }
-
-    private getAllPermissions() {
-        const isEditorOrAdmin = this.isEditorOrAdmin();
-
-        const permissions = {
-            listAccessBindings: true,
-            updateAccessBindings: isEditorOrAdmin,
-            limitedView: true,
-            view: true,
-            update: isEditorOrAdmin,
-            copy: isEditorOrAdmin,
-            move: isEditorOrAdmin,
-            publish: isEditorOrAdmin,
-            embed: isEditorOrAdmin,
-            delete: isEditorOrAdmin,
-        };
-
-        return permissions;
-    }
-
     async register() {
         const isEditorOrAdmin = this.isEditorOrAdmin();
 
@@ -120,6 +98,37 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             copy: true,
             move: true,
             delete: true,
+        };
+
+        return permissions;
+    }
+
+    private isEditorOrAdmin() {
+        const {isAuthEnabled} = this.ctx.config;
+        const user = this.ctx.get('user');
+        const {zitadelUserRole} = this.ctx.get('info');
+        return isAuthEnabled
+            ? (user?.roles || []).some(
+                  (role) => role === UserRole.Editor || role === UserRole.Admin,
+              )
+            : zitadelUserRole === ZitadelUserRole.Editor ||
+                  zitadelUserRole === ZitadelUserRole.Admin;
+    }
+
+    private getAllPermissions() {
+        const isEditorOrAdmin = this.isEditorOrAdmin();
+
+        const permissions = {
+            listAccessBindings: true,
+            updateAccessBindings: isEditorOrAdmin,
+            limitedView: true,
+            view: true,
+            update: isEditorOrAdmin,
+            copy: isEditorOrAdmin,
+            move: isEditorOrAdmin,
+            publish: isEditorOrAdmin,
+            embed: isEditorOrAdmin,
+            delete: isEditorOrAdmin,
         };
 
         return permissions;

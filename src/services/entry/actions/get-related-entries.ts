@@ -1,14 +1,15 @@
 import {raw} from 'objection';
-import Entry from '../../../db/models/entry';
-import {ServiceArgs} from '../../new/types';
+
 import {
     DEFAULT_QUERY_TIMEOUT,
     EXTENDED_QUERY_TIMEOUT,
     RETURN_RELATION_COLUMNS,
 } from '../../../const';
-import {getReplica} from '../../new/utils';
-import {EntryScope} from '../../../db/models/new/entry/types';
+import Entry from '../../../db/models/entry';
 import {EntryColumn} from '../../../db/models/new/entry';
+import {EntryScope} from '../../../db/models/new/entry/types';
+import {ServiceArgs} from '../../new/types';
+import {getReplica} from '../../new/utils';
 
 export enum RelationDirection {
     Parent = 'parent',
@@ -68,8 +69,15 @@ export async function getRelatedEntries(
                             endToStart ? 'l.fromId' : 'l.toId',
                         )
                         .join('entries', 'entries.entryId', endToStart ? 'l.toId' : 'l.fromId')
-                        .where('isDeleted', false)
-                        .where('depth', '<', 5);
+                        .where((builder) => {
+                            builder.where({isDeleted: false});
+
+                            builder.andWhere('depth', '<', 5);
+
+                            if (scope) {
+                                builder.andWhere('entries.scope', scope);
+                            }
+                        });
                 });
         })
         .select()

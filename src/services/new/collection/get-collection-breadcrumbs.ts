@@ -1,22 +1,12 @@
 import {AppError} from '@gravity-ui/nodekit';
-import {getParents} from './utils/get-parents';
+
+import {US_ERRORS} from '../../../const';
+import {CollectionPermission} from '../../../entities/collection';
+import Utils from '../../../utils';
 import {ServiceArgs} from '../types';
 import {getReplica} from '../utils';
-import {US_ERRORS} from '../../../const';
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
-import Utils from '../../../utils';
-import {CollectionPermission} from '../../../entities/collection';
-import {Feature, isEnabledFeature} from '../../../components/features';
 
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['collectionId'],
-    properties: {
-        collectionId: {
-            type: 'string',
-        },
-    },
-});
+import {getParents} from './utils/get-parents';
 
 export interface GetCollectionBreadcrumbsArgs {
     collectionId: string;
@@ -24,7 +14,7 @@ export interface GetCollectionBreadcrumbsArgs {
 }
 
 export const getCollectionBreadcrumbs = async (
-    {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: GetCollectionBreadcrumbsArgs,
 ) => {
     const {collectionId, includePermissionsInfo} = args;
@@ -37,10 +27,6 @@ export const getCollectionBreadcrumbs = async (
         collectionId: Utils.encodeId(collectionId),
         includePermissionsInfo,
     });
-
-    if (!skipValidation) {
-        validateArgs(args);
-    }
 
     const targetTrx = getReplica(trx);
 
@@ -72,9 +58,7 @@ export const getCollectionBreadcrumbs = async (
 
                 await collectionInstance.checkPermission({
                     parentIds,
-                    permission: isEnabledFeature(ctx, Feature.UseLimitedView)
-                        ? CollectionPermission.LimitedView
-                        : CollectionPermission.View,
+                    permission: CollectionPermission.LimitedView,
                 });
 
                 if (includePermissionsInfo) {

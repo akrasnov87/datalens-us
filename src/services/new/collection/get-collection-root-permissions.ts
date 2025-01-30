@@ -1,8 +1,8 @@
-import {AppError, AppContext} from '@gravity-ui/nodekit';
-import {ServiceArgs} from '../types';
+import {AppContext, AppError} from '@gravity-ui/nodekit';
+
+import {OrganizationPermission} from '../../../components/iam';
 import {US_ERRORS} from '../../../const';
-import {OrganizationPermission, ProjectPermission} from '../../../components/iam';
-import {Feature, isEnabledFeature} from '../../../components/features';
+import {ServiceArgs} from '../types';
 import { Utils } from '../../../utils/utils';
 
 export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
@@ -45,19 +45,13 @@ export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
 
 async function checkCreateCollectionInRoot(ctx: AppContext) {
     const registry = ctx.get('registry');
-    const {checkOrganizationPermission, checkProjectPermission} = registry.common.functions.get();
+    const {checkOrganizationPermission} = registry.common.functions.get();
     try {
-        if (isEnabledFeature(ctx, Feature.ProjectsEnabled)) {
-            await checkProjectPermission({
-                ctx,
-                permission: ProjectPermission.CreateCollectionInRoot,
-            });
-        } else {
-            await checkOrganizationPermission({
-                ctx,
-                permission: OrganizationPermission.CreateCollectionInRoot,
-            });
-        }
+        await checkOrganizationPermission({
+            ctx,
+            permission: OrganizationPermission.CreateCollectionInRoot,
+        });
+
         return true;
     } catch (error: unknown) {
         const err = error as AppError;
@@ -71,19 +65,13 @@ async function checkCreateCollectionInRoot(ctx: AppContext) {
 
 async function checkCreateWorkbookInRoot(ctx: AppContext) {
     const registry = ctx.get('registry');
-    const {checkOrganizationPermission, checkProjectPermission} = registry.common.functions.get();
+    const {checkOrganizationPermission} = registry.common.functions.get();
     try {
-        if (isEnabledFeature(ctx, Feature.ProjectsEnabled)) {
-            await checkProjectPermission({
-                ctx,
-                permission: ProjectPermission.CreateWorkbookInRoot,
-            });
-        } else {
-            await checkOrganizationPermission({
-                ctx,
-                permission: OrganizationPermission.CreateWorkbookInRoot,
-            });
-        }
+        await checkOrganizationPermission({
+            ctx,
+            permission: OrganizationPermission.CreateWorkbookInRoot,
+        });
+
         return true;
     } catch (error: unknown) {
         const err = error as AppError;

@@ -1,16 +1,11 @@
-import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
+import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
+import {WorkbookPermission} from '../../../entities/workbook';
+import {WorkbookInstance} from '../../../registry/common/entities/workbook/types';
+import Utils from '../../../utils';
+import {makeWorkbooksWithParentsMap} from '../collection/utils';
 import {ServiceArgs} from '../types';
 import {getReplica} from '../utils';
-import Utils from '../../../utils';
-
-import {makeWorkbooksWithParentsMap} from '../collection/utils';
-
-import {WorkbookPermission} from '../../../entities/workbook';
-
-import {Feature, isEnabledFeature} from '../../../components/features';
-
-import {WorkbookInstance} from '../../../registry/common/entities/workbook/types';
 
 const validateArgs = makeSchemaValidator({
     type: 'object',
@@ -93,9 +88,7 @@ export const getWorkbooksListByIds = async (
         const promise = workbook
             .checkPermission({
                 parentIds,
-                permission: isEnabledFeature(ctx, Feature.UseLimitedView)
-                    ? WorkbookPermission.LimitedView
-                    : WorkbookPermission.View,
+                permission: WorkbookPermission.LimitedView,
             })
             .then(() => {
                 acceptedWorkbooksMap.set(workbook.model, parentIds);

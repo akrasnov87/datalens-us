@@ -1,5 +1,6 @@
 import type {AppContext} from '@gravity-ui/nodekit';
 import {TransactionOrKnex} from 'objection';
+
 import * as MT from '../../../../types/models';
 
 export interface DLSConstructor {
@@ -10,10 +11,10 @@ export interface DLSConstructor {
         checkPermissionsArgs: MT.CheckPermissionDlsConfig,
     ) => Promise<any>;
 
-    checkBulkPermission(
+    checkBulkPermission<E extends object>(
         {ctx, trx}: {ctx: AppContext; trx?: TransactionOrKnex},
-        checkBulkPermissionArgs: MT.CheckBulkPermissionsDlsConfig,
-    ): Promise<any[]>;
+        checkBulkPermissionArgs: MT.CheckBulkPermissionsDlsConfig<E>,
+    ): Promise<Array<E & MT.DlsEntity>>;
 
     addEntity(
         {ctx, trx}: {ctx: AppContext; trx?: TransactionOrKnex},

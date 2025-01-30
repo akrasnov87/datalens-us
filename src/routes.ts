@@ -1,20 +1,20 @@
-import type {NodeKit} from '@gravity-ui/nodekit';
-import {AuthPolicy, AppMiddleware, AppRouteDescription} from '@gravity-ui/expresskit';
+import {AppMiddleware, AppRouteDescription, AuthPolicy} from '@gravity-ui/expresskit';
 import type {HttpMethod} from '@gravity-ui/expresskit/dist/types';
-import {Feature} from './components/features';
+import type {NodeKit} from '@gravity-ui/nodekit';
 
 import authController from './controllers/auth';
 import oidcAuthController from './controllers/oidc-auth';
-import homeController from './controllers/home';
-import helpersController from './controllers/helpers';
-import entriesController from './controllers/entries';
-import locksController from './controllers/locks';
-import statesController from './controllers/states';
-import favoritesController from './controllers/favorites';
-import workbooksController from './controllers/workbooks';
+import {Feature} from './components/features';
 import collectionsController from './controllers/collections';
 import colorPalettesController from './controllers/color-palettes';
+import entriesController from './controllers/entries';
+import favoritesController from './controllers/favorites';
+import helpersController from './controllers/helpers';
+import homeController from './controllers/home';
+import locksController from './controllers/locks';
+import statesController from './controllers/states';
 import structureItemsController from './controllers/structure-items';
+import workbooksController from './controllers/workbooks';
 
 export type GetRoutesOptions = {
     beforeAuth: AppMiddleware[];
@@ -214,6 +214,11 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
             private: true,
         }),
 
+        getEntriesData: makeRoute({
+            route: 'POST /v1/get-entries-data',
+            handler: entriesController.getEntriesData,
+        }),
+
         verifyLockExistence: makeRoute({
             route: 'GET /v1/locks/:entryId',
             handler: locksController.verifyExistence,
@@ -330,19 +335,19 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
         }),
         updateWorkbook: makeRoute({
             route: 'POST /v2/workbooks/:workbookId/update',
-            handler: workbooksController.update,
+            handler: workbooksController.updateWorkbook,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         createWorkbook: makeRoute({
             route: 'POST /v2/workbooks',
-            handler: workbooksController.create,
+            handler: workbooksController.createWorkbook,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         privateCreateWorkbook: makeRoute({
             route: 'POST /private/v2/workbooks',
-            handler: workbooksController.create,
+            handler: workbooksController.createWorkbook,
             write: true,
             authPolicy: AuthPolicy.disabled,
             private: true,
@@ -350,31 +355,31 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
         }),
         deleteWorkbook: makeRoute({
             route: 'DELETE /v2/workbooks/:workbookId',
-            handler: workbooksController.delete,
+            handler: workbooksController.deleteWorkbook,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         deleteWorkbooks: makeRoute({
             route: 'DELETE /v2/delete-workbooks',
-            handler: workbooksController.deleteList,
+            handler: workbooksController.deleteWorkbooksList,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         moveWorkbook: makeRoute({
             route: 'POST /v2/workbooks/:workbookId/move',
-            handler: workbooksController.move,
+            handler: workbooksController.moveWorkbook,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         moveWorkbooks: makeRoute({
             route: 'POST /v2/move-workbooks',
-            handler: workbooksController.moveList,
+            handler: workbooksController.moveWorkbooksList,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         copyWorkbook: makeRoute({
             route: 'POST /v2/workbooks/:workbookId/copy',
-            handler: workbooksController.copy,
+            handler: workbooksController.copyWorkbook,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
@@ -412,13 +417,13 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
 
         createCollection: makeRoute({
             route: 'POST /v1/collections',
-            handler: collectionsController.create,
+            handler: collectionsController.createCollection,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         privateCreateCollection: makeRoute({
             route: 'POST /private/v1/collections',
-            handler: collectionsController.create,
+            handler: collectionsController.createCollection,
             write: true,
             authPolicy: AuthPolicy.disabled,
             private: true,
@@ -426,12 +431,12 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
         }),
         getCollection: makeRoute({
             route: 'GET /v1/collections/:collectionId',
-            handler: collectionsController.get,
+            handler: collectionsController.getCollection,
             features: [Feature.CollectionsEnabled],
         }),
         privateGetCollection: makeRoute({
             route: 'GET /private/v1/collections/:collectionId',
-            handler: collectionsController.get,
+            handler: collectionsController.getCollection,
             authPolicy: AuthPolicy.disabled,
             private: true,
             features: [Feature.CollectionsEnabled],
@@ -443,7 +448,7 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
         }),
         getCollectionContent: makeRoute({
             route: 'GET /v1/collection-content',
-            handler: collectionsController.getContent,
+            handler: collectionsController.getCollectionContent,
             features: [Feature.CollectionsEnabled],
         }),
         getStructureItems: makeRoute({
@@ -458,36 +463,36 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
         }),
         getCollectionBreadcrumbs: makeRoute({
             route: 'GET /v1/collections/:collectionId/breadcrumbs',
-            handler: collectionsController.getBreadcrumbs,
+            handler: collectionsController.getCollectionBreadcrumbs,
             features: [Feature.CollectionsEnabled],
         }),
         deleteCollection: makeRoute({
             route: 'DELETE /v1/collections/:collectionId',
-            handler: collectionsController.delete,
+            handler: collectionsController.deleteCollection,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         deleteCollections: makeRoute({
             route: 'DELETE /v1/delete-collections',
-            handler: collectionsController.deleteList,
+            handler: collectionsController.deleteCollectionsList,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         moveCollection: makeRoute({
             route: 'POST /v1/collections/:collectionId/move',
-            handler: collectionsController.move,
+            handler: collectionsController.moveCollection,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         moveCollections: makeRoute({
             route: 'POST /v1/move-collections',
-            handler: collectionsController.moveList,
+            handler: collectionsController.moveCollectionsList,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
         updateCollection: makeRoute({
             route: 'POST /v1/collections/:collectionId/update',
-            handler: collectionsController.update,
+            handler: collectionsController.updateCollection,
             write: true,
             features: [Feature.CollectionsEnabled],
         }),

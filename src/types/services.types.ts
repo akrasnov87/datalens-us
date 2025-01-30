@@ -1,20 +1,21 @@
 import type {OrderByDirection} from 'objection';
+
 import {
     CTX,
-    EntriesOrderByFilter,
+    DlsPermissionsMode,
     EntriesFilters,
-    TemplateData,
-    EntryScope,
-    WorkbookColumns,
+    EntriesOrderByFilter,
     EntryColumns,
+    EntryScope,
     RevisionColumns,
     SyncLinks,
-    DlsPermissionsMode,
+    TemplateData,
+    WorkbookColumns,
 } from './models';
 
-export interface ServiceResponse {
+export interface ServiceResponse<T extends any = any> {
     code: number;
-    response: any;
+    response: T;
 }
 
 export interface StdServiceParams {

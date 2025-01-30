@@ -1,5 +1,3 @@
-const fs = require('fs');
-const PowerRadix = require('power-radix');
 const http = require('http');
 const https = require('https');
 const axios = require('axios');
@@ -7,11 +5,13 @@ const FormData = require('form-data');
 
 import chunk from 'lodash/chunk';
 
+import {CODING_BASE, COPY_END, COPY_START, ID_VARIABLES, TRUE_FLAGS} from '../const';
+import {EntryScope as EntryScopeEnum, EntryType} from '../db/models/new/entry/types';
 import {EntryScope, USAPIResponse} from '../types/models';
 
-import {ID_VARIABLES, CODING_BASE, TRUE_FLAGS, COPY_START, COPY_END} from '../const';
+const fs = require('fs');
 
-import {EntryScope as EntryScopeEnum, EntryType} from '../db/models/new/entry/types';
+const PowerRadix = require('power-radix');
 
 const MAX_PAGE_LIMIT = 10000;
 
@@ -314,6 +314,7 @@ export class Utils {
         );
     }
 
+    /** @deprecated moved to env-utils */
     static isTrueArg(arg: any): boolean {
         return TRUE_FLAGS.includes(arg);
     }
@@ -375,6 +376,7 @@ export class Utils {
         return response && response.body;
     }
 
+    /** @deprecated moved to env-utils */
     static getEnvVariable(envVariableName: string) {
         const valueFromEnv = process.env[envVariableName];
         if (valueFromEnv) {
@@ -388,6 +390,7 @@ export class Utils {
         return undefined;
     }
 
+    /** @deprecated moved to env-utils */
     static getEnvTokenVariable(envTokenVariableName: string) {
         const TOKEN_SEPARATOR = ',';
         const valueFromEnv = Utils.getEnvVariable(envTokenVariableName);
@@ -478,7 +481,7 @@ export class Utils {
             .join('');
     }
 
-    static isFileConnection(entry: {scope: Nullable<EntryScope>; type: string}) {
+    static isFileConnection(entry: {scope: EntryScope; type: string}) {
         const fileConnectionTypes: string[] = [
             EntryType.File,
             EntryType.GsheetsV2,
@@ -490,7 +493,7 @@ export class Utils {
         );
     }
 
-    static checkFileConnectionsExistence(entries: {scope: Nullable<EntryScope>; type: string}[]) {
+    static checkFileConnectionsExistence(entries: {scope: EntryScope; type: string}[]) {
         return entries.some((entry) => {
             return Utils.isFileConnection(entry);
         });

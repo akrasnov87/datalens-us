@@ -1,25 +1,28 @@
+/* eslint-disable import/order */
 import {nodekit} from './nodekit';
 import {registerAppPlugins} from './registry/register-app-plugins';
-import {ExpressKit, AppMiddleware, AuthPolicy, AppRoutes} from '@gravity-ui/expresskit';
+import {AppMiddleware, AppRoutes, AuthPolicy, ExpressKit} from '@gravity-ui/expresskit';
 import {
-    decodeId,
-    resolveTenantId,
-    resolveSpecialTokens,
-    waitDatabase,
-    setCiEnv,
-    dlContext,
-    ctx,
     rpcAuthorization,
-    finalRequestHandler,
-    checkReadOnlyMode,
-    resolveWorkbookId,
     authZitadel,
+    checkReadOnlyMode,
+    ctx,
+    decodeId,
+    dlContext,
+    finalRequestHandler,
+    resolveSpecialTokens,
+    resolveTenantId,
+    resolveWorkbookId,
+    setCiEnv,
+    waitDatabase,
 } from './components/middlewares';
+import {appAuth} from './components/auth/middlewares/app-auth';
 import {AppEnv} from './const';
 import {registry} from './registry';
 import {getRoutes} from './routes';
 import {setRegistryToContext} from './components/app-context';
 import {isEnabledFeature} from './components/features';
+import {getAdditionalHeaders, initSwagger, registerApiRoute} from './components/api-docs';
 import {objectKeys} from './utils/utility-types';
 
 setRegistryToContext(nodekit, registry);
@@ -56,6 +59,10 @@ if (nodekit.config.zitadelEnabled) {
     nodekit.config.appAuthHandler = authZitadel;
 }
 
+if (nodekit.config.isAuthEnabled) {
+    nodekit.config.appAuthHandler = appAuth;
+}
+
 nodekit.config.appFinalErrorHandler = finalRequestHandler;
 
 const extendedRoutes = getRoutes(nodekit, {beforeAuth, afterAuth});
@@ -67,12 +74,26 @@ objectKeys(extendedRoutes).forEach((key) => {
         !Array.isArray(features) ||
         features.every((feature) => isEnabledFeature(nodekit.ctx, feature))
     ) {
-        routes[route] = params;
+        if (nodekit.config.swaggerEnabled) {
+            registerApiRoute(
+                extendedRoutes[key],
+                getAdditionalHeaders(extendedRoutes[key], nodekit),
+            );
+        }
+
+        routes[route] = {
+            ...params,
+            manualDecodeId: extendedRoutes[key].handler.manualDecodeId,
+        };
     }
 });
 
 const app = new ExpressKit(nodekit, routes);
 registry.setupApp(app);
+
+if (nodekit.config.swaggerEnabled) {
+    initSwagger(app);
+}
 
 if (require.main === module) {
     app.run();

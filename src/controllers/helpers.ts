@@ -1,6 +1,7 @@
+import {Request, Response} from '@gravity-ui/expresskit';
+
 import {db} from '../db';
 import {Utils} from '../utils/utils';
-import {Request, Response} from '@gravity-ui/expresskit';
 
 export default {
     encodeId: (req: Request, res: Response) => {

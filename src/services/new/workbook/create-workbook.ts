@@ -1,29 +1,14 @@
 import {AppError} from '@gravity-ui/nodekit';
-import {checkWorkbookByTitle} from './check-workbook-by-title';
-import {getParentIds} from '../collection/utils/get-parents';
-import {ServiceArgs} from '../types';
-import {getPrimary} from '../utils';
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
 import {transaction} from 'objection';
+
 import {US_ERRORS} from '../../../const';
 import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
 import Utils from '../../../utils';
+import {getParentIds} from '../collection/utils/get-parents';
+import {ServiceArgs} from '../types';
+import {getPrimary} from '../utils';
 
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['collectionId', 'title'],
-    properties: {
-        collectionId: {
-            type: ['string', 'null'],
-        },
-        title: {
-            type: 'string',
-        },
-        description: {
-            type: 'string',
-        },
-    },
-});
+import {checkWorkbookByTitle} from './check-workbook-by-title';
 
 export interface CreateWorkbookArgs {
     collectionId: Nullable<string>;
@@ -33,7 +18,7 @@ export interface CreateWorkbookArgs {
 }
 
 export const createWorkbook = async (
-    {ctx, trx, skipValidation = false, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: CreateWorkbookArgs,
 ) => {
     const {title, project, description, collectionId} = args;
@@ -44,16 +29,12 @@ export const createWorkbook = async (
         collectionId: collectionId ? Utils.encodeId(collectionId) : null,
     });
 
-    if (!skipValidation) {
-        validateArgs(args);
-    }
-
     const {accessServiceEnabled, accessBindingsServiceEnabled} = ctx.config;
 
     const {
+        projectId,
         user: {userId},
         tenantId,
-        projectId,
         isPrivateRoute,
         superUser
     } = ctx.get('info');

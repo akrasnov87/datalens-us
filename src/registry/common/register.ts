@@ -1,19 +1,22 @@
-import {DLS} from './components/dls/dls';
-import {Workbook} from './entities/workbook/workbook';
-import {Collection} from './entities/collection/collection';
-import {bulkFetchWorkbooksAllPermissions} from './entities/workbook/utils';
-import {bulkFetchCollectionsAllPermissions} from './entities/collection/utils';
-import {checkOrganizationPermission, checkProjectPermission} from './components/iam/utils';
-import {
-    isNeedBypassEntryByKey,
-    getEntryBeforeDbRequestHook,
-    getEntryAddFormattedFieldsHook,
-} from './utils/entry/utils';
-import {colorPalettesAdminValidator} from './utils/color-palettes/utils';
-import {checkEmbedding} from './utils/embedding/utils';
+import {registry} from '../index';
 import {getZitadelUserRole} from '../zitadel/utils';
 
-import {registry} from '../index';
+import {DLS} from './components/dls/dls';
+import {checkOrganizationPermission} from './components/iam/utils';
+import {Collection} from './entities/collection/collection';
+import {bulkFetchCollectionsAllPermissions} from './entities/collection/utils';
+import {bulkFetchWorkbooksAllPermissions} from './entities/workbook/utils';
+import {Workbook} from './entities/workbook/workbook';
+import {colorPalettesAdminValidator} from './utils/color-palettes/utils';
+import {checkEmbedding} from './utils/embedding/utils';
+import {
+    checkCreateEntryAvailability,
+    checkUpdateEntryAvailability,
+    getEntryAddFormattedFieldsHook,
+    getEntryBeforeDbRequestHook,
+    isNeedBypassEntryByKey,
+} from './utils/entry/utils';
+import {logEvent} from './utils/log-event/utils';
 
 export const registerCommonPlugins = () => {
     registry.common.classes.register({
@@ -26,12 +29,14 @@ export const registerCommonPlugins = () => {
         bulkFetchWorkbooksAllPermissions,
         bulkFetchCollectionsAllPermissions,
         checkOrganizationPermission,
-        checkProjectPermission,
         isNeedBypassEntryByKey,
         colorPalettesAdminValidator,
         getZitadelUserRole,
         getEntryBeforeDbRequestHook,
         getEntryAddFormattedFieldsHook,
         checkEmbedding,
+        checkCreateEntryAvailability,
+        checkUpdateEntryAvailability,
+        logEvent,
     });
 };

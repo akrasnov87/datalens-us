@@ -34,7 +34,11 @@ export default ({data}: {data: any}, req?: any): ST.ServiceResponse => {
     };
 };
 
-export async function prepareResponseAsync({data}: {data: any}, req?: any): Promise<ST.ServiceResponse> {
+export async function prepareResponseAsync<T extends any = any>({
+    data,
+}: {
+    data: T;
+}, req?: any): Promise<ST.ServiceResponse<T>> {
     const response = await Utils.macrotasksEncodeData(data);
 
     if (response.results) {

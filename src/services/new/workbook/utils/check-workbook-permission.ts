@@ -1,8 +1,10 @@
 import {AppContext} from '@gravity-ui/nodekit';
 import {TransactionOrKnex} from 'objection';
+
 import {WorkbookPermission} from '../../../../entities/workbook';
-import {getParentIds} from '../../collection/utils';
 import type {WorkbookInstance} from '../../../../registry/common/entities/workbook/types';
+import {getWorkbook} from '../../../../services/new/workbook';
+import {getParentIds} from '../../collection/utils';
 
 export const checkWorkbookPermission = async ({
     ctx,
@@ -29,4 +31,23 @@ export const checkWorkbookPermission = async ({
         parentIds,
         permission,
     });
+};
+
+export const checkWorkbookPermissionById = async ({
+    ctx,
+    trx,
+    workbookId,
+    permission,
+}: {
+    ctx: AppContext;
+    trx?: TransactionOrKnex;
+    workbookId: string;
+    permission: WorkbookPermission;
+}) => {
+    const workbook = await getWorkbook(
+        {ctx, skipValidation: true, skipCheckPermissions: true},
+        {workbookId},
+    );
+
+    await checkWorkbookPermission({ctx, trx, workbook, permission});
 };

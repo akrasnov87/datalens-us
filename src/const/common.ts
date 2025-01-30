@@ -108,24 +108,13 @@ export const RETURN_WORKBOOK_COLUMNS = [
     'workbookId',
     'title',
     'description',
-    'projectId',
     'tenantId',
     'meta',
     'createdBy',
     'createdAt',
 ];
 
-export const ALLOWED_SCOPE_VALUES = [
-    'dataset',
-    'pdf',
-    'folder',
-    'dash',
-    'connection',
-    'widget',
-    'config',
-    'presentation',
-    'report',
-];
+export const ALLOWED_SCOPE_VALUES = Object.values(EntryScope);
 
 export const ID_VARIABLES = [
     'ids',
@@ -204,6 +193,8 @@ export const DEFAULT_PAGE = 0;
 
 export const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
 
+export const APP_NAME = 'united-storage';
+
 export enum AppInstallation {
     Opensource = 'opensource',
 }
@@ -253,3 +244,5 @@ export const ALLOWED_ENTRIES_SCOPE = [
     EntryScope.Connection,
     EntryScope.Report,
 ] as const;
+
+export const CONTENT_TYPE_JSON = 'application/json';

@@ -1,15 +1,14 @@
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
 import {DEFAULT_PAGE, DEFAULT_PAGE_SIZE} from '../../../const';
 import {EntryScope} from '../../../db/models/new/entry/types';
-import Utils from '../../../utils';
+import {JoinedEntryRevisionFavorite} from '../../../db/presentations';
 import {UsPermission} from '../../../types/models';
+import Utils from '../../../utils';
 import {ServiceArgs} from '../types';
 import {getReplica} from '../utils';
+
 import {getWorkbook} from './get-workbook';
 import {getEntryPermissionsByWorkbook} from './utils';
-import {Feature, isEnabledFeature} from '../../../components/features';
-
-import {JoinedEntryRevisionFavorite} from '../../../db/presentations';
 
 //import {formatGetJoinedEntryRevisionFavorite2} from './formatters/format-get-workbook-content';
 
@@ -133,7 +132,7 @@ export const getWorkbookContent = async (
                 isDeleted: false,
             });
 
-            if (isEnabledFeature(ctx, Feature.UseLimitedView) && !workbook.permissions?.view) {
+            if (!workbook.permissions?.view) {
                 builder.whereNotIn('scope', ['dataset', 'connection']);
             }
             if (createdBy) {
@@ -182,7 +181,6 @@ export const getWorkbookContent = async (
 
             if (includePermissionsInfo) {
                 permissions = getEntryPermissionsByWorkbook({
-                    ctx,
                     workbook,
                     scope: entry.scope,
                 });

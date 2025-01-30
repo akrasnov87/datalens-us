@@ -1,48 +1,15 @@
 import {AppError} from '@gravity-ui/nodekit';
-import {getParentIds} from './utils/get-parents';
+
+import {US_ERRORS} from '../../../const';
+import {CollectionModel, CollectionModelColumn} from '../../../db/models/new/collection';
+import {CollectionPermission} from '../../../entities/collection';
+import Utils from '../../../utils';
 import {ServiceArgs} from '../types';
 import {getReplica} from '../utils';
-import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
-import {US_ERRORS} from '../../../const';
-import {CollectionPermission} from '../../../entities/collection';
-import {CollectionModel, CollectionModelColumn} from '../../../db/models/new/collection';
-import Utils from '../../../utils';
 import {getWorkbooksList} from '../workbook';
-import {getCollection} from './get-collection';
-import {Feature, isEnabledFeature} from '../../../components/features';
 
-const validateArgs = makeSchemaValidator({
-    type: 'object',
-    required: ['collectionId'],
-    properties: {
-        collectionId: {
-            type: ['string', 'null'],
-        },
-        includePermissionsInfo: {
-            type: 'boolean',
-        },
-        filterString: {
-            type: 'string',
-        },
-        collectionsPage: {
-            type: ['number', 'null'],
-        },
-        workbooksPage: {
-            type: ['number', 'null'],
-        },
-        pageSize: {
-            type: 'number',
-        },
-        orderField: {
-            type: 'string',
-            enum: ['title', 'createdAt', 'updatedAt'],
-        },
-        orderDirection: {
-            type: 'string',
-            enum: ['asc', 'desc'],
-        },
-    },
-});
+import {getCollection} from './get-collection';
+import {getParentIds} from './utils/get-parents';
 
 export type OrderField = 'title' | 'createdAt' | 'updatedAt';
 
@@ -94,10 +61,6 @@ export const getCollectionContent = async (
         mode,
     });
 
-    if (!skipValidation) {
-        validateArgs(args);
-    }
-
     const registry = ctx.get('registry');
     const {accessServiceEnabled} = ctx.config;
     const {Workbook, Collection} = registry.common.classes.get();
@@ -131,9 +94,7 @@ export const getCollectionContent = async (
 
             await collection.checkPermission({
                 parentIds,
-                permission: isEnabledFeature(ctx, Feature.UseLimitedView)
-                    ? CollectionPermission.LimitedView
-                    : CollectionPermission.View,
+                permission: CollectionPermission.LimitedView,
             });
         }
     }
@@ -193,9 +154,7 @@ export const getCollectionContent = async (
                         try {
                             await collection.checkPermission({
                                 parentIds: contentParentIds,
-                                permission: isEnabledFeature(ctx, Feature.UseLimitedView)
-                                    ? CollectionPermission.LimitedView
-                                    : CollectionPermission.View,
+                                permission: CollectionPermission.LimitedView,
                             });
 
                             return collection;

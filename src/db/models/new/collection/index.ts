@@ -15,7 +15,7 @@ export const CollectionModelColumn = {
     DeletedBy: 'deletedBy',
     DeletedAt: 'deletedAt',
     Meta: 'meta',
-    SortTitle: 'sortTitle',
+    SortTitle: 'sortTitle'
 } as const;
 
 export class CollectionModel extends Model {
@@ -32,8 +32,8 @@ export class CollectionModel extends Model {
     [CollectionModelColumn.TitleLower]!: string;
     [CollectionModelColumn.Description]!: Nullable<string>;
     [CollectionModelColumn.ParentId]!: Nullable<string>;
-    [CollectionModelColumn.TenantId]!: string;
     [CollectionModelColumn.ProjectId]!: Nullable<string>;
+    [CollectionModelColumn.TenantId]!: string;
     [CollectionModelColumn.CreatedBy]!: string;
     [CollectionModelColumn.CreatedAt]!: string;
     [CollectionModelColumn.UpdatedBy]!: string;

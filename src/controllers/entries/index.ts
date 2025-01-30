@@ -1,37 +1,40 @@
-import EntryService from '../services/entry.service';
 import {Request, Response} from '@gravity-ui/expresskit';
-import {prepareResponseAsync} from '../components/response-presenter';
-import Utils from '../utils';
-import {US_MASTER_TOKEN_HEADER} from '../const';
-import NavigationService from '../services/navigation.service';
-import * as ST from '../types/services.types';
+
+import {prepareResponseAsync} from '../../components/response-presenter';
+import {US_MASTER_TOKEN_HEADER} from '../../const';
+import {EntryScope} from '../../db/models/new/entry/types';
 import {
-    deleteEntry,
     DeleteEntryData,
-    renameEntry,
-    updateEntry,
-    getEntryRevisions,
     GetEntryRevisionsData,
-    getEntryRelations,
-    switchRevisionEntry,
     RelationDirection,
-} from '../services/entry';
+    deleteEntry,
+    getEntryRelations,
+    getEntryRevisions,
+    renameEntry,
+    switchRevisionEntry,
+    updateEntry,
+} from '../../services/entry';
+import EntryService from '../../services/entry.service';
+import NavigationService from '../../services/navigation.service';
 import {
-    getEntry,
     GetEntryArgs,
+    GetEntryMetaPrivateArgs,
+    copyEntriesToWorkbook,
+    copyEntryToWorkbook,
+    getEntry,
     getEntryMeta,
     getEntryMetaPrivate,
-    GetEntryMetaPrivateArgs,
-    copyEntryToWorkbook,
-    copyEntriesToWorkbook,
-} from '../services/new/entry';
+} from '../../services/new/entry';
 import {
-    formatGetEntryResponse,
-    formatGetEntryMetaResponse,
-    formatGetEntryMetaPrivateResponse,
     formatEntryModel,
-} from '../services/new/entry/formatters';
-import {EntryScope} from '../db/models/new/entry/types';
+    formatGetEntryMetaPrivateResponse,
+    formatGetEntryMetaResponse,
+    formatGetEntryResponse,
+} from '../../services/new/entry/formatters';
+import * as ST from '../../types/services.types';
+import {isTrueArg} from '../../utils/env-utils';
+
+import {getEntriesData} from './get-entries-data';
 
 export default {
     getEntry: async (req: Request, res: Response) => {
@@ -43,8 +46,8 @@ export default {
                 entryId: params.entryId,
                 branch: query.branch as GetEntryArgs['branch'],
                 revId: query.revId as GetEntryArgs['revId'],
-                includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
-                includeLinks: Utils.isTrueArg(query.includeLinks),
+                includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
+                includeLinks: isTrueArg(query.includeLinks),
             },
         );
         const formattedResponse = await formatGetEntryResponse(req.ctx, result);
@@ -130,7 +133,7 @@ export default {
             unversionedData: body.unversionedData,
             links: body.links,
             permissionsMode: body.permissionsMode,
-            includePermissionsInfo: Utils.isTrueArg(body.includePermissionsInfo),
+            includePermissionsInfo: isTrueArg(body.includePermissionsInfo),
             initialPermissions: body.initialPermissions,
             initialParentId: body.initialParentId,
             ctx: req.ctx,
@@ -250,7 +253,7 @@ export default {
             {
                 entryId: params.entryId,
                 direction: query.direction as Optional<RelationDirection>,
-                includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
+                includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
                 page: (query.page && Number(query.page)) as number | undefined,
                 pageSize: (query.pageSize && Number(query.pageSize)) as number | undefined,
                 scope: query.scope as EntryScope | undefined,
@@ -314,11 +317,11 @@ export default {
             filters: query.filters,
             page: query.page && Number(query.page),
             pageSize: query.pageSize && Number(query.pageSize),
-            includePermissionsInfo: Utils.isTrueArg(query.includePermissionsInfo),
-            ignoreWorkbookEntries: Utils.isTrueArg(query.ignoreWorkbookEntries),
-            includeData: Utils.isTrueArg(query.includeData),
-            includeLinks: Utils.isTrueArg(query.includeLinks),
-            excludeLocked: Utils.isTrueArg(query.excludeLocked),
+            includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
+            ignoreWorkbookEntries: isTrueArg(query.ignoreWorkbookEntries),
+            includeData: isTrueArg(query.includeData),
+            includeLinks: isTrueArg(query.includeLinks),
+            excludeLocked: isTrueArg(query.excludeLocked),
             ctx: req.ctx,
         });
 
@@ -326,4 +329,6 @@ export default {
 
         res.status(code).send(response);
     },
+
+    getEntriesData,
 };

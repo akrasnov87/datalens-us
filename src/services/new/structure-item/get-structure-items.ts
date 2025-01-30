@@ -1,12 +1,12 @@
-import {ServiceArgs} from '../types';
-import {getReplica} from '../utils';
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
-import {CollectionPermission} from '../../../entities/collection';
 import {CollectionModel} from '../../../db/models/new/collection';
+import {CollectionPermission} from '../../../entities/collection';
 import Utils from '../../../utils';
-import {Feature, isEnabledFeature} from '../../../components/features';
 import {getCollection} from '../collection';
 import {getParentIds} from '../collection/utils';
+import {ServiceArgs} from '../types';
+import {getReplica} from '../utils';
+
 import {getCollectionsQuery, getWorkbooksQuery, processPermissions} from './utils';
 
 const validateArgs = makeSchemaValidator({
@@ -117,9 +117,7 @@ export const getStructureItems = async (
 
             await collection.checkPermission({
                 parentIds,
-                permission: isEnabledFeature(ctx, Feature.UseLimitedView)
-                    ? CollectionPermission.LimitedView
-                    : CollectionPermission.View,
+                permission: CollectionPermission.LimitedView,
             });
         }
     }
