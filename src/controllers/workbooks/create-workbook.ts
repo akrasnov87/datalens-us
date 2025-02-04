@@ -3,6 +3,7 @@ import {AppRouteHandler, Response} from '@gravity-ui/expresskit';
 import {ApiTag} from '../../components/api-docs';
 import {makeReqParser, z, zc} from '../../components/zod';
 import {CONTENT_TYPE_JSON} from '../../const';
+import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {createWorkbook} from '../../services/new/workbook';
 import {preparePermissionsResponseAsync} from '../../components/response-presenter';
 import Utils from '../../utils';
@@ -21,6 +22,8 @@ const requestSchema = {
     }),
 };
 
+export type CreateWorkbookReqBody = z.infer<typeof requestSchema.body>;
+
 const parseReq = makeReqParser(requestSchema);
 
 const controller: AppRouteHandler = async (
@@ -29,21 +32,32 @@ const controller: AppRouteHandler = async (
 ) => {
     const {body} = await parseReq(req);
 
-    const result = await createWorkbook(
-        {
+    const registry = req.ctx.get('registry');
+    const {logEvent} = registry.common.functions.get();
+
+    try {
+        const result = await createWorkbook(
+            {
+                ctx: req.ctx,
+            },
+            {
+                collectionId: body.collectionId ?? null,
+                title: body.title,
+                project: body.project,
+                description: body.description,
+            },
+        );
+
+        logEvent({
+            type: LogEventType.CreateWorkbookSuccess,
             ctx: req.ctx,
-        },
-        {
-            collectionId: body.collectionId ?? null,
-            title: body.title,
-            project: body.project,
-            description: body.description,
-        },
-    );
+            reqBody: body,
+            workbook: result.workbook.model,
+        });
 
-    const formattedResponse = workbookInstanceWithOperation.format(result.workbook, result.operation);
+        const formattedResponse = workbookInstanceWithOperation.format(result.workbook, result.operation);
 
-    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);
             if(token) {
@@ -52,6 +66,16 @@ const controller: AppRouteHandler = async (
         }
 
         res.status(code).send(response);
+    } catch (error) {
+        logEvent({
+            type: LogEventType.CreateWorkbookFail,
+            ctx: req.ctx,
+            reqBody: body,
+            error,
+        });
+
+        throw error;
+    }
 };
 
 controller.api = {
