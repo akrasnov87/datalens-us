@@ -4,7 +4,7 @@ import {ApiTag} from '../../components/api-docs';
 import {makeReqParser, z, zc} from '../../components/zod';
 import {CONTENT_TYPE_JSON} from '../../const';
 import {getCollection} from '../../services/new/collection';
-import {prepareResponseAsync} from '../../components/response-presenter';
+import {preparePermissionsResponseAsync} from '../../components/response-presenter';
 
 import {collectionInstance} from './response-models';
 
@@ -32,7 +32,7 @@ export const controller: AppRouteHandler = async (req, res) => {
 
     const formattedResponse = collectionInstance.format(result);
 
-    const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
 
     res.status(code).send(response);
 };

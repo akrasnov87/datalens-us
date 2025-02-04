@@ -27,8 +27,8 @@ __Примечание__: для некоторых контейнеров вв�
 ## Сборка
 <pre>
 docker login -u [username]
-docker build -t akrasnov87/datalens-us:0.214.0 .
-docker push akrasnov87/datalens-us:0.214.0
+docker build -t akrasnov87/datalens-us:0.289.0 .
+docker push akrasnov87/datalens-us:0.289.0
 </pre>
 
 ## Тестирование

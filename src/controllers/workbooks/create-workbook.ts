@@ -4,7 +4,7 @@ import {ApiTag} from '../../components/api-docs';
 import {makeReqParser, z, zc} from '../../components/zod';
 import {CONTENT_TYPE_JSON} from '../../const';
 import {createWorkbook} from '../../services/new/workbook';
-import {prepareResponseAsync} from '../../components/response-presenter';
+import {preparePermissionsResponseAsync} from '../../components/response-presenter';
 import Utils from '../../utils';
 
 import {
@@ -43,7 +43,7 @@ const controller: AppRouteHandler = async (
 
     const formattedResponse = workbookInstanceWithOperation.format(result.workbook, result.operation);
 
-    const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);
             if(token) {

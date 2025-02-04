@@ -6,7 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {createCollection} from '../../services/new/collection';
 import Utils from '../../utils';
-import {prepareResponseAsync} from '../../components/response-presenter';
+import {preparePermissionsResponseAsync} from '../../components/response-presenter';
 
 import {collectionInstanceWithOperation} from './response-models';
 
@@ -15,6 +15,7 @@ const requestSchema = {
         title: z.string(),
         description: z.string().optional(),
         parentId: zc.encodedId().nullable(),
+        project: z.string().optional()
     }),
 };
 
@@ -35,6 +36,7 @@ const controller: AppRouteHandler = async (req, res) => {
                 title: body.title,
                 description: body.description,
                 parentId: body.parentId,
+                project: body.project
             },
         );
 
@@ -50,7 +52,7 @@ const controller: AppRouteHandler = async (req, res) => {
             result.operation,
         );
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse});
 
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);
