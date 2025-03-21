@@ -5,10 +5,11 @@ import {makeSchemaValidator} from '../../../components/validation-schema-compile
 import {US_ERRORS} from '../../../const';
 import OldEntry from '../../../db/models/entry';
 import {Entry, EntryColumn} from '../../../db/models/new/entry';
+import {TenantColumn} from '../../../db/models/new/tenant';
 import {
-    JoinedEntryRevisionFavorite,
-    JoinedEntryRevisionFavoriteColumns,
-} from '../../../db/presentations/joined-entry-revision-favorite';
+    JoinedEntryRevisionFavoriteTenant,
+    JoinedEntryRevisionFavoriteTenantColumns,
+} from '../../../db/presentations';
 import {DlsActions} from '../../../types/models';
 import Utils from '../../../utils';
 import {ServiceArgs} from '../types';
@@ -51,14 +52,19 @@ export interface GetEntryArgs {
     branch?: 'saved' | 'published';
     includePermissionsInfo: boolean;
     includeLinks: boolean;
-    checkServicePlan?: string;
+    includeServicePlan?: boolean;
+    includeTenantFeatures?: boolean;
 }
 
 export type GetEntryResult = {
-    joinedEntryRevisionFavorite: JoinedEntryRevisionFavoriteColumns;
+    joinedEntryRevisionFavoriteTenant: JoinedEntryRevisionFavoriteTenantColumns;
     permissions: EntryPermissions;
     includePermissionsInfo: boolean;
     includeLinks: boolean;
+    servicePlan?: string;
+    includeServicePlan?: boolean;
+    includeTenantFeatures?: boolean;
+    tenantFeatures?: Record<string, unknown>;
 };
 
 // eslint-disable-next-line complexity
@@ -72,7 +78,8 @@ export const getEntry = async (
         branch = 'saved',
         includePermissionsInfo,
         includeLinks,
-        checkServicePlan,
+        includeServicePlan,
+        includeTenantFeatures,
     } = args;
 
     ctx.log('GET_ENTRY_REQUEST', {
@@ -81,7 +88,8 @@ export const getEntry = async (
         branch,
         includePermissionsInfo,
         includeLinks,
-        checkServicePlan,
+        includeServicePlan,
+        includeTenantFeatures,
     });
 
     const registry = ctx.get('registry');
@@ -99,7 +107,7 @@ export const getEntry = async (
 
     const isEmbedding = checkEmbedding({ctx});
 
-    const joinedEntryRevisionFavorite = await JoinedEntryRevisionFavorite.findOne({
+    const joinedEntryRevisionFavoriteTenant = await JoinedEntryRevisionFavoriteTenant.findOne({
         where: (builder) => {
             builder.where({
                 [`${Entry.tableName}.entryId`]: entryId,
@@ -126,19 +134,18 @@ export const getEntry = async (
         trx: getReplica(trx),
     });
 
-    if (joinedEntryRevisionFavorite) {
-        const {isNeedBypassEntryByKey, checkServicePlanAvailability} =
-            registry.common.functions.get();
+    if (joinedEntryRevisionFavoriteTenant) {
+        const {isNeedBypassEntryByKey, getServicePlan} = registry.common.functions.get();
 
         const dlsBypassByKeyEnabled = isNeedBypassEntryByKey(
             ctx,
-            joinedEntryRevisionFavorite.key as string,
+            joinedEntryRevisionFavoriteTenant.key as string,
         );
 
         let dlsPermissions: any; // TODO: Update the type after refactoring DLS.checkPermission(...)
         let iamPermissions: Optional<EntryPermissions>;
 
-        if (joinedEntryRevisionFavorite.workbookId) {
+        if (joinedEntryRevisionFavoriteTenant.workbookId) {
             const checkWorkbookEnabled =
                 !isPrivateRoute && !onlyPublic && !onlyMirrored && !isEmbedding;
 
@@ -146,14 +153,14 @@ export const getEntry = async (
                 if (isEnabledFeature(ctx, Feature.WorkbookIsolationEnabled)) {
                     checkWorkbookIsolation({
                         ctx,
-                        workbookId: joinedEntryRevisionFavorite.workbookId,
+                        workbookId: joinedEntryRevisionFavoriteTenant.workbookId,
                     });
                 }
 
                 const workbook = await getWorkbook(
                     {ctx, trx},
                     {
-                        workbookId: joinedEntryRevisionFavorite.workbookId,
+                        workbookId: joinedEntryRevisionFavoriteTenant.workbookId,
                         includePermissionsInfo,
                     },
                 );
@@ -161,7 +168,7 @@ export const getEntry = async (
                 if (includePermissionsInfo) {
                     iamPermissions = getEntryPermissionsByWorkbook({
                         workbook,
-                        scope: joinedEntryRevisionFavorite[EntryColumn.Scope],
+                        scope: joinedEntryRevisionFavoriteTenant[EntryColumn.Scope],
                     });
                 }
             }
@@ -195,16 +202,19 @@ export const getEntry = async (
                     });
                 }
 
-                await checkFetchedEntry(ctx, joinedEntryRevisionFavorite, getReplica(trx));
+                await checkFetchedEntry(ctx, joinedEntryRevisionFavoriteTenant, getReplica(trx));
             }
         }
 
-        if (joinedEntryRevisionFavorite.tenantId) {
-            await checkServicePlanAvailability({
-                ctx,
-                tenantId: joinedEntryRevisionFavorite.tenantId,
-                checkServicePlan,
-            });
+        let servicePlan: string | undefined;
+        if (includeServicePlan) {
+            servicePlan = getServicePlan(joinedEntryRevisionFavoriteTenant);
+        }
+
+        let tenantFeatures: Record<string, unknown> | undefined;
+
+        if (includeTenantFeatures) {
+            tenantFeatures = joinedEntryRevisionFavoriteTenant[TenantColumn.Features] || undefined;
         }
 
         let permissions: EntryPermissions = {};
@@ -239,10 +249,14 @@ export const getEntry = async (
         ctx.log('GET_ENTRY_SUCCESS');
 
         return {
-            joinedEntryRevisionFavorite,
+            joinedEntryRevisionFavoriteTenant,
             permissions,
             includePermissionsInfo,
             includeLinks,
+            servicePlan,
+            includeServicePlan,
+            includeTenantFeatures,
+            tenantFeatures,
         };
     } else {
         throw new AppError(US_ERRORS.NOT_EXIST_ENTRY, {

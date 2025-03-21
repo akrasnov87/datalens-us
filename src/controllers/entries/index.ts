@@ -4,30 +4,21 @@ import {prepareResponseAsync} from '../../components/response-presenter';
 import {US_MASTER_TOKEN_HEADER} from '../../const';
 import {EntryScope} from '../../db/models/new/entry/types';
 import {
-    DeleteEntryData,
     GetEntryRevisionsData,
     RelationDirection,
-    deleteEntry,
     getEntryRelations,
     getEntryRevisions,
-    renameEntry,
     switchRevisionEntry,
-    updateEntry,
 } from '../../services/entry';
-import EntryService from '../../services/entry.service';
-import Utils from '../../utils';
 import NavigationService from '../../services/navigation.service';
 import {
     GetEntryArgs,
     GetEntryMetaPrivateArgs,
-    copyEntriesToWorkbook,
-    copyEntryToWorkbook,
     getEntry,
     getEntryMeta,
     getEntryMetaPrivate,
 } from '../../services/new/entry';
 import {
-    formatEntryModel,
     formatGetEntryMetaPrivateResponse,
     formatGetEntryMetaResponse,
     formatGetEntryResponse,
@@ -35,9 +26,25 @@ import {
 import * as ST from '../../types/services.types';
 import {isTrueArg} from '../../utils/env-utils';
 
-import {getEntriesData} from './get-entries-data';
+import {copyEntriesToWorkbookController} from './copy-entries-to-workbook';
+import {copyEntryToWorkbookController} from './copy-entry-to-workbook';
+import {createEntryController} from './create-entry';
+import {createEntryAltController} from './create-entry-alt';
+import {deleteEntryController} from './delete-entry';
+import {getEntriesDataController} from './get-entries-data';
+import {renameEntryController} from './rename-entry';
+import {updateEntryController} from './update-entry';
 
 export default {
+    getEntriesDataController,
+    deleteEntryController,
+    copyEntryToWorkbookController,
+    copyEntriesToWorkbookController,
+    renameEntryController,
+    updateEntryController,
+    createEntryController,
+    createEntryAltController,
+
     getEntry: async (req: Request, res: Response) => {
         const {query, params} = req;
 
@@ -49,7 +56,8 @@ export default {
                 revId: query.revId as GetEntryArgs['revId'],
                 includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
                 includeLinks: isTrueArg(query.includeLinks),
-                checkServicePlan: query.checkServicePlan as GetEntryArgs['checkServicePlan'],
+                includeServicePlan: isTrueArg(query.includeServicePlan),
+                includeTenantFeatures: isTrueArg(query.includeTenantFeatures),
             },
         );
         const formattedResponse = await formatGetEntryResponse(req.ctx, result);
@@ -117,98 +125,6 @@ export default {
         res.status(code).send(response);
     },
 
-    createEntry: async (req: Request, res: Response) => {
-        const {body} = req;
-
-        const result = await EntryService.create({
-            workbookId: body.workbookId,
-            name: body.name,
-            scope: body.scope,
-            type: body.type,
-            key: body.key,
-            meta: body.meta,
-            recursion: body.recursion,
-            hidden: body.hidden,
-            mirrored: body.mirrored,
-            mode: body.mode,
-            data: body.data,
-            unversionedData: body.unversionedData,
-            links: body.links,
-            permissionsMode: body.permissionsMode,
-            includePermissionsInfo: isTrueArg(body.includePermissionsInfo),
-            initialPermissions: body.initialPermissions,
-            initialParentId: body.initialParentId,
-            checkServicePlan: body.checkServicePlan,
-            ctx: req.ctx,
-        });
-
-        const {code, response} = await prepareResponseAsync({data: result});
-
-        if(process.env.NODE_RPC_URL) {
-            var token = Utils.getTokenFromContext(req.ctx);
-            if(token && response) {
-                var r:any = response;
-                await Utils.updateAccesses(token, { id: r.entryId, '*': true });
-            }
-        }
-
-        res.status(code).send(response);
-    },
-
-    _createEntry: async (req: Request, res: Response) => {
-        const {body} = req;
-
-        const result = await EntryService._create({
-            workbookId: body.workbookId,
-            name: body.name,
-            scope: body.scope,
-            type: body.type,
-            key: body.key,
-            meta: body.meta,
-            recursion: body.recursion,
-            hidden: body.hidden,
-            mirrored: body.mirrored,
-            mode: body.mode,
-            data: body.data,
-            unversionedData: body.unversionedData,
-            links: body.links,
-            permissionsMode: body.permissionsMode,
-            initialPermissions: body.initialPermissions,
-            initialParentId: body.initialParentId,
-            checkServicePlan: body.checkServicePlan,
-            ctx: req.ctx,
-        });
-
-        const {code, response} = await prepareResponseAsync({data: result});
-
-        res.status(code).send(response);
-    },
-
-    updateEntry: async (req: Request, res: Response) => {
-        const {params, body} = req;
-
-        const result = await updateEntry(req.ctx, {
-            entryId: params.entryId,
-            meta: body.meta,
-            data: body.data,
-            unversionedData: body.unversionedData,
-            links: body.links,
-            mode: body.mode,
-            type: body.type,
-            hidden: body.hidden,
-            mirrored: body.mirrored,
-            revId: body.revId,
-            lockToken: body.lockToken,
-            skipSyncLinks: body.skipSyncLinks,
-            updateRevision: body.updateRevision,
-            checkServicePlan: body.checkServicePlan,
-        });
-
-        const {code, response} = await prepareResponseAsync({data: result});
-
-        res.status(code).send(response);
-    },
-
     switchRevisionEntry: async (req: Request, res: Response) => {
         const {params, body} = req;
 
@@ -222,32 +138,6 @@ export default {
 
         const {code, response} = await prepareResponseAsync({data: result});
 
-        res.status(code).send(response);
-    },
-
-    renameEntry: async (req: Request, res: Response) => {
-        const {params, body} = req;
-
-        const result = await renameEntry(req.ctx, {
-            entryId: params.entryId,
-            name: body.name,
-        });
-
-        const {code, response} = await prepareResponseAsync({data: result});
-
-        res.status(code).send(response);
-    },
-
-    deleteEntry: async (req: Request, res: Response) => {
-        const result = await deleteEntry(
-            {ctx: req.ctx},
-            {
-                entryId: req.params.entryId,
-                lockToken: req.query.lockToken as DeleteEntryData['lockToken'],
-            },
-        );
-
-        const {code, response} = await prepareResponseAsync({data: result});
         res.status(code).send(response);
     },
 
@@ -277,39 +167,6 @@ export default {
         res.status(code).send(response);
     },
 
-    copyEntryToWorkbook: async (req: Request, res: Response) => {
-        const {params, body} = req;
-
-        const result = await copyEntryToWorkbook(
-            {ctx: req.ctx},
-            {
-                entryId: params.entryId,
-                workbookId: body.workbookId,
-                name: body.name,
-            },
-        );
-
-        const formattedResponse = formatEntryModel(result);
-
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
-        res.status(code).send(response);
-    },
-
-    copyEntriesToWorkbook: async (req: Request, res: Response) => {
-        const {body} = req;
-
-        const result = await copyEntriesToWorkbook(
-            {ctx: req.ctx},
-            {
-                entryIds: body.entryIds,
-                workbookId: body.workbookId,
-            },
-        );
-
-        const {code, response} = await prepareResponseAsync({data: result});
-        res.status(code).send(response);
-    },
-
     getEntries: async (req: Request, res: Response) => {
         const query = req.query as unknown as ST.GetEntries;
 
@@ -335,6 +192,4 @@ export default {
 
         res.status(code).send(response);
     },
-
-    getEntriesData,
 };

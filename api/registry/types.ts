@@ -34,11 +34,25 @@ export type {
     LogEventDeleteColorPaletteSuccessParams,
     LogEventUpdateColorPaletteFailParams,
     LogEventUpdateColorPaletteSuccessParams,
+    LogEventCopyEntriesToWorkbookFailParams,
+    LogEventCopyEntriesToWorkbookSuccessParams,
+    LogEventCopyEntryToWorkbookFailParams,
+    LogEventCopyEntryToWorkbookSuccessParams,
+    LogEventCreateEntryAltFailParams,
+    LogEventCreateEntryAltSuccessParams,
+    LogEventCreateEntryFailParams,
+    LogEventCreateEntrySuccessParams,
+    LogEventDeleteEntryFailParams,
+    LogEventDeleteEntrySuccessParams,
+    LogEventRenameEntryFailParams,
+    LogEventRenameEntrySuccessParams,
+    LogEventUpdateEntryFailParams,
+    LogEventUpdateEntrySuccessParams,
 } from '../../src/registry/common/utils/log-event/types';
 export {LogEventType} from '../../src/registry/common/utils/log-event/types';
 export type {GatewayApi} from '../../src/registry';
 export type {
     CheckCreateEntryAvailability,
     CheckUpdateEntryAvailability,
-    CheckServicePlanAvailability,
 } from '../../src/registry/common/utils/entry/types';
+export type {CheckTenant, GetServicePlan} from '../../src/registry/common/utils/tenant/types';

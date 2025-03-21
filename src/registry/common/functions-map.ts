@@ -8,13 +8,13 @@ import type {ColorPalettesAdminValidator} from './utils/color-palettes/types';
 import type {CheckEmbedding} from './utils/embedding/types';
 import type {
     CheckCreateEntryAvailability,
-    CheckServicePlanAvailability,
     CheckUpdateEntryAvailability,
     GetEntryAddFormattedFieldsHook,
     GetEntryBeforeDbRequestHook,
     IsNeedBypassEntryByKey,
 } from './utils/entry/types';
 import type {LogEvent} from './utils/log-event/types';
+import type {CheckTenant, GetServicePlan} from './utils/tenant/types';
 
 export const commonFunctionsMap = {
     bulkFetchWorkbooksAllPermissions: makeFunctionTemplate<BulkFetchWorkbooksAllPermissions>(),
@@ -29,5 +29,6 @@ export const commonFunctionsMap = {
     checkCreateEntryAvailability: makeFunctionTemplate<CheckCreateEntryAvailability>(),
     checkUpdateEntryAvailability: makeFunctionTemplate<CheckUpdateEntryAvailability>(),
     logEvent: makeFunctionTemplate<LogEvent>(),
-    checkServicePlanAvailability: makeFunctionTemplate<CheckServicePlanAvailability>(),
+    checkTenant: makeFunctionTemplate<CheckTenant>(),
+    getServicePlan: makeFunctionTemplate<GetServicePlan>(),
 } as const;

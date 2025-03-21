@@ -22,7 +22,12 @@ import {registry} from './registry';
 import {getRoutes} from './routes';
 import {setRegistryToContext} from './components/app-context';
 import {isEnabledFeature} from './components/features';
-import {getAdditionalHeaders, initSwagger, registerApiRoute} from './components/api-docs';
+import {
+    getAdditionalHeaders,
+    getAdditionalSecuritySchemes,
+    initSwagger,
+    registerApiRoute,
+} from './components/api-docs';
 import {objectKeys} from './utils/utility-types';
 
 setRegistryToContext(nodekit, registry);
@@ -92,7 +97,7 @@ const app = new ExpressKit(nodekit, routes);
 registry.setupApp(app);
 
 if (nodekit.config.swaggerEnabled) {
-    initSwagger(app);
+    initSwagger(app, getAdditionalSecuritySchemes(nodekit));
 }
 
 if (require.main === module) {

@@ -26,50 +26,22 @@ import {
 import {getWorkbooksListByIds} from '../../services/new/workbook/get-workbooks-list-by-ids';
 import {isTrueArg} from '../../utils/env-utils';
 
-import {copyWorkbook} from './copy-workbook';
-import {createWorkbook} from './create-workbook';
-import {deleteWorkbook} from './delete-workbook';
-import {deleteWorkbooksList} from './delete-workbooks-list';
-import {moveWorkbook} from './move-workbook';
-import {moveWorkbooksList} from './move-workbooks-list';
-import {updateWorkbook} from './update-workbook';
+import {copyWorkbookController} from './copy-workbook';
+import {createWorkbookController} from './create-workbook';
+import {deleteWorkbookController} from './delete-workbook';
+import {deleteWorkbooksListController} from './delete-workbooks-list';
+import {moveWorkbookController} from './move-workbook';
+import {moveWorkbooksListController} from './move-workbooks-list';
+import {updateWorkbookController} from './update-workbook';
 
 export default {
-    createWorkbook,
-    updateWorkbook,
-    moveWorkbook,
-    moveWorkbooksList,
-    deleteWorkbook,
-    deleteWorkbooksList,
-    copyWorkbook,
-// export default {
-//     create: async (req: Request, res: Response) => {
-//         const {body} = req;
-
-//         const result = await createWorkbook(
-//             {
-//                 ctx: req.ctx,
-//             },
-//             {
-//                 collectionId: body.collectionId ?? null,
-//                 title: body.title,
-//                 project: body.project,
-//                 description: body.description,
-//             },
-//         );
-
-//         const formattedResponse = formatWorkbookWithOperation(result.workbook, result.operation);
-
-//         const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
-//         if(process.env.NODE_RPC_URL) {
-//             var token = Utils.getTokenFromContext(req.ctx);
-//             if(token) {
-//                 await Utils.updateAccesses(token, { id: response.workbookId, '*': true });
-//             }
-//         }
-
-//         res.status(code).send(response);
-//     },
+    createWorkbookController,
+    updateWorkbookController,
+    moveWorkbookController,
+    moveWorkbooksListController,
+    deleteWorkbookController,
+    deleteWorkbooksListController,
+    copyWorkbookController,
 
     get: async (req: Request, res: Response) => {
         const {params, query} = req;

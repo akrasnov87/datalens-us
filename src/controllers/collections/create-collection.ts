@@ -23,7 +23,7 @@ export type CreateCollectionReqBody = z.infer<typeof requestSchema.body>;
 
 const parseReq = makeReqParser(requestSchema);
 
-const controller: AppRouteHandler = async (req, res) => {
+export const createCollectionController: AppRouteHandler = async (req, res) => {
     const {body} = await parseReq(req);
 
     const registry = req.ctx.get('registry');
@@ -33,8 +33,8 @@ const controller: AppRouteHandler = async (req, res) => {
         const result = await createCollection(
             {ctx: req.ctx},
             {
-                title: body.title,
-                description: body.description,
+                title: body.title.trim(),
+                description: body.description?.trim(),
                 parentId: body.parentId,
                 project: body.project
             },
@@ -74,7 +74,7 @@ const controller: AppRouteHandler = async (req, res) => {
     }
 };
 
-controller.api = {
+createCollectionController.api = {
     summary: 'Create collection',
     tags: [ApiTag.Collections],
     request: {
@@ -98,6 +98,4 @@ controller.api = {
     },
 };
 
-controller.manualDecodeId = true;
-
-export {controller as createCollection};
+createCollectionController.manualDecodeId = true;

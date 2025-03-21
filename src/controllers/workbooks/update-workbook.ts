@@ -34,7 +34,10 @@ export type UpdateWorkbookReqBody = z.infer<typeof requestSchema.body>;
 
 const parseReq = makeReqParser(requestSchema);
 
-const controller: AppRouteHandler = async (req, res: Response<WorkbookResponseModel>) => {
+export const updateWorkbookController: AppRouteHandler = async (
+    req,
+    res: Response<WorkbookResponseModel>,
+) => {
     const {body, params} = await parseReq(req);
 
     const registry = req.ctx.get('registry');
@@ -47,8 +50,8 @@ const controller: AppRouteHandler = async (req, res: Response<WorkbookResponseMo
             },
             {
                 workbookId: params.workbookId,
-                title: body.title,
-                description: body.description,
+                title: body.title?.trim(),
+                description: body.description?.trim(),
                 project: body.project
             },
         );
@@ -75,7 +78,7 @@ const controller: AppRouteHandler = async (req, res: Response<WorkbookResponseMo
     }
 };
 
-controller.api = {
+updateWorkbookController.api = {
     summary: 'Update workbook',
     tags: [ApiTag.Workbooks],
     request: {
@@ -100,6 +103,4 @@ controller.api = {
     },
 };
 
-controller.manualDecodeId = true;
-
-export {controller as updateWorkbook};
+updateWorkbookController.manualDecodeId = true;
