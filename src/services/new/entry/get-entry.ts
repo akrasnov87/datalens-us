@@ -222,7 +222,7 @@ export const getEntry = async (
             var context: any = ctx;
             try {
                 if(!dlsPermissions && context.appParams.rpc && context.appParams.rpc.length > 0 && context.appParams.rpc[0].token) {
-                    dlsPermissions = await enableAllPermissions(ctx, joinedEntryRevisionFavorite)
+                    dlsPermissions = await enableAllPermissions(ctx, joinedEntryRevisionFavoriteTenant)
                 }
 
                 permissions = OldEntry.originatePermissions({

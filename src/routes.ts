@@ -43,17 +43,17 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
 
         encodeId: makeRoute({
             route: 'GET /encodeId',
-            handler: helpersController.encodeId,
+            handler: helpers.encodeId,
         }),
 
         decodeId: makeRoute({
             route: 'GET /decodeId',
-            handler: helpersController.decodeId,
+            handler: helpers.decodeId,
         }),
 
         universalService: makeRoute({
             route: 'POST /universal_service',
-            handler: helpersController.universal_service
+            handler: helpers.universal_service
         }),
 
         auth: makeRoute({
