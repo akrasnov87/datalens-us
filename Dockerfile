@@ -60,28 +60,28 @@ RUN apt-get -y purge curl gnupg gnupg2 && \
 
 # timezone setting
 ENV TZ="Etc/UTC"
-RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
+RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # user app
 RUN useradd -m -u 1001 app && mkdir /opt/app && chown app:app /opt/app
 
-# add postgresql repository
-RUN install -d /usr/share/postgresql-common/pgdg && \
-    curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
-    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt jammy-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
+# install package dependencies for production
+FROM base-stage AS install-stage
 
 # install system dependencies
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata && \
-    apt-get -y install nginx supervisor nodejs postgresql-client-13 build-essential
+RUN apt-get update && apt-get -y install g++ make
 
-# cleanup tmp and defaults
-RUN rm -rf /etc/nginx/sites-enabled/default /var/lib/apt/lists/*
+WORKDIR /opt/app
 
-ARG app_version
-ARG CERT
+COPY package.json package-lock.json .npmrc /opt/app/
+
+RUN npm ci && npm prune --production
+
+# production running stage
+FROM base-stage AS runtime-stage
+
 ARG USER=app
-
+ARG app_version
 ENV APP_VERSION=$app_version
 ENV TMPDIR=/tmp
 
@@ -90,32 +90,10 @@ WORKDIR /opt/app
 COPY package.json package-lock.json /opt/app/
 COPY ./scripts/preflight.sh /opt/app/scripts/preflight.sh
 
-COPY deploy/nginx /etc/nginx
-COPY deploy/supervisor /etc/supervisor/conf.d
-COPY package.json package-lock.json /opt/app/
-COPY . .
-
-# prepare rootless permissions for supervisor and nginx
-RUN chown -R ${USER} /var/log/supervisor/ && \
-    mkdir /var/run/supervisor && \
-    chown -R ${USER} /var/run/supervisor && \
-    mkdir -p /var/cache/nginx && chown -R ${USER} /var/cache/nginx && \
-    mkdir -p /var/log/nginx  && chown -R ${USER} /var/log/nginx && \
-    mkdir -p /var/lib/nginx  && chown -R ${USER} /var/lib/nginx && \
-    touch /run/nginx.pid && chown -R ${USER} /run/nginx.pid 
-
-# build app
-RUN npm ci -q --no-progress --include=dev --also=dev
-RUN npm run build
-RUN npm prune --production
-RUN rm -rf /tmp/*
+COPY --from=install-stage /opt/app/node_modules /opt/app/node_modules
+COPY --from=native-build-stage /opt/app/dist /opt/app/dist
 
 RUN chown -R ${USER} /opt/app/dist/run
-
-# adding certificate
-RUN echo $CERT > /usr/local/share/ca-certificates/cert.pem
-ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/cert.pem
-RUN update-ca-certificates
 
 USER app
 
