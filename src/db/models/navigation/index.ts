@@ -120,6 +120,7 @@ class Navigation extends Model {
             ...returnColumnNames,
             'workbooks.title as workbookTitle',
             raw('CASE sub.entry_id WHEN sub.entry_id THEN TRUE ELSE FALSE END AS is_favorite'),
+            'unversionedData',
         ];
 
         if (includeData) {
@@ -141,7 +142,7 @@ class Navigation extends Model {
             )
             .where({
                 isDeleted: false,
-                scope,
+                ...(scope ? {scope} : {}),
                 'entries.tenantId': tenantId,
             })
             .where((builder) => {

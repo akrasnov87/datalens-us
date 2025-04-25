@@ -3,6 +3,7 @@ import {AppRouteHandler, Response} from '@gravity-ui/expresskit';
 import {ApiTag} from '../../components/api-docs';
 import {makeReqParser, z, zc} from '../../components/zod';
 import {CONTENT_TYPE_JSON} from '../../const';
+import {WorkbookStatus} from '../../db/models/new/workbook/types';
 import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {updateWorkbook} from '../../services/new/workbook';
 
@@ -17,13 +18,21 @@ const requestSchema = {
             title: z.string().optional(),
             description: z.string().optional(),
             project: z.string().optional(),
+            status: z.nativeEnum(WorkbookStatus).optional(),
+            meta: zc.limitedObject({limit: 3000}).optional(),
         })
         .refine(
-            ({title, description, project}) => {
-                return typeof title === 'string' || typeof description === 'string' || typeof project === 'string';
+            ({title, description, project, status, meta}) => {
+                return (
+                    typeof title === 'string' ||
+                    typeof description === 'string' ||
+                    typeof project === 'string' ||
+                    status !== undefined ||
+                    meta !== undefined
+                );
             },
             {
-                message: `The request body must contain either "title" or "description" or "project".`,
+                message: `The request body must contain at least one of the following fields: "title", "description", "project", "status", or "meta".`,
             },
         ),
 };
@@ -52,7 +61,9 @@ export const updateWorkbookController: AppRouteHandler = async (
                 workbookId: params.workbookId,
                 title: body.title?.trim(),
                 description: body.description?.trim(),
-                project: body.project
+                project: body.project,
+                status: body.status,
+                meta: body.meta,
             },
         );
 

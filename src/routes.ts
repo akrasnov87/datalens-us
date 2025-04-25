@@ -301,42 +301,50 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
 
         getWorkbookContent: makeRoute({
             route: 'GET /v2/workbooks/:workbookId/entries',
-            handler: workbooks.getContent,
+            handler: workbooks.getWorkbookContentController,
             features: [Feature.CollectionsEnabled],
         }),
         privateGetWorkbookContent: makeRoute({
             route: 'GET /private/v2/workbooks/:workbookId/entries',
-            handler: workbooks.getContent,
+            handler: workbooks.getWorkbookContentController,
             authPolicy: AuthPolicy.disabled,
             private: true,
             features: [Feature.CollectionsEnabled],
         }),
         getWorkbook: makeRoute({
             route: 'GET /v2/workbooks/:workbookId',
-            handler: workbooks.get,
+            handler: workbooks.getWorkbookController,
             features: [Feature.CollectionsEnabled],
         }),
         privateGetWorkbook: makeRoute({
             route: 'GET /private/v2/workbooks/:workbookId',
-            handler: workbooks.get,
+            handler: workbooks.getWorkbookController,
             authPolicy: AuthPolicy.disabled,
             private: true,
             features: [Feature.CollectionsEnabled],
         }),
         getWorkbooks: makeRoute({
             route: 'GET /v2/workbooks',
-            handler: workbooks.getList,
+            handler: workbooks.getWorkbooksListController,
             features: [Feature.CollectionsEnabled],
         }),
         getWorkbooksListByIds: makeRoute({
             route: 'POST /v2/workbooks-get-list-by-ids',
-            handler: workbooks.getWorkbooksListByIds,
+            handler: workbooks.getWorkbooksListByIdsController,
             features: [Feature.CollectionsEnabled],
         }),
         updateWorkbook: makeRoute({
             route: 'POST /v2/workbooks/:workbookId/update',
             handler: workbooks.updateWorkbookController,
             write: true,
+            features: [Feature.CollectionsEnabled],
+        }),
+        privateUpdateWorkbook: makeRoute({
+            route: 'POST /private/v2/workbooks/:workbookId/update',
+            handler: workbooks.updateWorkbookController,
+            write: true,
+            authPolicy: AuthPolicy.disabled,
+            private: true,
             features: [Feature.CollectionsEnabled],
         }),
         createWorkbook: makeRoute({
@@ -391,15 +399,9 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
             write: true,
             features: [Feature.CollectionsEnabled],
         }),
-        copyWorkbookTemplate: makeRoute({
-            route: 'POST /v2/workbooks/:workbookId/copyTemplate',
-            handler: workbooks.copyTemplate,
-            write: true,
-            features: [Feature.CollectionsEnabled],
-        }),
         privateSetIsTemplateWorkbook: makeRoute({
             route: 'POST /private/v2/workbooks/:workbookId/setIsTemplate',
-            handler: workbooks.setIsTemplate,
+            handler: workbooks.setWorkbookIsTemplateController,
             authPolicy: AuthPolicy.disabled,
             private: true,
             write: true,
@@ -408,7 +410,7 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
 
         privateRestoreWorkbook: makeRoute({
             route: 'POST /private/v2/workbooks/:workbookId/restore',
-            handler: workbooks.restore,
+            handler: workbooks.restoreWorkbookController,
             authPolicy: AuthPolicy.disabled,
             private: true,
             write: true,
@@ -417,7 +419,7 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
 
         privateGetAllWorkbooks: makeRoute({
             route: 'GET /private/all-workbooks',
-            handler: workbooks.getAll,
+            handler: workbooks.getAllWorkbooksController,
             authPolicy: AuthPolicy.disabled,
             private: true,
             features: [Feature.CollectionsEnabled],

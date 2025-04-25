@@ -1,15 +1,69 @@
-FROM ubuntu:22.04
+ARG UBUNTU_VERSION=24.04
+
+# use native build platform for build js files only once
+FROM --platform=${BUILDPLATFORM} ubuntu:${UBUNTU_VERSION} AS native-build-stage
+
+ARG NODE_MAJOR=22
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get -y upgrade && apt-get -y install ca-certificates curl gnupg
+
+# node
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+
+RUN apt-get update && apt-get -y install nodejs g++ make
+
+RUN useradd -m -u 1001 app && mkdir /opt/app && chown app:app /opt/app
+
+WORKDIR /opt/app
+
+COPY package.json package-lock.json .npmrc /opt/app/
+RUN npm ci
+
+COPY ./dist /opt/app/dist
+COPY ./src /opt/app/src
+COPY ./typings /opt/app/typings
+COPY tsconfig.json /opt/app/
+
+RUN npm run build && chown app /opt/app/dist/run
+
+# runtime base image for both platform
+FROM ubuntu:${UBUNTU_VERSION} AS base-stage
+
+ARG NODE_MAJOR=22
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get -y upgrade && apt-get -y install ca-certificates curl gnupg
+
+# node
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+
+RUN apt-get update && apt-get -y install nodejs
+
+# install postgresql-client
+RUN apt-get -y install postgresql-client
+
+# remove unnecessary packages
+RUN apt-get -y purge curl gnupg gnupg2 && \
+    apt-get -y autoremove && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /etc/apt/sources.list.d/nodesource.list && \
+    rm -rf /etc/apt/keyrings/nodesource.gpg
+
 
 # timezone setting
 ENV TZ="Etc/UTC"
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
 
-# add node.js repository
-RUN apt-get update && \
-    apt-get install -y ca-certificates curl gnupg && \
-    mkdir -p /etc/apt/keyrings && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+# user app
+RUN useradd -m -u 1001 app && mkdir /opt/app && chown app:app /opt/app
 
 # add postgresql repository
 RUN install -d /usr/share/postgresql-common/pgdg && \
@@ -29,14 +83,12 @@ ARG CERT
 ARG USER=app
 
 ENV APP_VERSION=$app_version
-ENV NODE_ENV=production
-
-RUN mkdir -p /opt/app
-
-RUN useradd -ms /bin/bash --uid 1000 ${USER}
+ENV TMPDIR=/tmp
 
 WORKDIR /opt/app
 
+COPY package.json package-lock.json /opt/app/
+COPY ./scripts/preflight.sh /opt/app/scripts/preflight.sh
 
 COPY deploy/nginx /etc/nginx
 COPY deploy/supervisor /etc/supervisor/conf.d
@@ -68,6 +120,8 @@ RUN update-ca-certificates
 USER app
 
 ENV NODE_ENV=production
-ENV APP_PORT=8083
+ENV APP_PORT=8080
 
-ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf" ]
+EXPOSE 8080
+
+ENTRYPOINT ["/opt/app/scripts/preflight.sh"]

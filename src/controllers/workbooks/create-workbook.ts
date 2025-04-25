@@ -3,6 +3,7 @@ import {AppRouteHandler, Response} from '@gravity-ui/expresskit';
 import {ApiTag} from '../../components/api-docs';
 import {makeReqParser, z, zc} from '../../components/zod';
 import {CONTENT_TYPE_JSON} from '../../const';
+import {WorkbookStatus} from '../../db/models/new/workbook/types';
 import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {createWorkbook} from '../../services/new/workbook';
 import {preparePermissionsResponseAsync} from '../../components/response-presenter';
@@ -18,7 +19,9 @@ const requestSchema = {
         collectionId: zc.encodedId().optional().nullable(),
         title: z.string(),
         description: z.string().optional(),
-        project: z.string().optional()
+        project: z.string().optional(),
+        meta: zc.limitedObject({limit: 3000}).optional(),
+        status: z.nativeEnum(WorkbookStatus).optional(),
     }),
 };
 
@@ -45,6 +48,8 @@ export const createWorkbookController: AppRouteHandler = async (
                 title: body.title.trim(),
                 project: body.project,
                 description: body.description?.trim(),
+                meta: body.meta,
+                status: body.status,
             },
         );
 

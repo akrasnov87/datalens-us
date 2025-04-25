@@ -1,5 +1,6 @@
 import {z} from '../../../components/zod';
 import {WorkbookModel} from '../../../db/models/new/workbook';
+import {WorkbookStatus} from '../../../db/models/new/workbook/types';
 import Utils from '../../../utils';
 
 const schema = z
@@ -15,6 +16,7 @@ const schema = z
         createdAt: z.string(),
         updatedBy: z.string().nullable(),
         updatedAt: z.string(),
+        status: z.nativeEnum(WorkbookStatus),
     })
     .describe('Workbook model');
 
@@ -33,6 +35,7 @@ const format = (data: WorkbookModel): WorkbookResponseModel => {
         createdAt: data.createdAt,
         updatedBy: data.updatedBy,
         updatedAt: data.updatedAt,
+        status: data.status,
     };
 };
 
