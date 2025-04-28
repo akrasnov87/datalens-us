@@ -9,6 +9,11 @@ else
   echo '{"level":"INFO","msg":"Finish setting up extensions"}'
 fi
 
+if [ "$USE_AUTH_DATA" = "1" ]; then
+    echo "Use auth demo data"
+    node /opt/app/dist/server/db/scripts/demo/auth.js 
+fi
+
 echo '{"level":"INFO","msg":"Start migration"}'
 npm run db:migrate
 echo '{"level":"INFO","msg":"Finish migration"}'

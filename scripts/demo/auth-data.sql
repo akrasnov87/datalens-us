@@ -6,7 +6,7 @@ SET search_path = pg_catalog;
 
 CREATE SCHEMA core;
 
-ALTER SCHEMA core OWNER TO us;
+ALTER SCHEMA core OWNER TO "pg-user";
 
 CREATE SEQUENCE core.auto_id_pd_accesses
 	START WITH 1
@@ -15,7 +15,7 @@ CREATE SEQUENCE core.auto_id_pd_accesses
 	NO MINVALUE
 	CACHE 1;
 
-ALTER SEQUENCE core.auto_id_pd_accesses OWNER TO us;
+ALTER SEQUENCE core.auto_id_pd_accesses OWNER TO "pg-user";
 
 CREATE SEQUENCE core.auto_id_pd_roles
 	START WITH 1
@@ -24,7 +24,7 @@ CREATE SEQUENCE core.auto_id_pd_roles
 	NO MINVALUE
 	CACHE 1;
 
-ALTER SEQUENCE core.auto_id_pd_roles OWNER TO us;
+ALTER SEQUENCE core.auto_id_pd_roles OWNER TO "pg-user";
 
 CREATE SEQUENCE core.auto_id_pd_userinroles
 	START WITH 1
@@ -33,7 +33,7 @@ CREATE SEQUENCE core.auto_id_pd_userinroles
 	NO MINVALUE
 	CACHE 1;
 
-ALTER SEQUENCE core.auto_id_pd_userinroles OWNER TO us;
+ALTER SEQUENCE core.auto_id_pd_userinroles OWNER TO "pg-user";
 
 CREATE SEQUENCE core.auto_id_pd_users
 	START WITH 1
@@ -42,7 +42,7 @@ CREATE SEQUENCE core.auto_id_pd_users
 	NO MINVALUE
 	CACHE 1;
 
-ALTER SEQUENCE core.auto_id_pd_users OWNER TO us;
+ALTER SEQUENCE core.auto_id_pd_users OWNER TO "pg-user";
 
 -- DEPCY: This SEQUENCE is a dependency of COLUMN: core.pd_projects.id
 
@@ -54,7 +54,7 @@ CREATE SEQUENCE core.pd_projects_id_seq
 	NO MINVALUE
 	CACHE 1;
 
-ALTER SEQUENCE core.pd_projects_id_seq OWNER TO us;
+ALTER SEQUENCE core.pd_projects_id_seq OWNER TO "pg-user";
 
 CREATE TABLE core.pd_projects (
 	id integer DEFAULT nextval('core.pd_projects_id_seq'::regclass) NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE core.pd_projects (
 	sn_delete boolean DEFAULT false NOT NULL
 );
 
-ALTER TABLE core.pd_projects OWNER TO us;
+ALTER TABLE core.pd_projects OWNER TO "pg-user";
 
 COMMENT ON TABLE core.pd_projects IS 'Проекты';
 
@@ -99,7 +99,7 @@ CREATE SEQUENCE core.sd_logs_id_seq
 	NO MINVALUE
 	CACHE 1;
 
-ALTER SEQUENCE core.sd_logs_id_seq OWNER TO us;
+ALTER SEQUENCE core.sd_logs_id_seq OWNER TO "pg-user";
 
 CREATE TABLE core.sd_logs (
 	id bigint DEFAULT nextval('core.sd_logs_id_seq'::regclass) NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE core.sd_logs (
 	d_time time without time zone NOT NULL
 );
 
-ALTER TABLE core.sd_logs OWNER TO us;
+ALTER TABLE core.sd_logs OWNER TO "pg-user";
 
 CREATE TABLE core.pd_accesses (
 	id integer DEFAULT nextval('core.auto_id_pd_accesses'::regclass) NOT NULL,
@@ -130,7 +130,7 @@ CREATE TABLE core.pd_accesses (
 	dl_id bigint
 );
 
-ALTER TABLE core.pd_accesses OWNER TO us;
+ALTER TABLE core.pd_accesses OWNER TO "pg-user";
 
 COMMENT ON TABLE core.pd_accesses IS 'Права доступа';
 
@@ -182,7 +182,7 @@ CREATE TABLE core.pd_roles (
 	_id text
 );
 
-ALTER TABLE core.pd_roles OWNER TO us;
+ALTER TABLE core.pd_roles OWNER TO "pg-user";
 
 COMMENT ON TABLE core.pd_roles IS 'Роли';
 
@@ -217,7 +217,7 @@ CREATE TABLE core.pd_userinroles (
 	sn_delete boolean DEFAULT false
 );
 
-ALTER TABLE core.pd_userinroles OWNER TO us;
+ALTER TABLE core.pd_userinroles OWNER TO "pg-user";
 
 COMMENT ON TABLE core.pd_userinroles IS 'Пользователи в ролях';
 
@@ -260,7 +260,7 @@ CREATE TABLE core.pd_users (
 	_id text
 );
 
-ALTER TABLE core.pd_users OWNER TO us;
+ALTER TABLE core.pd_users OWNER TO "pg-user";
 
 COMMENT ON TABLE core.pd_users IS 'Пользователи / Организации';
 
@@ -339,7 +339,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION core.of_users(sender jsonb, params jsonb) OWNER TO us;
+ALTER FUNCTION core.of_users(sender jsonb, params jsonb) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.of_users(sender jsonb, params jsonb) IS 'Получение списка пользователей';
 
@@ -369,7 +369,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION core.pf_accesses(n_user_id integer) OWNER TO us;
+ALTER FUNCTION core.pf_accesses(n_user_id integer) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.pf_accesses(n_user_id integer) IS 'Системная функция. Получение прав доступа для пользователя';
 
@@ -394,7 +394,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) OWNER TO us;
+ALTER FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.pf_update_user_roles(_user_id integer, _claims json) IS 'Обновление ролей у пользователя';
 
@@ -427,7 +427,7 @@ BEGIN
  END
 $$;
 
-ALTER FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) OWNER TO us;
+ALTER FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) IS 'Системная функция для обработки прав. Для внешнего использования не применять';
 
@@ -476,7 +476,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) OWNER TO us;
+ALTER FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) IS 'Создание ссылки для "Поделиться"';
 
@@ -505,7 +505,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) OWNER TO us;
+ALTER FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) IS 'Создание пользователя авторизовавшегося через OIDC';
 
@@ -537,7 +537,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json, _project_name text) OWNER TO us;
+ALTER FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json, _project_name text) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_create_user(_login text, _password text, _email text, _claims json, _project_name text) IS 'Создание пользователя';
 
@@ -605,7 +605,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_registry_user(jb_user jsonb, version_code text) OWNER TO us;
+ALTER FUNCTION core.sf_registry_user(jb_user jsonb, version_code text) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_registry_user(jb_user jsonb, version_code text) IS 'Регистрация пользователя';
 
@@ -651,7 +651,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_reset_pwd(_login text, _new_password text) OWNER TO us;
+ALTER FUNCTION core.sf_reset_pwd(_login text, _new_password text) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_reset_pwd(_login text, _new_password text) IS 'Сброс пароля пользователя';
 
@@ -677,7 +677,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) OWNER TO us;
+ALTER FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_update_auth(_c_version text, _f_user integer, _n_key integer, _c_ip text, _c_name text, _b_key_mode boolean) IS 'Обновление информации об авторизации';
 
@@ -729,7 +729,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) OWNER TO us;
+ALTER FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_update_pwd(_login text, _password text, _new_password text) IS 'Замена пароля пользователя';
 
@@ -745,7 +745,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION core.sf_users(_f_user integer) OWNER TO us;
+ALTER FUNCTION core.sf_users(_f_user integer) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_users(_f_user integer) IS 'Системная функция. Получение информации о пользователе';
 
@@ -769,7 +769,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) OWNER TO us;
+ALTER FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_users_by_login_with_alias(_c_login text, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
 
@@ -808,7 +808,7 @@ BEGIN
 END;
 $$;
 
-ALTER FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) OWNER TO us;
+ALTER FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_users_with_alias(_f_user integer, _alias boolean) IS 'Системная функция. Получение информации о пользователе';
 
@@ -866,7 +866,7 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) OWNER TO us;
+ALTER FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) OWNER TO "pg-user";
 
 COMMENT ON FUNCTION core.sf_verify_user(_login text, _password text, _c_ip text, _c_name text, _n_key integer, _b_key_mode boolean) IS 'Проверка пользователя на авторизацию';
 
@@ -876,7 +876,7 @@ CREATE OR REPLACE FUNCTION public.random_in_range(integer, integer) RETURNS inte
     SELECT floor(($1 + ($2 - $1 + 1) * random()))::INTEGER;
 $_$;
 
-ALTER FUNCTION public.random_in_range(integer, integer) OWNER TO us;
+ALTER FUNCTION public.random_in_range(integer, integer) OWNER TO "pg-user";
 
 CREATE INDEX pd_users_b_disabled_sn_delete_idx ON core.pd_users USING btree (b_disabled, sn_delete);
 
@@ -971,7 +971,7 @@ CREATE VIEW core.sv_objects AS
           WHERE ((r.routine_catalog)::text = (current_database())::text)) table1
   WHERE (((table1.table_schema)::text <> 'pg_catalog'::text) AND ((table1.table_schema)::text <> 'information_schema'::text) AND ((table1.table_schema)::text <> 'public'::text));
 
-ALTER VIEW core.sv_objects OWNER TO us;
+ALTER VIEW core.sv_objects OWNER TO "pg-user";
 
 CREATE VIEW public.dl_access AS
 	SELECT t.user_id,
@@ -996,7 +996,7 @@ CREATE VIEW public.dl_access AS
              JOIN core.pd_accesses a ON (((a.f_role = uir.f_role) AND (a.c_function IS NOT NULL))))
           WHERE starts_with(a.c_function, 'DL.'::text)) t;
 
-ALTER VIEW public.dl_access OWNER TO us;
+ALTER VIEW public.dl_access OWNER TO "pg-user";
 
 ALTER SEQUENCE core.pd_projects_id_seq
 	OWNED BY core.pd_projects.id;

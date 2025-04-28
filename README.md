@@ -39,7 +39,6 @@ HC=1
 POSTGRES_DSN_LIST=postgres://us:us@127.0.0.1:5432/us-db-ci_purgeable
 APP_PORT=3030
 NODE_RPC_URL=http://localhost:7000/demo/rpc
-PROJECT_ID=datalens-demo
 
 ### TEMPLATE SECRETS BEGIN
 APP_INSTALLATION=opensource
