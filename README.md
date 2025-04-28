@@ -27,8 +27,8 @@ __Примечание__: для некоторых контейнеров вв�
 ## Сборка
 <pre>
 docker login -u [username]
-docker build -t akrasnov87/datalens-us:0.289.0 .
-docker push akrasnov87/datalens-us:0.289.0
+docker build -t akrasnov87/datalens-us:0.346.0 .
+docker push akrasnov87/datalens-us:0.346.0
 </pre>
 
 ## Тестирование
@@ -36,21 +36,23 @@ docker push akrasnov87/datalens-us:0.289.0
 В корне проекта создать файл .env и добавить туда строки:
 <pre>
 HC=1
-POSTGRES_DSN_LIST=postgres://us:us@127.0.0.1:5432/us-db-ci_purgeable
+POSTGRES_DSN_LIST=postgres://pg-user:postgres@localhost:5432/pg-us-db
 APP_PORT=3030
 NODE_RPC_URL=http://localhost:7000/demo/rpc
+USE_AUTH_DATA="1"
 
 ### TEMPLATE SECRETS BEGIN
 APP_INSTALLATION=opensource
 APP_ENV=development
 
 MASTER_TOKEN=development-master-token
-CONTROL_MASTER_TOKEN=development-control-master-token
 
 US_SURPRESS_DB_STATUS_LOGS=true
 
 ### TEMPLATE SECRETS END
 </pre>
+
+При этом `MASTER_TOKEN` должен быть равен значению из контейнеров `data-api` и `control-api`
 
 Создать файл .env.development и оставить его пустым
 
@@ -61,7 +63,6 @@ npm run dev
 </pre>
 
 ### Описание параметров
-* PROJECT_ID - идентификатор проекта, по которому будет фильтр в таблицах piblic.workbooks и public.collections
 * NODE_RPC_URL - имя сервиса для разграничения прав доступа
 
 * OIDC - признак подключения OIDC-провайдера авторизации
