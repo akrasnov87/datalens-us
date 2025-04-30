@@ -21,7 +21,13 @@ const PATH_TO_DATA = `${__dirname}/../../../../../scripts/demo/auth-data.sql`;
 
         if (result && result.rows && result.rows[0] && result.rows[0].exists === false) {
             const sqlData = fs.readFileSync(PATH_TO_DATA, 'utf8').toString().trim();
-            await db.primary.raw(sqlData);
+            let rawData = sqlData;
+            if(`${process.env.POSTGRES_USER}`) {
+                rawData = sqlData.replace(/OWNER TO "pg-user"/g, `OWNER TO "${process.env.POSTGRES_USER}"`);
+                console.debug(`change owner to ${process.env.POSTGRES_USER}`);
+            }
+
+            await db.primary.raw(rawData);
         }
 
         process.exit(0);
