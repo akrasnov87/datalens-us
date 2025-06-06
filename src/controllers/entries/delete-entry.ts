@@ -40,7 +40,7 @@ export const deleteEntryController: AppRouteHandler = async (req, res) => {
             entry: result,
         });
 
-        const {code, response} = await prepareResponseAsync({data: result});
+        const {code, response} = await prepareResponseAsync({data: result}, req);
         res.status(code).send(response);
     } catch (error) {
         logEvent({

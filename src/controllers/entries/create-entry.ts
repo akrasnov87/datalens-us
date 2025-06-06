@@ -52,7 +52,7 @@ export const createEntryController: AppRouteHandler = async (req, res) => {
             reqParams: logEventReqParams,
         });
 
-        const {code, response} = await prepareResponseAsync({data: result});
+        const {code, response} = await prepareResponseAsync({data: result}, req);
 
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);

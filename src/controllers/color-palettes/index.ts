@@ -23,7 +23,7 @@ export default {
 
         const formattedResponse = formatColorPaletteList(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },
@@ -38,7 +38,7 @@ export default {
 
         const formattedResponse = formatColorPaletteList(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },

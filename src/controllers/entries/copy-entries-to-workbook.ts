@@ -38,7 +38,7 @@ export const copyEntriesToWorkbookController: AppRouteHandler = async (req, res)
             data: result,
         });
 
-        const {code, response} = await prepareResponseAsync({data: result});
+        const {code, response} = await prepareResponseAsync({data: result}, req);
 
         res.status(code).send(response);
     } catch (error) {

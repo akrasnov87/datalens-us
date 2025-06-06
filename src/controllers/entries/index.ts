@@ -79,7 +79,7 @@ export default {
         );
         const formattedResponse = formatGetEntryMetaResponse(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },
@@ -100,7 +100,7 @@ export default {
         );
         const formattedResponse = formatGetEntryMetaPrivateResponse(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },
@@ -120,7 +120,7 @@ export default {
             },
         );
 
-        const {code, response} = await prepareResponseAsync({data: result});
+        const {code, response} = await prepareResponseAsync({data: result}, req);
 
         res.status(code).send(response);
     },
@@ -136,7 +136,7 @@ export default {
             },
         );
 
-        const {code, response} = await prepareResponseAsync({data: result});
+        const {code, response} = await prepareResponseAsync({data: result}, req);
 
         res.status(code).send(response);
     },
@@ -162,7 +162,7 @@ export default {
                 ? result
                 : result.relations;
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },

@@ -52,7 +52,7 @@ export const createCollectionController: AppRouteHandler = async (req, res) => {
             result.operation,
         );
 
-        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse});
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
 
         if(process.env.NODE_RPC_URL) {
             var token = Utils.getTokenFromContext(req.ctx);

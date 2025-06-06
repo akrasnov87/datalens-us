@@ -17,7 +17,7 @@ export default {
         );
         const formattedResponse = formatCreateStateResponse(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },
@@ -34,7 +34,7 @@ export default {
         );
         const formattedResponse = formatGetStateResponse(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
         res.status(code).send(response);
     },

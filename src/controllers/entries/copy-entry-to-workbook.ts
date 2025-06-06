@@ -32,7 +32,7 @@ export const copyEntryToWorkbookController: AppRouteHandler = async (req, res) =
 
         const formattedResponse = formatEntryModel(result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse});
+        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
         res.status(code).send(response);
     } catch (error) {
         logEvent({
