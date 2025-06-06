@@ -26,7 +26,14 @@ export const updateWorkbook = async (
     {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
     args: UpdateWorkbookArgs,
 ) => {
-    const {workbookId, title: newTitle, project: newProject, description: newDescription,status: newStatus,meta: newMeta} = args;
+    const {
+        workbookId,
+        title: newTitle,
+        project: newProject,
+        description: newDescription,
+        status: newStatus,
+        meta: newMeta,
+    } = args;
 
     ctx.log('UPDATE_WORKBOOK_START', {
         workbookId: Utils.encodeId(workbookId),

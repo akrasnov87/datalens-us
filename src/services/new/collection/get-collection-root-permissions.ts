@@ -8,7 +8,7 @@ import { Utils } from '../../../utils/utils';
 export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
     ctx.log('GET_ROOT_COLLECTION_PERMISSIONS_START');
 
-    const {accessServiceEnabled, zitadelEnabled} = ctx.config;
+    const {accessServiceEnabled} = ctx.config;
 
     var result = {
         createCollectionInRoot: true,
@@ -28,7 +28,7 @@ export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
         }
     }
 
-    if (accessServiceEnabled && zitadelEnabled) {
+    if (accessServiceEnabled) {
         const [createCollectionInRoot, createWorkbookInRoot] = await Promise.all([
             checkCreateCollectionInRoot(ctx),
             checkCreateWorkbookInRoot(ctx),

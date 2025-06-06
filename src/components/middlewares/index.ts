@@ -10,3 +10,4 @@ export {finalRequestHandler, logError} from './final-request-handler';
 export {checkReadOnlyMode} from './check-read-only-mode';
 export {rpcAuthorization} from './rpc-authorization';
 export {authZitadel} from './auth-zitadel';
+export {checkCtxTenantId} from './check-ctx-tenant-id';

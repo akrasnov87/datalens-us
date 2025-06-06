@@ -5,6 +5,7 @@ import {AppMiddleware, AppRoutes, AuthPolicy, ExpressKit} from '@gravity-ui/expr
 import {
     rpcAuthorization,
     authZitadel,
+    checkCtxTenantId,
     checkReadOnlyMode,
     ctx,
     decodeId,
@@ -58,6 +59,7 @@ afterAuth.push(
     rpcAuthorization,
     ctx,
     checkReadOnlyMode,
+    checkCtxTenantId,
 );
 
 if (nodekit.config.zitadelEnabled) {

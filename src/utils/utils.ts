@@ -3,9 +3,18 @@ const https = require('https');
 const axios = require('axios');
 const FormData = require('form-data');
 
+import {AppError} from '@gravity-ui/nodekit';
 import chunk from 'lodash/chunk';
 
-import {CODING_BASE, COPY_END, COPY_START, ID_VARIABLES, TRUE_FLAGS} from '../const';
+import {
+    CODING_BASE,
+    COPY_END,
+    COPY_START,
+    ENCODED_ID_LENGTH,
+    ID_VARIABLES,
+    TRUE_FLAGS,
+    US_ERRORS,
+} from '../const';
 import {EntryScope as EntryScopeEnum, EntryType} from '../db/models/new/entry/types';
 import {EntryScope, USAPIResponse} from '../types/models';
 
@@ -202,6 +211,34 @@ export class Utils {
         return results;
     }
 
+    static async macrotasksForEach<T>(
+        arr: T[],
+        cb: (item: T) => unknown,
+        chunkSize = 1000,
+    ): Promise<void> {
+        const chunks = chunk(arr, chunkSize);
+        for (const chunkItem of chunks) {
+            await new Promise<void>((resolve, reject) => {
+                function done() {
+                    try {
+                        for (const item of chunkItem) {
+                            cb(item);
+                        }
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                }
+
+                if (chunkItem === chunks[0]) {
+                    done();
+                } else {
+                    setImmediate(done);
+                }
+            });
+        }
+    }
+
     static waitNextMacrotask = async () => {
         return new Promise((resolve) => {
             setImmediate(resolve);
@@ -230,6 +267,12 @@ export class Utils {
         let decodedId = '';
 
         if (id) {
+            if (id.length !== ENCODED_ID_LENGTH) {
+                throw new AppError('The ID must consist of 13 characters.', {
+                    code: US_ERRORS.DECODE_ID_FAILED,
+                });
+            }
+
             const encodedRotationNumber = id.slice(-1);
             const encodedLongPart = id.slice(0, -1);
 
@@ -470,6 +513,10 @@ export class Utils {
         return str.replace(/[%_]/g, '\\$&');
     }
 
+    static escapeStringRegexp(str: string) {
+        return str.replace(/[!$()*+.:<=>?[\\\]^{|}-]/g, '\\$&');
+    }
+
     static camelCase(str: string) {
         const wordPattern = new RegExp(
             ['[A-Z][a-z]+', '[A-Z]+(?=[A-Z][a-z])', '[A-Z]+', '[a-z]+', '[0-9]+'].join('|'),
@@ -503,7 +550,7 @@ export class Utils {
         return Math.floor(new Date().getTime() / 1000);
     };
 
-    static getPermissions = async (token: String, item:any) => {
+        static getPermissions = async (token: String, item:any) => {
         var validationFields = ['id', 'title', 'entryId'];
         var data: any = {};
         for(var i in item) {

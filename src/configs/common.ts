@@ -40,8 +40,8 @@ export default {
     tenantIdOverride: 'common',
 
     dlsEnabled: false,
-    accessServiceEnabled: true,
-    accessBindingsServiceEnabled: false,
+    accessServiceEnabled: true, //isAuthServiceEnabled,
+    accessBindingsServiceEnabled: false, //isAuthServiceEnabled,
 
     masterToken: getEnvTokenVariable('MASTER_TOKEN'),
 

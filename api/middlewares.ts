@@ -9,4 +9,5 @@ export {
     rpcAuthorization,
     setCiEnv,
     authZitadel,
+    checkCtxTenantId,
 } from '../src/components/middlewares';
