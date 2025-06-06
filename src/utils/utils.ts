@@ -550,7 +550,7 @@ export class Utils {
         return Math.floor(new Date().getTime() / 1000);
     };
 
-        static getPermissions = async (token: String, item:any) => {
+    static getPermissions = async (token: String, item:any) => {
         var validationFields = ['id', 'title', 'entryId'];
         var data: any = {};
         for(var i in item) {

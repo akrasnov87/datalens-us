@@ -38,7 +38,7 @@ export async function prepareResponseAsync<T extends any = any>({
     data,
 }: {
     data: T;
-}, req?: any): Promise<ST.ServiceResponse<T>> {
+}, req?: any, entryId?: any): Promise<ST.ServiceResponse<T>> {
     const response = await Utils.macrotasksEncodeData(data);
 
     if (response.results) {
@@ -67,7 +67,11 @@ export async function prepareResponseAsync<T extends any = any>({
     }
 
     if(req) {
-        response.permissions = Object.assign(response.permissions || {}, ((req.rpc && req.rpc.length > 0) ? req.rpc[0].permissions : {}));
+        try {
+            response.permissions = Object.assign(response.permissions || {}, ((req.rpc && req.rpc.length > 0 && req.rpc[0].permissions) ? req.rpc[0].permissions : await enableAllPermissions(req.ctx, entryId)));
+        }catch(exc) {
+            console.log(exc);
+        }
     }
     
     if (response.relations) {
@@ -125,4 +129,40 @@ export async function preparePermissionsResponseAsync<T extends any = any>({
         code: 200,
         response,
     };
+}
+
+async function enableAllPermissions(context:any, entryId?: any) {
+    if(!entryId) {
+        return {};
+    }
+
+    var response:any = null;
+    if(context.appParams.rpc && context.appParams.rpc.length > 0) {
+        var token = Utils.getTokenFromContext(context);
+        if(token) {
+            response = await Utils.getPermissions(context.appParams.rpc[0].token, { id: entryId });
+        }
+    }
+
+    var permissions = Object.assign({
+        listAccessBindings: true,
+        updateAccessBindings: true,
+        createCollection: true,
+        createWorkbook: true,
+        limitedView: true,
+        view: true,
+        update: true,
+        copy: true,
+        move: true,
+        delete: true,
+    }, (response && response.data) ? response.data[0] : {});
+
+    const mappedPermission = {
+        execute: permissions.view,
+        read: permissions.view,
+        edit: permissions.update,
+        admin: permissions.updateAccessBindings,
+    };
+
+    return mappedPermission;
 }

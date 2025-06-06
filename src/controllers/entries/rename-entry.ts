@@ -25,7 +25,7 @@ export const renameEntryController: AppRouteHandler = async (req, res) => {
             reqParams: logEventReqParams,
         });
 
-        const {code, response} = await prepareResponseAsync({data: result}, req);
+        const {code, response} = await prepareResponseAsync({data: result}, req, params.entryId);
 
         res.status(code).send(response);
     } catch (error) {
