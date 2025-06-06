@@ -28,7 +28,7 @@ export const getRootCollectionPermissions = async ({ctx}: ServiceArgs) => {
         }
     }
 
-    if (accessServiceEnabled) {
+    if (accessServiceEnabled && !process.env.NODE_RPC_URL) {
         const [createCollectionInRoot, createWorkbookInRoot] = await Promise.all([
             checkCreateCollectionInRoot(ctx),
             checkCreateWorkbookInRoot(ctx),
