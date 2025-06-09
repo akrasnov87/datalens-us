@@ -86,7 +86,10 @@ export const Collection: CollectionConstructor = class Collection implements Col
             copy: true,
             move: true,
             delete: true,
+            hidden: true
         };
+
+        this.permissions = permissions;
 
         return permissions;
     }

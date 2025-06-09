@@ -9,6 +9,8 @@ export enum WorkbookPermission {
     ListAccessBindings = 'listAccessBindings',
     UpdateAccessBindings = 'updateAccessBindings',
     LimitedView = 'limitedView',
+    CreateCollection = 'createCollection',
+    CreateWorkbook = 'createWorkbook',
     View = 'view',
     Update = 'update',
     Copy = 'copy',

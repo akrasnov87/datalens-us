@@ -87,7 +87,7 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
     }
 
     enableAllPermissions() {
-        const permissions = {
+        const permissions: Permissions = {
             listAccessBindings: true,
             updateAccessBindings: true,
             createCollection: true,
@@ -98,7 +98,12 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             copy: true,
             move: true,
             delete: true,
+            embed: true,
+            hidden: true,
+            publish: true
         };
+
+        this.permissions = permissions;
 
         return permissions;
     }
