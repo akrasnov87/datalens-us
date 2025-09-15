@@ -1,15 +1,15 @@
 require('dotenv').config();
 require('../../../index');
 import * as fs from 'fs';
-import {db} from '../../index';
+import {Model} from '../../index';
 
 const PATH_TO_DATA = `${__dirname}/../../../../../scripts/demo/auth-data.sql`;
 
 (async function () {
     try {
-        await db.ready();
+        await Model.db.ready();
 
-        const result = await db.primary.raw(
+        const result = await Model.db.primary.raw(
             `SELECT EXISTS (
                 SELECT FROM 
                     pg_tables
@@ -27,7 +27,7 @@ const PATH_TO_DATA = `${__dirname}/../../../../../scripts/demo/auth-data.sql`;
                 console.debug(`change owner to ${process.env.POSTGRES_USER}`);
             }
 
-            await db.primary.raw(rawData);
+            await Model.db.primary.raw(rawData);
         }
 
         process.exit(0);
