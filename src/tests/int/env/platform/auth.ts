@@ -2,6 +2,7 @@ import request from 'supertest';
 
 import {AUTHORIZATION_HEADER, DL_AUTH_HEADER_KEY} from '../../../../const';
 import {CollectionPermission} from '../../../../entities/collection/types';
+import {SharedEntryPermission} from '../../../../entities/shared-entry/types';
 import {ResourceType} from '../../../../entities/types';
 import {WorkbookPermission} from '../../../../entities/workbook/types';
 import {ZitadelUserRole} from '../../../../types/zitadel';
@@ -10,7 +11,7 @@ import {testUserId, testUserLogin} from '../../constants';
 
 import {PlatformRole} from './roles';
 
-export {US_ERRORS, app, appConfig, testTenantId, authMasterToken} from '../../auth';
+export {US_ERRORS, app, appConfig, testTenantId, authMasterToken, appNodekit} from '../../auth';
 
 export const getCollectionBinding = (
     collectionId: string,
@@ -31,7 +32,17 @@ export const getWorkbookBinding = (workbookId: string, permission: `${WorkbookPe
     };
 };
 
-export type AccessBinding = ReturnType<typeof getCollectionBinding | typeof getWorkbookBinding>;
+export const getSharedEntryBinding = (entryId: string, permission: `${SharedEntryPermission}`) => {
+    return {
+        id: entryId,
+        type: ResourceType.SharedEntry as const,
+        permission,
+    };
+};
+
+export type AccessBinding = ReturnType<
+    typeof getCollectionBinding | typeof getWorkbookBinding | typeof getSharedEntryBinding
+>;
 
 export type AuthArgs = CommonAuthArgs & {
     role?: PlatformRole;

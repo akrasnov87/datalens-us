@@ -8,6 +8,7 @@ import {updateColorPalette} from '../../services/color-palettes';
 
 import {colorPaletteModel} from './response-models';
 import type {ColorPaletteResponseModel} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -58,7 +59,10 @@ export const updateColorPaletteController: AppRouteHandler = async (
             colorPalette: result,
         });
 
-        res.status(200).send(colorPaletteModel.format(result));
+
+        const formattedResponse = colorPaletteModel.format(result);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        res.status(code).send(response);
     } catch (error) {
         logEvent({
             type: LogEventType.UpdateColorPaletteFail,

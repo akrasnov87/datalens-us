@@ -7,6 +7,7 @@ import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {deleteCollections} from '../../services/new/collection';
 
 import {collectionModelArrayInObject} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -39,7 +40,11 @@ export const deleteCollectionController: AppRouteHandler = async (req, res) => {
             collections: result.collections,
         });
 
-        res.status(200).send(await collectionModelArrayInObject.format(result));
+        const formattedResponse = await collectionModelArrayInObject.format(result);
+
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+
+        res.status(code).send(response);
     } catch (error) {
         logEvent({
             type: LogEventType.DeleteCollectionFail,

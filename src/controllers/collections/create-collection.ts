@@ -12,7 +12,7 @@ import {collectionInstanceWithOperation} from './response-models';
 
 const requestSchema = {
     body: z.object({
-        title: z.string(),
+        title: zc.entityName(),
         description: z.string().optional(),
         parentId: zc.encodedId().nullable(),
         project: z.string().optional()

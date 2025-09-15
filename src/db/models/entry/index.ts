@@ -1,7 +1,7 @@
 import {AppError} from '@gravity-ui/nodekit';
 import {transaction} from 'objection';
 
-import {Model, getId} from '../..';
+import {Model} from '../..';
 import {BiTrackingLogs, RETURN_COLUMNS, US_ERRORS} from '../../../const';
 import * as MT from '../../../types/models';
 import Utils, {makeUserId} from '../../../utils';
@@ -152,6 +152,8 @@ class Entry extends Model {
             recursion,
             requestedBy,
             data,
+            description,
+            annotation,
             links,
             permissionsMode,
             includePermissionsInfo,
@@ -190,6 +192,7 @@ class Entry extends Model {
         });
 
         const registry = ctx.get('registry');
+        const {getId} = registry.getDbInstance();
 
         const {DLS} = registry.common.classes.get();
 
@@ -212,6 +215,8 @@ class Entry extends Model {
             recursion,
             createdBy,
             data,
+            description,
+            annotation,
             unversionedData,
             permissionsMode,
             initialPermissions,
@@ -470,6 +475,10 @@ class Entry extends Model {
                 entryId,
                 meta,
                 data,
+                ...(typeof description === 'string' ? {annotation: {description}} : {}),
+                ...(typeof annotation?.description === 'string'
+                    ? {annotation: {description: annotation.description}}
+                    : {}),
                 links: syncedLinks,
                 createdBy: createdBy,
                 updatedBy: createdBy,
@@ -552,6 +561,8 @@ class Entry extends Model {
             recursion,
             requestedBy,
             data,
+            description,
+            annotation,
             unversionedData,
             links,
             permissionsMode,
@@ -599,6 +610,8 @@ class Entry extends Model {
                     mode,
                     recursion,
                     data,
+                    description,
+                    annotation,
                     unversionedData,
                     links,
                     permissionsMode,

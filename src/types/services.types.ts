@@ -10,7 +10,6 @@ import {
     RevisionColumns,
     SyncLinks,
     TemplateData,
-    WorkbookColumns,
 } from './models';
 
 export interface ServiceResponse<T extends any = any> {
@@ -28,11 +27,14 @@ export interface PrivateGetEntriesByKey extends StdServiceParams {
 
 export interface CreateEntry extends StdServiceParams {
     name?: string;
-    workbookId?: WorkbookColumns['workbookId'];
+    workbookId?: NonNullable<EntryColumns['workbookId']>;
+    collectionId?: NonNullable<EntryColumns['collectionId']>;
     scope: EntryScope;
     type?: EntryColumns['type'];
     key?: EntryColumns['key'];
     meta?: RevisionColumns['meta'];
+    description?: string;
+    annotation?: {description: string};
     hidden?: EntryColumns['hidden'];
     mirrored?: EntryColumns['mirrored'];
     mode?: 'save' | 'publish';
@@ -96,44 +98,23 @@ export interface DeleteAllDraftsByEntry extends StdServiceParams {
     entryId: string;
 }
 
-export interface GetFavorite extends StdServiceParams {
-    orderBy?: EntriesOrderByFilter;
-    filters?: EntriesFilters;
-    createdBy?: string;
-    page?: number;
-    pageSize?: number;
-    scope?: string | string[];
-    includePermissionsInfo?: boolean;
-    ignoreWorkbookEntries?: boolean;
-}
-export interface AddFavorite extends StdServiceParams {
-    entryId: string;
-}
-export interface RenameFavorite extends StdServiceParams {
-    entryId: string;
-    name: string | null;
-}
-export interface DeleteFavorite extends StdServiceParams {
-    entryId: string;
-}
-
 export interface VerifyLockExistence extends StdServiceParams {
     entryId: string;
 }
 export interface LockEntry extends StdServiceParams {
     entryId: string;
-    duration: string;
+    duration?: number;
     force?: boolean;
 }
 export interface UnlockEntry extends StdServiceParams {
     entryId: string;
-    lockToken: string;
+    lockToken?: string;
     force?: boolean;
 }
 export interface ExtendLock extends StdServiceParams {
     entryId: string;
-    duration: string;
-    lockToken: string;
+    duration?: number;
+    lockToken?: string;
     force?: boolean;
 }
 

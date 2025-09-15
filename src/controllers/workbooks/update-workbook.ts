@@ -8,6 +8,7 @@ import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {updateWorkbook} from '../../services/new/workbook';
 
 import {WorkbookResponseModel, workbookModel} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -15,7 +16,7 @@ const requestSchema = {
     }),
     body: z
         .object({
-            title: z.string().optional(),
+            title: zc.entityName().optional(),
             description: z.string().optional(),
             project: z.string().optional(),
             status: z.nativeEnum(WorkbookStatus).optional(),
@@ -75,7 +76,9 @@ export const updateWorkbookController: AppRouteHandler = async (
             workbook: result,
         });
 
-        res.status(200).send(workbookModel.format(result));
+        const formattedResponse = workbookModel.format(result);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        res.status(code).send(response);
     } catch (error) {
         logEvent({
             type: LogEventType.UpdateWorkbookFail,

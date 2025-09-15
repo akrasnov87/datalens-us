@@ -8,6 +8,7 @@ import {createColorPalette} from '../../services/color-palettes/create-color-pal
 
 import {colorPaletteModel} from './response-models';
 import type {ColorPaletteResponseModel} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     body: z.object({
@@ -54,7 +55,10 @@ export const createColorPaletteController: AppRouteHandler = async (
             colorPalette: result,
         });
 
-        res.status(200).send(colorPaletteModel.format(result));
+        const formattedResponse = colorPaletteModel.format(result);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        res.status(code).send(response);
+        
     } catch (error) {
         logEvent({
             type: LogEventType.CreateColorPaletteFail,

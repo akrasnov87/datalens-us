@@ -10,6 +10,7 @@ import {
     WorkbookModelWithOperationResponseModel,
     workbookModelWithOperation,
 } from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -17,7 +18,7 @@ const requestSchema = {
     }),
     body: z.object({
         collectionId: zc.encodedId().optional().nullable(),
-        title: z.string(),
+        title: zc.entityName(),
     }),
 };
 
@@ -55,8 +56,11 @@ export const copyWorkbookController: AppRouteHandler = async (
             reqParams: params,
             workbook: result.workbook,
         });
+        
+        const formattedResponse = workbookModelWithOperation.format(result.workbook, result.operation);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        res.status(code).send(response);
 
-        res.status(200).send(workbookModelWithOperation.format(result.workbook, result.operation));
     } catch (error) {
         logEvent({
             type: LogEventType.CopyWorkbookFail,

@@ -6,6 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {setWorkbookIsTemplate} from '../../services/new/workbook';
 
 import {WorkbookIdWithTemplateModel, workbookIdWithTemplateModel} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -34,7 +35,9 @@ export const setWorkbookIsTemplateController: AppRouteHandler = async (
         },
     );
 
-    res.status(200).send(workbookIdWithTemplateModel.format(result));
+    const formattedResponse = workbookIdWithTemplateModel.format(result);
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+    res.status(code).send(response);
 };
 
 setWorkbookIsTemplateController.api = {

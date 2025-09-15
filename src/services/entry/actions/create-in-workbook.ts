@@ -3,12 +3,13 @@ import {transaction} from 'objection';
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
 import {
     AJV_PATTERN_KEYS_NOT_OBJECT,
+    ANNOTATION_DESCRIPTION_SCHEMA,
+    ANNOTATION_SCHEMA,
     BiTrackingLogs,
     DEFAULT_QUERY_TIMEOUT,
     ModeValues,
     RETURN_COLUMNS,
 } from '../../../const';
-import {getId} from '../../../db';
 import Entry from '../../../db/models/entry';
 import Revision from '../../../db/models/revision';
 import {WorkbookPermission} from '../../../entities/workbook';
@@ -73,6 +74,8 @@ export const validateCreateEntryInWorkbook = makeSchemaValidator({
         includePermissionsInfo: {
             type: 'boolean',
         },
+        description: ANNOTATION_DESCRIPTION_SCHEMA,
+        annotation: ANNOTATION_SCHEMA,
     },
 });
 
@@ -88,6 +91,8 @@ export type CreateEntryInWorkbookData = {
     unversionedData?: EntryColumns['unversionedData'];
     meta?: RevisionColumns['meta'];
     data?: RevisionColumns['data'];
+    description?: string;
+    annotation?: {description: string};
     includePermissionsInfo?: boolean;
 };
 
@@ -105,6 +110,8 @@ export async function createEntryInWorkbook(
         unversionedData,
         meta,
         data,
+        description,
+        annotation,
         includePermissionsInfo,
     }: CreateEntryInWorkbookData,
 ) {
@@ -122,9 +129,13 @@ export async function createEntryInWorkbook(
         unversionedData,
         meta,
         data,
+        description,
+        annotation,
         includePermissionsInfo,
     });
 
+    const registry = ctx.get('registry');
+    const {getId} = registry.getDbInstance();
     const {tenantId, isPrivateRoute, user} = ctx.get('info');
     const createdBy = makeUserId(user.userId);
 
@@ -183,6 +194,8 @@ export async function createEntryInWorkbook(
             links: syncedLinks,
             createdBy: createdBy,
             updatedBy: createdBy,
+            ...(description ? {annotation: {description}} : {}),
+            ...(annotation ? {annotation} : {}),
         });
 
         return await Entry.query(trx)

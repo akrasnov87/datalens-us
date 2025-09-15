@@ -7,6 +7,7 @@ import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {deleteWorkbooks} from '../../services/new/workbook';
 
 import {WorkbookResponseModel, workbookModel} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -44,7 +45,9 @@ export const deleteWorkbookController: AppRouteHandler = async (
             workbooks: result.workbooks,
         });
 
-        res.status(200).send(workbookModel.format(result.workbooks[0]));
+        const formattedResponse = workbookModel.format(result.workbooks[0]);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        res.status(code).send(response);
     } catch (error) {
         logEvent({
             type: LogEventType.DeleteWorkbookFail,

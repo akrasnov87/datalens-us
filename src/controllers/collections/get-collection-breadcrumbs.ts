@@ -6,6 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {getCollectionBreadcrumbs} from '../../services/new/collection';
 
 import {collectionInstanceArray} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -29,7 +30,11 @@ export const getCollectionBreadcrumbsController: AppRouteHandler = async (req, r
         },
     );
 
-    res.status(200).send(await collectionInstanceArray.format(result));
+    const formattedResponse = await collectionInstanceArray.format(result);
+
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+
+    res.status(code).send(response);
 };
 
 getCollectionBreadcrumbsController.api = {

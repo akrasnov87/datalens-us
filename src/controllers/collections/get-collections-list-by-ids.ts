@@ -6,6 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {getCollectionsListByIds} from '../../services/new/collection';
 
 import {collectionModelArray} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     body: z.object({
@@ -25,9 +26,11 @@ export const getCollectionsListByIdsController: AppRouteHandler = async (req, re
         },
     );
 
-    res.status(200).send(
-        await collectionModelArray.format(result.map((instance) => instance.model)),
-    );
+    const formattedResponse = await collectionModelArray.format(result.map((instance) => instance.model));
+
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+
+    res.status(code).send(response);
 };
 
 getCollectionsListByIdsController.api = {

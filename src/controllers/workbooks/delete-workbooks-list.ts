@@ -10,6 +10,7 @@ import {
     WorkbookModelArrayInObjectResponseModel,
     workbookModelArrayInObject,
 } from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     body: z.object({
@@ -47,7 +48,9 @@ export const deleteWorkbooksListController: AppRouteHandler = async (
             workbooks: result.workbooks,
         });
 
-        res.status(200).send(await workbookModelArrayInObject.format(result));
+        const formattedResponse = await workbookModelArrayInObject.format(result);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        res.status(code).send(response);
     } catch (error) {
         logEvent({
             type: LogEventType.DeleteWorkbooksListFail,

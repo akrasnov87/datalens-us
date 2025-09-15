@@ -6,6 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {getCollectionContent as getCollectionContentService} from '../../services/new/collection';
 
 import {collectionContent} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     query: z.object({
@@ -57,7 +58,11 @@ export const getCollectionContentController: AppRouteHandler = async (req, res) 
         },
     );
 
-    res.status(200).send(await collectionContent.format(result));
+    const formattedResponse = await collectionContent.format(result);
+
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+
+    res.status(code).send(response);
 };
 
 getCollectionContentController.api = {

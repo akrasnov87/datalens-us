@@ -6,6 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {getWorkbooksList} from '../../services/new/workbook';
 
 import {WorkbookInstancePage, workbookInstancePage} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     query: z.object({
@@ -42,7 +43,9 @@ export const getWorkbooksListController: AppRouteHandler = async (
         },
     );
 
-    res.status(200).send(await workbookInstancePage.format(result));
+    const formattedResponse = await workbookInstancePage.format(result);
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+    res.status(code).send(response);
 };
 
 getWorkbooksListController.api = {

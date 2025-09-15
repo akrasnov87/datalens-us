@@ -1,4 +1,4 @@
-import {AppRouteHandler, Request, Response} from '@gravity-ui/expresskit';
+import {AppRouteHandler} from '@gravity-ui/expresskit';
 
 import {ApiTag} from '../../components/api-docs';
 import {makeReqParser, z, zc} from '../../components/zod';
@@ -7,7 +7,7 @@ import {EntryScope} from '../../db/models/new/entry/types';
 import {getJoinedEntriesRevisionsByIds} from '../../services/new/entry';
 
 import {entriesDataModel} from './response-models';
-import type {GetEntriesDataResponseBody} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     body: z.object({
@@ -18,14 +18,9 @@ const requestSchema = {
     }),
 };
 
-export type GetEntriesDataRequestBody = z.infer<typeof requestSchema.body>;
-
 const parseReq = makeReqParser(requestSchema);
 
-export const getEntriesDataController: AppRouteHandler = async (
-    req: Request,
-    res: Response<GetEntriesDataResponseBody>,
-) => {
+export const getEntriesDataController: AppRouteHandler = async (req, res) => {
     const {body} = await parseReq(req);
 
     const result = await getJoinedEntriesRevisionsByIds(
@@ -41,13 +36,15 @@ export const getEntriesDataController: AppRouteHandler = async (
         fields: body.fields,
     });
 
-    const response = entriesDataModel.format({
+    const formattedResponse = entriesDataModel.format({
         result,
         entryIds: body.entryIds,
         fields: body.fields,
     });
 
-    res.status(200).send(response);
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+
+    res.status(code).send(response);
 };
 
 getEntriesDataController.api = {

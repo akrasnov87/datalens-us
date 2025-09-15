@@ -6,6 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {getWorkbooksListByIds} from '../../services/new/workbook';
 
 import {WorkbookModelArray, workbookModelArray} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     body: z.object({
@@ -28,7 +29,9 @@ export const getWorkbooksListByIdsController: AppRouteHandler = async (
         },
     );
 
-    res.status(200).send(await workbookModelArray.format(result.map((instance) => instance.model)));
+    const formattedResponse = await workbookModelArray.format(result.map((instance) => instance.model));
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+    res.status(code).send(response);
 };
 
 getWorkbooksListByIdsController.api = {

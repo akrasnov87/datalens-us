@@ -5,10 +5,16 @@ import {CONTENT_TYPE_JSON} from '../../const';
 import {getRootCollectionPermissions} from '../../services/new/collection';
 
 import {rootPermissions} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 export const getRootPermissionsController: AppRouteHandler = async (req, res) => {
     const result = await getRootCollectionPermissions({ctx: req.ctx});
-    res.status(200).send(rootPermissions.format(result));
+
+    const formattedResponse = rootPermissions.format(result);
+
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+
+    res.status(code).send(response);
 };
 
 getRootPermissionsController.api = {

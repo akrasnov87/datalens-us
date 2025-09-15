@@ -7,6 +7,7 @@ import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {moveWorkbook} from '../../services/new/workbook';
 
 import {WorkbookResponseModel, workbookModel} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -14,7 +15,7 @@ const requestSchema = {
     }),
     body: z.object({
         collectionId: zc.encodedId().nullable(),
-        title: z.string().optional(),
+        title: zc.entityName().optional(),
     }),
 };
 
@@ -54,7 +55,10 @@ export const moveWorkbookController: AppRouteHandler = async (
             workbook: result,
         });
 
-        res.status(200).send(workbookModel.format(result));
+        const formattedResponse = workbookModel.format(result);
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+        res.status(code).send(response);
+
     } catch (error) {
         logEvent({
             type: LogEventType.MoveWorkbookFail,

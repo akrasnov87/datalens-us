@@ -7,6 +7,7 @@ import {LogEventType} from '../../registry/common/utils/log-event/types';
 import {moveCollection} from '../../services/new/collection';
 
 import {collectionModel} from './response-models';
+import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -14,7 +15,7 @@ const requestSchema = {
     }),
     body: z.object({
         parentId: zc.encodedId().nullable(),
-        title: z.string().optional(),
+        title: zc.entityName().optional(),
     }),
 };
 
@@ -48,7 +49,11 @@ export const moveCollectionController: AppRouteHandler = async (req, res) => {
             collection: result,
         });
 
-        res.status(200).send(collectionModel.format(result));
+        const formattedResponse = collectionModel.format(result);
+
+        const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
+
+        res.status(code).send(response);
     } catch (error) {
         logEvent({
             type: LogEventType.MoveCollectionFail,

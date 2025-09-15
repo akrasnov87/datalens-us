@@ -93,7 +93,8 @@ export const getWorkbookContentController: AppRouteHandler = async (
         }
     }
 
-    res.status(200).send(response);
+    res.status(200).send((await preparePermissionsResponseAsync({data: response}, req)).response);
+
 };
 
 getWorkbookContentController.api = {
