@@ -1,5 +1,6 @@
 import {Request, Response} from '@gravity-ui/expresskit';
 
+import {Feature, isEnabledFeature} from '../../components/features';
 import {prepareResponseAsync} from '../../components/response-presenter';
 import {US_MASTER_TOKEN_HEADER} from '../../const';
 import {EntryScope} from '../../db/models/new/entry/types';
@@ -31,11 +32,14 @@ import {createEntryAltController} from './create-entry-alt';
 import {deleteEntryController} from './delete-entry';
 import {getEntriesController} from './get-entries';
 import {getEntriesDataController} from './get-entries-data';
+import {getEntriesMetaController} from './get-entries-meta';
+import {getEntryController as getEntryV2Controller} from './get-entry';
 import {renameEntryController} from './rename-entry';
 import {updateEntryController} from './update-entry';
 
 export default {
     getEntriesDataController,
+    getEntriesMetaController,
     deleteEntryController,
     copyEntryToWorkbookController,
     copyEntriesToWorkbookController,
@@ -46,25 +50,30 @@ export default {
     getEntriesController,
 
     getEntry: async (req: Request, res: Response) => {
-        const {query, params} = req;
+        if (isEnabledFeature(req.ctx, Feature.GetEntryV2Enabled)) {
+            await getEntryV2Controller(req, res);
+        } else {
+            const {query, params} = req;
 
-        const result = await getEntry(
-            {ctx: req.ctx},
-            {
-                entryId: params.entryId,
-                branch: query.branch as GetEntryArgs['branch'],
-                revId: query.revId as GetEntryArgs['revId'],
-                includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
-                includeLinks: isTrueArg(query.includeLinks),
-                includeServicePlan: isTrueArg(query.includeServicePlan),
-                includeTenantFeatures: isTrueArg(query.includeTenantFeatures),
-            },
-        );
-        const formattedResponse = await formatGetEntryResponse(req.ctx, result);
+            const result = await getEntry(
+                {ctx: req.ctx},
+                {
+                    entryId: params.entryId,
+                    branch: query.branch as GetEntryArgs['branch'],
+                    revId: query.revId as GetEntryArgs['revId'],
+                    includePermissionsInfo: isTrueArg(query.includePermissionsInfo),
+                    includeLinks: isTrueArg(query.includeLinks),
+                    includeServicePlan: isTrueArg(query.includeServicePlan),
+                    includeTenantFeatures: isTrueArg(query.includeTenantFeatures),
+                    includeTenantSettings: isTrueArg(query.includeTenantSettings),
+                },
+            );
+            const formattedResponse = await formatGetEntryResponse(req.ctx, result);
 
-        const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
+            const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
 
-        res.status(code).send(response);
+            res.status(code).send(response);
+        }
     },
 
     getEntryMeta: async (req: Request, res: Response) => {

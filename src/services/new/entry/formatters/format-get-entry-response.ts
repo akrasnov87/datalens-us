@@ -11,6 +11,8 @@ export const formatGetEntryResponse = async (ctx: CTX, result: GetEntryResult) =
         includeServicePlan,
         includeTenantFeatures,
         tenantFeatures,
+        includeTenantSettings,
+        tenantSettings,
     } = result;
 
     const {privatePermissions, onlyPublic} = ctx.get('info');
@@ -30,7 +32,7 @@ export const formatGetEntryResponse = async (ctx: CTX, result: GetEntryResult) =
 
     const {getEntryAddFormattedFieldsHook} = registry.common.functions.get();
 
-    const additionalFields = await getEntryAddFormattedFieldsHook({ctx, result});
+    const additionalFields = getEntryAddFormattedFieldsHook({ctx});
 
     return Object.assign(
         {
@@ -59,6 +61,7 @@ export const formatGetEntryResponse = async (ctx: CTX, result: GetEntryResult) =
             permissions: includePermissionsInfo ? permissions : undefined,
             servicePlan: includeServicePlan ? servicePlan : undefined,
             tenantFeatures: includeTenantFeatures ? tenantFeatures : undefined,
+            tenantSettings: includeTenantSettings ? tenantSettings : undefined,
             ...additionalFields,
         },
         process.env.NODE_RPC_URL ? {rpc: rpc} : null,
