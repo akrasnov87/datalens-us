@@ -17,8 +17,11 @@ else
   echo '{"level":"INFO","msg":"Skip auth demo data"}'
 fi
 
-echo '{"level":"INFO","msg":"Start migration"}'
-npm run db:migrate
-echo '{"level":"INFO","msg":"Finish migration"}'
-
+if [ "${USE_MIGRATION}" = "1" ]; then
+  echo '{"level":"INFO","msg":"Start migration"}'
+  npm run db:migrate
+  echo '{"level":"INFO","msg":"Finish migration"}'
+else
+  echo '{"level":"INFO","msg":"Skip migration"}'
+fi
 exec 'node' 'dist/server'
