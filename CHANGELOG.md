@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Created:
 
-* добавлена возможность отключения миграции `USE_MIGRATION`;
+* добавлена возможность отключения миграции при помощи переменной `USE_MIGRATION`;
 
 Fixed:
 
