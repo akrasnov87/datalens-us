@@ -17,7 +17,7 @@ else
   echo '{"level":"INFO","msg":"Skip auth demo data"}'
 fi
 
-if [ "${SKIP_MIGRATION}" = 1 ]; then
+if [ "${SKIP_MIGRATION}" = "1" ]; then
   echo '{"level":"INFO","msg":"Skip migration"}'
 else
   echo '{"level":"INFO","msg":"Start migration"}'
