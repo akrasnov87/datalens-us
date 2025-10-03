@@ -6,7 +6,7 @@ import {CONTENT_TYPE_JSON} from '../../../const';
 import {getEntry} from '../../../services/new/entry';
 
 import {getEntryResult} from './response-model';
-import { prepareResponseAsync } from '../../../components/response-presenter';
+import { preparePermissionsResponseAsync } from '../../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
@@ -45,7 +45,7 @@ export const getEntryController = async (req: Request, res: Response) => {
     );
 
     const formattedResponse = getEntryResult.format(req.ctx, result);
-    const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
+    const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
 
     res.status(code).send(response);
 };
