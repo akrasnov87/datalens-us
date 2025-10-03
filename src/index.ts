@@ -11,9 +11,9 @@ import {
     decodeId,
     dlContext,
     finalRequestHandler,
+    resolveIsolationIds,
     resolveSpecialTokens,
     resolveTenantId,
-    resolveWorkbookId,
     setCiEnv,
     waitDatabase,
 } from './components/middlewares';
@@ -53,7 +53,7 @@ afterAuth.push(decodeId);
 afterAuth.push(
     dlContext,
     resolveTenantId,
-    resolveWorkbookId,
+    resolveIsolationIds,
     waitDatabase,
     resolveSpecialTokens,
     rpcAuthorization,

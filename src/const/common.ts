@@ -20,11 +20,13 @@ export const ALL_COLUMNS = [
     'revId',
     'data',
     'meta',
+    'annotation',
     'innerMeta',
     'hidden',
     'mirrored',
     'links',
     'workbookId',
+    'collectionId',
 ];
 
 export const RETURN_COLUMNS = [
@@ -43,10 +45,12 @@ export const RETURN_COLUMNS = [
     'entries.tenantId',
     'data',
     'meta',
+    'annotation',
     'hidden',
     'mirrored',
     'public',
     'workbookId',
+    'collectionId',
 ];
 
 export const RETURN_META_COLUMNS = [
@@ -59,6 +63,7 @@ export const RETURN_META_COLUMNS = [
     'publishedId',
     'tenantId',
     'workbookId',
+    'collectionId',
 ];
 
 export const RETURN_RELATION_COLUMNS = [
@@ -67,9 +72,11 @@ export const RETURN_RELATION_COLUMNS = [
     'type',
     'display_key as key',
     'meta',
+    'annotation',
     'tenantId',
     'public',
     'workbookId',
+    'collectionId',
 ];
 
 export const RETURN_NAVIGATION_COLUMNS = [
@@ -82,10 +89,12 @@ export const RETURN_NAVIGATION_COLUMNS = [
     'entries.createdAt',
     'revisions.updatedBy',
     'revisions.updatedAt',
+    'revisions.annotation',
     'savedId',
     'publishedId',
     'hidden',
     'entries.workbookId',
+    'entries.collectionId',
 ];
 
 export const RETURN_FAVORITES_COLUMNS = [
@@ -101,6 +110,7 @@ export const RETURN_FAVORITES_COLUMNS = [
     'workbooks.title as workbookTitle',
     'hidden',
     'entries.workbookId',
+    'entries.collectionId',
 ];
 
 export const RETURN_WORKBOOK_COLUMNS = [
@@ -143,6 +153,7 @@ export const ENCODED_ID_LENGTH = 13;
 export const MAX_META_OBJECT_SYMBOLS = 2000;
 export const MAX_UNVERSIONED_DATA_OBJECT_SYMBOLS = 5000;
 export const MAX_BRANDING_OBJECT_SYMBOLS = 15000;
+export const MAX_STATE_DATA_OBJECT_SYMBOLS = 50000;
 
 export const AJV_PATTERN_KEYS_NOT_OBJECT = {
     '.*': {
@@ -159,6 +170,7 @@ export const DL_AUTH_HEADER_KEY = 'bearer';
 export const US_MASTER_TOKEN_HEADER = 'x-us-master-token';
 export const DL_COMPONENT_HEADER = 'x-dl-component';
 export const DL_WORKBOOK_ID_HEADER = 'x-dl-workbookid';
+export const DL_DATASET_ID_HEADER = 'x-dl-datasetid';
 export const DL_SERVICE_USER_ACCESS_TOKEN = 'x-dl-service-user-access-token';
 
 export const COMPARISON_OPERATORS: {[key: string]: string} = {
@@ -246,3 +258,19 @@ export const ALLOWED_ENTRIES_SCOPE = [
 ] as const;
 
 export const CONTENT_TYPE_JSON = 'application/json';
+
+export const ANNOTATION_DESCRIPTION_MAX_LENGTH = 36000;
+
+export const ANNOTATION_DESCRIPTION_SCHEMA = {
+    type: 'string',
+    maxLength: ANNOTATION_DESCRIPTION_MAX_LENGTH,
+};
+
+export const ANNOTATION_SCHEMA = {
+    type: ['object'],
+    required: ['description'],
+    additionalProperties: false,
+    properties: {
+        description: ANNOTATION_DESCRIPTION_SCHEMA,
+    },
+};

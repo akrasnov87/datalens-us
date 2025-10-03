@@ -1,3 +1,4 @@
+import type {Permissions} from '../../../entities/collection/types';
 import {testTenantId} from '../auth';
 
 export const COLLECTIONS_DEFAULT_FIELDS = {
@@ -13,17 +14,19 @@ export const COLLECTIONS_DEFAULT_FIELDS = {
     tenantId: testTenantId,
 };
 
-export const COLLECTIONS_DEFAULT_PERMISSIONS = {
+export const COLLECTIONS_DEFAULT_PERMISSIONS: Permissions = {
     listAccessBindings: false,
     updateAccessBindings: false,
     createCollection: false,
     createWorkbook: false,
+    createSharedEntry: false,
     limitedView: false,
     view: false,
     update: false,
     copy: false,
     move: false,
     delete: false,
+    hidden: false
 };
 
 export const GET_COLLECTION_CONTENT_DEFAULT_FIELDS = {

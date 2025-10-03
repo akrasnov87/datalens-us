@@ -3,17 +3,18 @@ import {Request, Response} from '@gravity-ui/expresskit';
 import {ApiTag} from '../../../components/api-docs';
 import {makeReqParser, z, zc} from '../../../components/zod';
 import {CONTENT_TYPE_JSON} from '../../../const';
-import {getEntryV2} from '../../../services/new/entry';
+import {getEntry} from '../../../services/new/entry';
 
 import {getEntryResult} from './response-model';
+import { prepareResponseAsync } from '../../../components/response-presenter';
 
 const requestSchema = {
     params: z.object({
-        entryId: z.string(),
+        entryId: zc.encodedId(),
     }),
     query: z.object({
         branch: z.enum(['saved', 'published']).optional(),
-        revId: z.string().optional(),
+        revId: zc.encodedId().optional(),
         includePermissionsInfo: zc.stringBoolean().optional(),
         includeLinks: zc.stringBoolean().optional(),
         includeServicePlan: zc.stringBoolean().optional(),
@@ -28,7 +29,7 @@ const parseReq = makeReqParser(requestSchema);
 export const getEntryController = async (req: Request, res: Response) => {
     const {query, params} = await parseReq(req);
 
-    const result = await getEntryV2(
+    const result = await getEntry(
         {ctx: req.ctx},
         {
             entryId: params.entryId,
@@ -43,7 +44,10 @@ export const getEntryController = async (req: Request, res: Response) => {
         },
     );
 
-    res.status(200).send(getEntryResult.format(req.ctx, result));
+    const formattedResponse = getEntryResult.format(req.ctx, result);
+    const {code, response} = await prepareResponseAsync({data: formattedResponse}, req);
+
+    res.status(code).send(response);
 };
 
 getEntryController.api = {
@@ -64,3 +68,5 @@ getEntryController.api = {
         },
     },
 };
+
+getEntryController.manualDecodeId = true;

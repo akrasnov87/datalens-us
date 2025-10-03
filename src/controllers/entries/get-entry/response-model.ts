@@ -2,7 +2,8 @@ import {AppContext} from '@gravity-ui/nodekit';
 
 import {z} from '../../../components/zod';
 import {EntryScope} from '../../../db/models/new/entry/types';
-import {GetEntryV2Result} from '../../../services/new/entry';
+import {RevisionAnnotationFields} from '../../../db/models/new/revision';
+import {GetEntryResult} from '../../../services/new/entry';
 import Utils from '../../../utils';
 
 const schema = z
@@ -22,9 +23,15 @@ const schema = z
         tenantId: z.string().nullable(),
         data: z.record(z.string(), z.unknown()).nullable(),
         meta: z.record(z.string(), z.unknown()).nullable(),
+        annotation: z
+            .object({
+                [RevisionAnnotationFields.Description]: z.string().optional(),
+            })
+            .nullable(),
         hidden: z.boolean(),
         public: z.boolean(),
         workbookId: z.string().nullable(),
+        collectionId: z.string().nullable(),
         links: z.record(z.string(), z.unknown()).optional().nullable(),
         isFavorite: z.boolean().optional(),
         permissions: z
@@ -56,9 +63,11 @@ const format = (
         includeFavorite,
         includeTenantSettings,
         tenantSettings,
-    }: GetEntryV2Result,
+    }: GetEntryResult,
 ): z.infer<typeof schema> => {
     const {privatePermissions, onlyPublic} = ctx.get('info');
+    const _ctx: any = ctx;
+    const rpc = _ctx.appParams.rpc;
 
     let isHiddenUnversionedData = false;
     if (!privatePermissions.ownedScopes.includes(entry.scope)) {
@@ -75,7 +84,7 @@ const format = (
     const {getEntryAddFormattedFieldsHook} = registry.common.functions.get();
     const additionalFields = getEntryAddFormattedFieldsHook({ctx});
 
-    return {
+    return Object.assign({
         entryId: Utils.encodeId(entry.entryId),
         scope: entry.scope,
         type: entry.type,
@@ -91,9 +100,11 @@ const format = (
         tenantId: entry.tenantId,
         data: revision.data,
         meta: revision.meta,
+        annotation: revision.annotation,
         hidden: entry.hidden,
         public: entry.public,
         workbookId: entry.workbookId ? Utils.encodeId(entry.workbookId) : null,
+        collectionId: entry.collectionId ? Utils.encodeId(entry.collectionId) : null,
         links: includeLinks ? revision.links : undefined,
         isFavorite,
         permissions: includePermissionsInfo ? permissions : undefined,
@@ -101,7 +112,7 @@ const format = (
         tenantFeatures: includeTenantFeatures ? tenantFeatures : undefined,
         tenantSettings: includeTenantSettings ? tenantSettings : undefined,
         ...additionalFields,
-    };
+    }, process.env.NODE_RPC_URL ? {rpc: rpc} : null);
 };
 
 export const getEntryResult = {
