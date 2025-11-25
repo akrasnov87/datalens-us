@@ -6,7 +6,9 @@ import PG_ERRORS from 'pg-error-constants';
 import {Model} from '../..';
 import {CURRENT_TIMESTAMP} from '../../../const';
 import {US_ERRORS} from '../../../const/errors';
+import {SharedEntryPermission} from '../../../entities/shared-entry';
 import {WorkbookPermission} from '../../../entities/workbook';
+import {checkSharedEntryPermission} from '../../../services/new/entry/utils/check-collection-entry-permission/check-permission';
 import {getWorkbook} from '../../../services/new/workbook';
 import {checkWorkbookPermission} from '../../../services/new/workbook/utils/check-workbook-permission';
 import * as MT from '../../../types/models';
@@ -62,6 +64,49 @@ class Lock extends Model {
         ctx.log('CHECK_LOCK_ENTRY_SUCCESS');
 
         return result;
+    }
+
+    static async bulkCheckLock(items: MT.CheckLockConfig[], ctx: MT.CTX) {
+        const {user} = ctx.get('info');
+        ctx.log('BULK_CHECK_LOCK_ENTRY_REQUEST', {
+            itemsCount: items.length,
+            requestedBy: user,
+        });
+
+        const entryIds = items.map((item) => item.entryId);
+        const currentDate = moment().format();
+
+        const locks = await Lock.query(this.primary)
+            .select()
+            .whereIn('entryId', entryIds)
+            .where('expiryDate', '>', currentDate)
+            .timeout(Model.DEFAULT_QUERY_TIMEOUT);
+
+        const locksMap = new Map(locks.map((lock) => [lock.entryId, lock]));
+
+        const results = items.map((item) => {
+            const lock = locksMap.get(item.entryId);
+
+            if (lock && lock.lockToken !== item.lockToken) {
+                throw new AppError(US_ERRORS.ENTRY_IS_LOCKED, {
+                    code: US_ERRORS.ENTRY_IS_LOCKED,
+                    details: {
+                        entryId: Utils.encodeId(item.entryId),
+                        loginOrId: lock.login,
+                        expiryDate: lock.expiryDate,
+                    },
+                });
+            }
+
+            return {
+                entryId: item.entryId,
+                lockToken: item.lockToken,
+            };
+        });
+
+        ctx.log('BULK_CHECK_LOCK_ENTRY_SUCCESS');
+
+        return results;
     }
 
     static async verifyExistence(
@@ -377,18 +422,27 @@ class Lock extends Model {
                     {workbookId: entry.workbookId},
                 );
 
-                let workbookPermission: WorkbookPermission;
-                if (permission === 'edit') {
-                    workbookPermission = WorkbookPermission.Update;
-                } else {
-                    workbookPermission = WorkbookPermission.LimitedView;
-                }
-
                 await checkWorkbookPermission({
                     ctx,
                     workbook,
-                    permission: workbookPermission,
+                    permission:
+                        permission === 'read'
+                            ? WorkbookPermission.LimitedView
+                            : WorkbookPermission.Update,
                 });
+            }
+        } else if (entry.collectionId) {
+            if (accessServiceEnabled) {
+                await checkSharedEntryPermission(
+                    {ctx},
+                    {
+                        entry,
+                        permission:
+                            permission === 'read'
+                                ? SharedEntryPermission.View
+                                : SharedEntryPermission.Update,
+                    },
+                );
             }
         } else if (ctx.config.dlsEnabled) {
             const {DLS} = registry.common.classes.get();

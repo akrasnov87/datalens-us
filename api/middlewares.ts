@@ -5,7 +5,6 @@ export {
     finalRequestHandler,
     logError,
     checkReadOnlyMode,
-    resolveWorkbookId,
     rpcAuthorization,
     setCiEnv,
     authZitadel,

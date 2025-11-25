@@ -1,6 +1,5 @@
 /* eslint-disable import/order */
 import {nodekit} from './nodekit';
-import {registerAppPlugins} from './registry/register-app-plugins';
 import {AppMiddleware, AppRoutes, AuthPolicy, ExpressKit} from '@gravity-ui/expresskit';
 import {
     rpcAuthorization,
@@ -20,8 +19,9 @@ import {
 import {appAuth} from './components/auth/middlewares/app-auth';
 import {AppEnv} from './const';
 import {registry} from './registry';
+import {setRegistryToContext} from './registry/utils';
+import {setupRegistryPlugins} from './registry/setup';
 import {getRoutes} from './routes';
-import {setRegistryToContext} from './components/app-context';
 import {isEnabledFeature} from './components/features';
 import {
     getAdditionalHeaders,
@@ -32,7 +32,7 @@ import {
 import {objectKeys} from './utils/utility-types';
 
 setRegistryToContext(nodekit, registry);
-registerAppPlugins();
+setupRegistryPlugins();
 
 const beforeAuth: AppMiddleware[] = [];
 const afterAuth: AppMiddleware[] = [];

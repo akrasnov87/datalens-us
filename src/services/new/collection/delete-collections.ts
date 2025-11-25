@@ -3,9 +3,11 @@ import {transaction} from 'objection';
 
 import {US_ERRORS} from '../../../const';
 import {CollectionModel, CollectionModelColumn} from '../../../db/models/new/collection';
+import {EntryColumn, Entry as EntryModel} from '../../../db/models/new/entry';
 import {WorkbookModel, WorkbookModelColumn} from '../../../db/models/new/workbook';
 import {CollectionPermission} from '../../../entities/collection';
 import Utils from '../../../utils';
+import {deleteSharedEntries} from '../entry/delete-shared-entries';
 import {ServiceArgs} from '../types';
 import {getPrimary, getReplica} from '../utils';
 import {deleteWorkbooks} from '../workbook';
@@ -115,29 +117,69 @@ export const deleteCollections = async (
 
     const workbookIds = workbooksForDelete.map((workbook) => workbook.workbookId);
 
+    const sharedEntriesForDelete = await EntryModel.query(getReplica(trx))
+        .select(EntryColumn.EntryId)
+        .whereIn(EntryColumn.CollectionId, collectionsForDeleteIds)
+        .where({
+            [EntryColumn.IsDeleted]: false,
+        })
+        .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);
+
+    const sharedEntriesForDeleteIds = sharedEntriesForDelete.map((entry) => entry.entryId);
+
+    const deletePermissionsFunctions: (() => Promise<void>)[] = [];
+
     const result = await transaction(targetTrx, async (transactionTrx) => {
+        const deletedCollectionsEntitiesPromises = [];
+
         if (workbookIds.length) {
-            await deleteWorkbooks(
-                {ctx, trx: transactionTrx, skipCheckPermissions: true},
-                {
-                    workbookIds,
-                },
+            deletedCollectionsEntitiesPromises.push(
+                deleteWorkbooks(
+                    {ctx, trx: transactionTrx, skipCheckPermissions: true},
+                    {
+                        workbookIds,
+                        detachDeletePermissions: true,
+                    },
+                ),
             );
         }
 
+        if (sharedEntriesForDeleteIds.length) {
+            deletedCollectionsEntitiesPromises.push(
+                deleteSharedEntries(
+                    {ctx, trx: transactionTrx, skipCheckPermissions: true},
+                    {entryIds: sharedEntriesForDeleteIds, detachDeletePermissions: true},
+                ),
+            );
+        }
+
+        const deletedEntitiesArray = await Promise.all(deletedCollectionsEntitiesPromises);
+
+        deletedEntitiesArray.forEach(({deletePermissions}) => {
+            if (deletePermissions) {
+                deletePermissionsFunctions.push(deletePermissions);
+            }
+        });
+
         const deletedCollections = await markCollectionsAsDeleted(
-            {ctx, trx, skipCheckPermissions: true},
-            {collectionsMap},
+            {ctx, trx: transactionTrx, skipCheckPermissions: true},
+            {collectionsMap, detachDeletePermissions: true},
         );
+
+        if (deletedCollections.deletePermissions) {
+            deletePermissionsFunctions.push(deletedCollections.deletePermissions);
+        }
 
         return deletedCollections;
     });
 
+    await Promise.all(deletePermissionsFunctions.map((func) => func()));
+
     ctx.log('DELETE_COLLECTIONS_FINISH', {
-        collectionIds: await Utils.macrotasksMap(result, (collection) =>
+        collectionIds: await Utils.macrotasksMap(result.collections, (collection) =>
             Utils.encodeId(collection.collectionId),
         ),
     });
 
-    return {collections: result};
+    return {collections: result.collections};
 };

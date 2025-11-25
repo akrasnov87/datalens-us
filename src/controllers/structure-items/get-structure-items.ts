@@ -9,17 +9,27 @@ import {structureItemsModel} from './response-models/structure-items-model';
 import { preparePermissionsResponseAsync } from '../../components/response-presenter';
 
 const requestSchema = {
-    query: z.object({
-        collectionId: zc.encodedId().optional(),
-        includePermissionsInfo: zc.stringBoolean().optional(),
-        filterString: z.string().optional(),
-        page: zc.stringNumber({min: 0}).optional(),
-        pageSize: zc.stringNumber({min: 1, max: 200}).optional(),
-        orderField: z.enum(['title', 'createdAt', 'updatedAt']).optional(),
-        orderDirection: z.enum(['asc', 'desc']).optional(),
-        onlyMy: zc.stringBoolean().optional(),
-        mode: z.enum(['all', 'onlyCollections', 'onlyWorkbooks']).optional(),
-    }),
+    query: z
+        .object({
+            collectionId: zc.encodedId().optional(),
+            includePermissionsInfo: zc.stringBoolean().optional(),
+            filterString: z.string().optional(),
+            page: zc.stringNumber({min: 0}).optional(),
+            pageSize: zc.stringNumber({min: 1, max: 200}).optional(),
+            orderField: z.enum(['title', 'createdAt', 'updatedAt']).optional(),
+            orderDirection: z.enum(['asc', 'desc']).optional(),
+            onlyMy: zc.stringBoolean().optional(),
+            mode: z.enum(['all', 'onlyCollections', 'onlyWorkbooks', 'onlyEntries']).optional(),
+        })
+        .superRefine(({collectionId, mode}, ctx) => {
+            if (mode === 'onlyEntries' && !collectionId) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['mode', 'collectionId'],
+                    message: "'collectionId' is required if mode is 'onlyEntries'",
+                });
+            }
+        }),
 };
 
 const parseReq = makeReqParser(requestSchema);
