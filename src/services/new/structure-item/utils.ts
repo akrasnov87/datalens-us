@@ -53,7 +53,6 @@ export const getWorkbooksQuery = ({ctx, trx}: ServiceArgs, args: GetWorkbooksQue
             WorkbookModelColumn.Description,
             raw('null as ??', 'parentId'),
             WorkbookModelColumn.ProjectId,
-            raw('null as ??', CollectionModelColumn.ParentId),
             WorkbookModelColumn.TenantId,
             WorkbookModelColumn.CreatedBy,
             WorkbookModelColumn.CreatedAt,
