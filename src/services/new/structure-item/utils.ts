@@ -172,6 +172,7 @@ export const getEntryQuery = ({ctx, trx}: ServiceArgs, args: GetEntryQueryArgs) 
             raw('?? as ??', [EntryColumn.SortName, CollectionModelColumn.SortTitle]),
             raw('null as ??', CollectionModelColumn.Description),
             raw('null as ??', CollectionModelColumn.ParentId),
+            raw('null as ??', 'projectId'),
             EntryColumn.TenantId,
             EntryColumn.CreatedBy,
             EntryColumn.CreatedAt,

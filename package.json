@@ -93,7 +93,8 @@
     "decode": "node ./scripts/helpers.js -h=decode",
     "encode": "node ./scripts/helpers.js -h=encode",
     "clear:dist": "rm -rf ./dist/server",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build:image": "./build.sh"
   },
   "lint-staged": {
     "*.{js,ts}": [

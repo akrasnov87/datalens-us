@@ -31,6 +31,8 @@ docker build -t akrasnov87/datalens-us:0.356.0 .
 docker push akrasnov87/datalens-us:0.356.0
 </pre>
 
+Для сборки так же можно вызвать команду `npm run build:image` (предварительно проверить, что для файла `build.sh` есть права на выполнение `chmod +X build.sh`)
+
 ## Тестирование
 
 В корне проекта создать файл .env и добавить туда строки:
