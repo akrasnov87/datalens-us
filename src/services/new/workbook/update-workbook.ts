@@ -23,7 +23,7 @@ export interface UpdateWorkbookArgs {
 }
 
 export const updateWorkbook = async (
-    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, checkLicense, skipCheckPermissions = false}: ServiceArgs,
     args: UpdateWorkbookArgs,
 ) => {
     const {
@@ -51,6 +51,14 @@ export const updateWorkbook = async (
         superUser,
         isPrivateRoute,
     } = ctx.get('info');
+
+    const registry = ctx.get('registry');
+
+    const {fetchAndValidateLicenseOrFail} = registry.common.functions.get();
+
+    if (!isPrivateRoute && checkLicense) {
+        await fetchAndValidateLicenseOrFail({ctx});
+    }
 
     const targetTrx = getPrimary(trx);
 

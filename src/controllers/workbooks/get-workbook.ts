@@ -28,6 +28,7 @@ export const getWorkbookController: AppRouteHandler = async (
     const result = await getWorkbook(
         {
             ctx: req.ctx,
+            checkLicense: true,
         },
         {
             workbookId: params.workbookId,

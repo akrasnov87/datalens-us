@@ -20,7 +20,7 @@ export interface UpdateCollectionArgs {
 }
 
 export const updateCollection = async (
-    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, checkLicense, skipCheckPermissions = false}: ServiceArgs,
     args: UpdateCollectionArgs,
 ) => {
     const {collectionId, title: newTitle, project: newProject, description: newDescription} = args;
@@ -28,8 +28,17 @@ export const updateCollection = async (
     const {
         user: {userId},
         projectId,
-        superUser
+        superUser,
+        isPrivateRoute
     } = ctx.get('info');
+
+    const registry = ctx.get('registry');
+
+    const {fetchAndValidateLicenseOrFail} = registry.common.functions.get();
+
+    if (checkLicense && !isPrivateRoute) {
+        await fetchAndValidateLicenseOrFail({ctx});
+    }
 
     const {accessServiceEnabled} = ctx.config;
 

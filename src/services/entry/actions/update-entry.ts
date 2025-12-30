@@ -88,6 +88,12 @@ const validateUpdateEntry = makeSchemaValidator({
         },
         description: ANNOTATION_DESCRIPTION_SCHEMA,
         annotation: ANNOTATION_SCHEMA,
+        version: {
+            type: ['number', 'null'],
+        },
+        sourceVersion: {
+            type: ['number', 'null'],
+        },
     },
 });
 
@@ -110,6 +116,8 @@ type UpdateEntryData = {
     updateRevision?: boolean;
     checkServicePlan?: string;
     checkTenantFeatures?: string[];
+    version?: RevisionColumns['version'];
+    sourceVersion?: RevisionColumns['sourceVersion'];
 };
 
 export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
@@ -134,6 +142,8 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
         updateRevision = false,
         checkServicePlan,
         checkTenantFeatures,
+        version,
+        sourceVersion,
     } = updateData;
 
     ctx.log('UPDATE_ENTRY_REQUEST', {
@@ -150,6 +160,8 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
         updateRevision,
         checkServicePlan,
         checkTenantFeatures,
+        version,
+        sourceVersion,
     });
 
     const registry = ctx.get('registry');
@@ -170,14 +182,17 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
             await checkEntry(ctx, Entry.replica, {verifiableEntry: entry});
         }
 
-        const {checkTenant} = registry.common.functions.get();
+        const {checkTenant, fetchAndValidateLicenseOrFail} = registry.common.functions.get();
 
-        await checkTenant({
-            ctx,
-            tenantId: entry.tenantId,
-            servicePlan: checkServicePlan,
-            features: checkTenantFeatures,
-        });
+        await Promise.all([
+            checkTenant({
+                ctx,
+                tenantId: entry.tenantId,
+                servicePlan: checkServicePlan,
+                features: checkTenantFeatures,
+            }),
+            ...(!isPrivateRoute ? [fetchAndValidateLicenseOrFail({ctx})] : []),
+        ]);
 
         await Lock.checkLock({entryId, lockToken}, ctx);
     } else {
@@ -258,6 +273,8 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
                     links: syncedLinks,
                     updatedBy,
                     updatedAt: raw(CURRENT_TIMESTAMP),
+                    version,
+                    sourceVersion,
                 })
                 .where({
                     revId:
@@ -288,6 +305,8 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
                     links: syncedLinks,
                     createdBy: updatedBy,
                     updatedBy: updatedBy,
+                    version,
+                    sourceVersion,
                 })
                 .returning('*')
                 .timeout(DEFAULT_QUERY_TIMEOUT);

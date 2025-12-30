@@ -21,7 +21,7 @@ export interface DeleteCollectionArgs {
 }
 
 export const deleteCollections = async (
-    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, checkLicense, skipCheckPermissions = false}: ServiceArgs,
     args: DeleteCollectionArgs,
 ) => {
     const {collectionIds} = args;
@@ -29,7 +29,8 @@ export const deleteCollections = async (
     const {
         tenantId,
         projectId,
-        superUser
+        superUser,
+        isPrivateRoute
     } = ctx.get('info');
 
     ctx.log('DELETE_COLLECTIONS_START', {
@@ -37,6 +38,14 @@ export const deleteCollections = async (
     });
 
     const targetTrx = getPrimary(trx);
+
+    const registry = ctx.get('registry');
+
+    const {fetchAndValidateLicenseOrFail} = registry.common.functions.get();
+
+    if (checkLicense && !isPrivateRoute) {
+        await fetchAndValidateLicenseOrFail({ctx});
+    }
 
     const collectionsInstances = await getCollectionsListByIds(
         {ctx, trx: getReplica(trx), skipCheckPermissions: true},

@@ -128,15 +128,10 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
             write: true,
             requireCtxTenantId: true,
         }),
-        privateCreateEntryAlt: makeRoute({
-            route: 'POST /private/createEntry',
-            handler: entries.createEntryAltController,
-            authPolicy: AuthPolicy.disabled,
-            private: true,
-            write: true,
-            requireCtxTenantId: true,
+        checkEntriesExistence: makeRoute({
+            route: 'POST /v1/check-entries-existence',
+            handler: entries.checkEntriesExistenceController,
         }),
-
         updateEntry: makeRoute({
             route: 'POST /v1/entries/:entryId',
             handler: entries.updateEntryController,
@@ -217,6 +212,17 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
             handler: entries.getRelations,
             authPolicy: AuthPolicy.disabled,
             private: true,
+        }),
+        getEntriesRelations: makeRoute({
+            route: 'POST /v1/get-entries-relations',
+            handler: entries.getEntriesRelationsController,
+        }),
+        privateGetEntriesRelations: makeRoute({
+            route: 'POST /private/v1/get-entries-relations',
+            handler: entries.getEntriesRelationsController,
+            authPolicy: AuthPolicy.disabled,
+            private: true,
+            requireCtxTenantId: true,
         }),
 
         getEntriesData: makeRoute({

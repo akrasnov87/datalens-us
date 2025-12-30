@@ -1,12 +1,15 @@
 import {AppError} from '@gravity-ui/nodekit';
+import {raw} from 'objection';
 
 import {Feature, isEnabledFeature} from '../../../../components/features';
-import {US_ERRORS} from '../../../../const';
+import {CURRENT_TIMESTAMP, US_ERRORS} from '../../../../const';
 import OldEntry from '../../../../db/models/entry';
 import {CollectionModelColumn} from '../../../../db/models/new/collection';
 import {Entry, EntryColumn} from '../../../../db/models/new/entry';
+import {LicenseColumnRaw} from '../../../../db/models/new/license';
 import {TenantColumn} from '../../../../db/models/new/tenant';
 import {WorkbookModelColumn} from '../../../../db/models/new/workbook';
+import type {Permissions as SharedEntryPermissions} from '../../../../entities/shared-entry/types';
 import {DlsActions} from '../../../../types/models';
 import Utils, {withTimeout} from '../../../../utils';
 import {ServiceArgs} from '../../types';
@@ -19,6 +22,7 @@ import {
     selectedCollectionColumns,
     selectedEntryColumns,
     selectedFavoriteColumns,
+    selectedLicenseColumns,
     selectedRevisionColumns,
     selectedTenantColumns,
 } from './constants';
@@ -42,6 +46,7 @@ export type GetEntryResult = {
     revision: SelectedRevision;
     includePermissionsInfo?: boolean;
     permissions: EntryPermissions;
+    fullPermissions?: SharedEntryPermissions;
     includeLinks?: boolean;
     includeServicePlan?: boolean;
     servicePlan?: string;
@@ -84,10 +89,18 @@ export const getEntry = async (
     const registry = ctx.get('registry');
     const {DLS} = registry.common.classes.get();
 
-    const {isPrivateRoute, user, onlyPublic, onlyMirrored, tenantId} = ctx.get('info');
+    const {isPrivateRoute, user, onlyPublic, onlyMirrored, isAuditRoute, tenantId} =
+        ctx.get('info');
 
-    const {getEntryBeforeDbRequestHook, checkEmbedding, getEntryResolveUserLogin} =
-        registry.common.functions.get();
+    const isPrivateOrAuditRoute = isPrivateRoute || isAuditRoute;
+
+    const {
+        getEntryBeforeDbRequestHook,
+        checkEmbedding,
+        getEntryResolveUserLogin,
+        isLicenseRequired,
+        checkLicense,
+    } = registry.common.functions.get();
 
     let userLoginPromise: Promise<string | undefined> = Promise.resolve(undefined);
 
@@ -105,6 +118,13 @@ export const getEntry = async (
     const isEmbedding = checkEmbedding({ctx});
 
     const graphRelations = ['workbook', 'tenant(tenantModifier)', 'collection(collectionModifier)'];
+
+    const licenseRequired =
+        !isPrivateOrAuditRoute && !onlyPublic && !isEmbedding && isLicenseRequired({ctx});
+
+    if (licenseRequired) {
+        graphRelations.push('license(licenseModifier)');
+    }
 
     if (revId) {
         graphRelations.push('revisions(revisionsModifier)');
@@ -162,6 +182,20 @@ export const getEntry = async (
             favoriteModifier(builder) {
                 builder.select(selectedFavoriteColumns).where({login: userLogin});
             },
+
+            licenseModifier(builder) {
+                builder
+                    .select([
+                        ...selectedLicenseColumns,
+                        raw(`coalesce(?? > ${CURRENT_TIMESTAMP}, true)`, [
+                            LicenseColumnRaw.ExpiresAt,
+                        ]).as('is_active'),
+                    ])
+                    .where({
+                        tenantId,
+                        userId: user.userId,
+                    });
+            },
         })
         .first()
         .timeout(ENTRY_QUERY_TIMEOUT);
@@ -180,8 +214,12 @@ export const getEntry = async (
         });
     }
 
+    if (licenseRequired) {
+        checkLicense({ctx, license: entry.license});
+    }
+
     const checkWorkbookIsolationEnabled =
-        !isPrivateRoute &&
+        !isPrivateOrAuditRoute &&
         !onlyPublic &&
         !onlyMirrored &&
         !isEmbedding &&
@@ -197,6 +235,7 @@ export const getEntry = async (
 
     let dlsPermissions: any; // TODO: Update the type after refactoring DLS.checkPermission(...)
     let iamPermissions: Optional<EntryPermissions>;
+    let fullPermissions: Optional<SharedEntryPermissions>;
 
     if (entry.workbookId) {
         if (!entry.workbook || entry.workbook[WorkbookModelColumn.DeletedAt] !== null) {
@@ -212,7 +251,7 @@ export const getEntry = async (
         }
 
         const checkWorkbookEnabled =
-            !isPrivateRoute && !onlyPublic && !onlyMirrored && !isEmbedding;
+            !isPrivateOrAuditRoute && !onlyPublic && !onlyMirrored && !isEmbedding;
 
         if (checkWorkbookEnabled) {
             iamPermissions = await checkWorkbookEntry({
@@ -236,21 +275,21 @@ export const getEntry = async (
             });
         }
 
-        const checkPermissionEnabled =
-            !isPrivateRoute && !onlyPublic && !onlyMirrored && !isEmbedding;
+        const checkedResult = await checkCollectionEntry({
+            ctx,
+            trx,
+            entry,
+            includePermissionsInfo,
+            skipCheckPermissions:
+                isPrivateOrAuditRoute || onlyPublic || onlyMirrored || isEmbedding,
+        });
 
-        if (checkPermissionEnabled) {
-            iamPermissions = await checkCollectionEntry({
-                ctx,
-                trx,
-                entry,
-                includePermissionsInfo,
-            });
-        }
+        iamPermissions = checkedResult.permissions;
+        fullPermissions = checkedResult.fullPermissions;
     } else {
         const checkPermissionEnabled =
             !dlsBypassByKeyEnabled &&
-            !isPrivateRoute &&
+            !isPrivateOrAuditRoute &&
             ctx.config.dlsEnabled &&
             !onlyPublic &&
             !onlyMirrored;
@@ -272,7 +311,11 @@ export const getEntry = async (
 
     let servicePlan: string | undefined;
     if (includeServicePlan) {
-        servicePlan = getServicePlan(entry.tenant);
+        servicePlan = getServicePlan({
+            ctx,
+            billingStartedAt: entry.tenant.billingStartedAt,
+            billingEndedAt: entry.tenant.billingEndedAt,
+        });
     }
 
     let tenantFeatures: Record<string, unknown> | undefined;
@@ -295,6 +338,7 @@ export const getEntry = async (
 
             permissions = OldEntry.originatePermissions({
                 isPrivateRoute,
+                isAuditRoute,
                 shared: onlyPublic || isEmbedding,
                 permissions: dlsPermissions,
                 iamPermissions,
@@ -321,6 +365,7 @@ export const getEntry = async (
         revision,
         includePermissionsInfo,
         permissions,
+        fullPermissions,
         includeLinks,
         includeServicePlan,
         servicePlan,

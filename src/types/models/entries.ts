@@ -11,6 +11,7 @@ import {UsPermissions} from './permission';
 
 export interface OriginatePermissionsConf {
     isPrivateRoute?: boolean;
+    isAuditRoute?: boolean;
     shared?: boolean;
     permissions?: {
         extra: DlsPermission;
@@ -55,6 +56,8 @@ export interface CreationEntryConfig extends BasicRequestParams {
     useLegacyLogin?: boolean;
     mirrored?: boolean;
     mode?: Mode;
+    version?: number | null;
+    sourceVersion?: number | null;
 }
 export interface PrivateCreationEntryConfig extends CreationEntryConfig {
     masterToken?: any;

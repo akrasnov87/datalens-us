@@ -19,7 +19,7 @@ export interface CreateCollectionArgs {
 }
 
 export const createCollection = async (
-    {ctx, trx, skipCheckPermissions = false}: ServiceArgs,
+    {ctx, trx, checkLicense, skipCheckPermissions = false}: ServiceArgs,
     args: CreateCollectionArgs,
 ) => {
     const {title, project, description, parentId} = args;
@@ -39,6 +39,12 @@ export const createCollection = async (
         isPrivateRoute,
         superUser
     } = ctx.get('info');
+
+    const {fetchAndValidateLicenseOrFail} = registry.common.functions.get();
+
+    if (!isPrivateRoute && checkLicense) {
+        await fetchAndValidateLicenseOrFail({ctx});
+    }
 
     const {accessServiceEnabled, accessBindingsServiceEnabled} = ctx.config;
 

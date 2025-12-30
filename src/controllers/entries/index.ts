@@ -17,20 +17,22 @@ import {
 } from '../../services/new/entry/formatters';
 import {isTrueArg} from '../../utils/env-utils';
 
+import {checkEntriesExistenceController} from './check-entries-existence';
 import {copyEntriesToWorkbookController} from './copy-entries-to-workbook';
 import {copyEntryToWorkbookController} from './copy-entry-to-workbook';
 import {createEntryController} from './create-entry';
-import {createEntryAltController} from './create-entry-alt';
 import {deleteEntryController} from './delete-entry';
 import {getEntriesController} from './get-entries';
 import {getEntriesAnnotationController} from './get-entries-annotation';
 import {getEntriesDataController} from './get-entries-data';
 import {getEntriesMetaController} from './get-entries-meta';
+import {getEntriesRelationsController} from './get-entries-relations';
 import {getEntryController} from './get-entry';
 import {renameEntryController} from './rename-entry';
 import {updateEntryController} from './update-entry';
 
 export default {
+    checkEntriesExistenceController,
     getEntriesDataController,
     getEntriesMetaController,
     getEntriesAnnotationController,
@@ -40,9 +42,9 @@ export default {
     renameEntryController,
     updateEntryController,
     createEntryController,
-    createEntryAltController,
     getEntriesController,
     getEntryController,
+    getEntriesRelationsController,
 
     getEntryMeta: async (req: Request, res: Response) => {
         const {params, query} = req;

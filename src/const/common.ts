@@ -27,6 +27,8 @@ export const ALL_COLUMNS = [
     'links',
     'workbookId',
     'collectionId',
+    'revisions.version',
+    'revisions.sourceVersion',
 ];
 
 export const RETURN_COLUMNS = [
@@ -51,6 +53,8 @@ export const RETURN_COLUMNS = [
     'public',
     'workbookId',
     'collectionId',
+    'revisions.version',
+    'revisions.sourceVersion',
 ];
 
 export const RETURN_META_COLUMNS = [
@@ -168,6 +172,7 @@ export const AUTHORIZATION_HEADER = 'authorization';
 export const DL_AUTH_HEADER_KEY = 'bearer';
 
 export const US_MASTER_TOKEN_HEADER = 'x-us-master-token';
+export const US_DYNAMIC_MASTER_TOKEN_HEADER = 'x-us-dynamic-master-token';
 export const DL_COMPONENT_HEADER = 'x-dl-component';
 export const DL_WORKBOOK_ID_HEADER = 'x-dl-workbookid';
 export const DL_DATASET_ID_HEADER = 'x-dl-datasetid';
@@ -204,6 +209,10 @@ export const DEFAULT_PAGE_SIZE = 1000;
 export const DEFAULT_PAGE = 0;
 
 export const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
+export enum OrderBy {
+    Asc = 'ASC',
+    Desc = 'DESC',
+}
 
 export const APP_NAME = 'united-storage';
 

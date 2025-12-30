@@ -22,7 +22,7 @@ import {registry} from './registry';
 import {setRegistryToContext} from './registry/utils';
 import {setupRegistryPlugins} from './registry/setup';
 import {getRoutes} from './routes';
-import {isEnabledFeature} from './components/features';
+import {Feature, isEnabledFeature} from './components/features';
 import {
     getAdditionalHeaders,
     getAdditionalSecuritySchemes,
@@ -30,6 +30,7 @@ import {
     registerApiRoute,
 } from './components/api-docs';
 import {objectKeys} from './utils/utility-types';
+import {initTemporal} from './components/temporal/init-temporal';
 
 setRegistryToContext(nodekit, registry);
 setupRegistryPlugins();
@@ -103,6 +104,10 @@ if (nodekit.config.swaggerEnabled) {
 }
 
 if (require.main === module) {
+    if (isEnabledFeature(nodekit.ctx, Feature.TemporalEnabled)) {
+        initTemporal({ctx: nodekit.ctx});
+    }
+
     app.run();
 }
 

@@ -56,6 +56,7 @@ export const updateWorkbookController: AppRouteHandler = async (
         const result = await updateWorkbook(
             {
                 ctx: req.ctx,
+                checkLicense: true,
             },
             {
                 workbookId: params.workbookId,

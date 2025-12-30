@@ -38,8 +38,6 @@ export type {
     LogEventCopyEntriesToWorkbookSuccessParams,
     LogEventCopyEntryToWorkbookFailParams,
     LogEventCopyEntryToWorkbookSuccessParams,
-    LogEventCreateEntryAltFailParams,
-    LogEventCreateEntryAltSuccessParams,
     LogEventCreateEntryFailParams,
     LogEventCreateEntrySuccessParams,
     LogEventDeleteEntryFailParams,
@@ -60,7 +58,12 @@ export type {
     GetServicePlan,
     ProcessTenantSettings,
 } from '../../src/registry/plugins/common/utils/tenant/types';
-export type {GetEntryResolveUserLogin} from '../../src/registry/plugins/common/utils/entry/types';
+export type {
+    GetEntryResolveUserLogin,
+    IsLicenseRequired,
+    CheckLicense,
+    FetchAndValidateLicense,
+} from '../../src/registry/plugins/common/utils/entry/types';
 export type {
     CollectionConstructor,
     CollectionInstance,
