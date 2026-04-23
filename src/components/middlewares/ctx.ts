@@ -14,9 +14,7 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
         isPrivateRoute = false,
         dlContext,
         onlyPublic,
-        projectId,
-        serviceUser,
-        zitadelUserRole,
+        projectId
     } = res.locals;
 
     const privatePermissions = resolvePrivatePermissions(
@@ -36,9 +34,7 @@ export const ctx = async (req: Request, res: Response, next: NextFunction) => {
         dlContext,
         onlyPublic,
         privatePermissions,
-        projectId: projectId || null,
-        serviceUser,
-        zitadelUserRole,
+        projectId: projectId || null
     });
 
     if (process.env.NODE_RPC_URL) {

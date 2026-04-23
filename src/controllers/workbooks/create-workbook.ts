@@ -61,7 +61,10 @@ export const createWorkbookController: AppRouteHandler = async (
             workbook: result.workbook.model,
         });
 
-        const formattedResponse = workbookInstanceWithOperation.format(result.workbook, result.operation);
+        const formattedResponse = workbookInstanceWithOperation.format({
+                workbook: result.workbook,
+                operation: result.operation,
+            });
 
         const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
         if(process.env.NODE_RPC_URL) {

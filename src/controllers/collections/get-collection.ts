@@ -33,7 +33,10 @@ export const getCollectionController: AppRouteHandler = async (req, res) => {
         },
     );
 
-    const formattedResponse = collectionInstance.format(result);
+    const formattedResponse = collectionInstance.format({
+            collection: result,
+            includePermissionsInfo: query.includePermissionsInfo,
+        });
 
     const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
 

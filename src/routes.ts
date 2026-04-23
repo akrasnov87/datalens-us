@@ -40,6 +40,7 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
         home: makeRoute({
             route: 'GET /',
             handler: homeController,
+            disableSelfStats: true,
         }),
 
         encodeId: makeRoute({
@@ -71,21 +72,25 @@ export function getRoutes(_nodekit: NodeKit, options: GetRoutesOptions) {
             route: 'GET /ping',
             handler: helpers.ping,
             authPolicy: AuthPolicy.disabled,
+            disableSelfStats: true,
         },
         pingDb: {
             route: 'GET /ping-db',
             handler: helpers.pingDb,
             authPolicy: AuthPolicy.disabled,
+            disableSelfStats: true,
         },
         pingDbPrimary: {
             route: 'GET /ping-db-primary',
             handler: helpers.pingDbPrimary,
             authPolicy: AuthPolicy.disabled,
+            disableSelfStats: true,
         },
         pool: {
             route: 'GET /pool',
             handler: helpers.pool,
             authPolicy: AuthPolicy.disabled,
+            disableSelfStats: true,
         },
 
         getEntry: makeRoute({

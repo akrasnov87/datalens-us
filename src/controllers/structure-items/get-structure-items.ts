@@ -52,7 +52,10 @@ export const getStructureItemsController: AppRouteHandler = async (req, res) => 
         },
     );
 
-    const formattedResponse = await structureItemsModel.format(result);
+    const formattedResponse = await structureItemsModel.format({
+            ...result,
+            includePermissionsInfo: query.includePermissionsInfo,
+        });
 
     const {response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
 

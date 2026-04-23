@@ -1,5 +1,4 @@
 import {PrivatePermissions} from './models';
-import {ZitadelServiceUser, ZitadelUserRole} from './zitadel';
 
 export interface UserCtxInfo {
     userId: string;
@@ -21,6 +20,4 @@ export interface CtxInfo {
     privatePermissions: PrivatePermissions;
     projectId: string | null;
     superUser?: boolean;
-    serviceUser?: ZitadelServiceUser;
-    zitadelUserRole?: ZitadelUserRole;
 }

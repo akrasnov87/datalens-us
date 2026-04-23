@@ -50,9 +50,10 @@ export const createCollectionController: AppRouteHandler = async (req, res) => {
             collection: result.collection.model,
         });
 
-        const formattedResponse = collectionInstanceWithOperation.format(
-            result.collection,
-            result.operation,
+        const formattedResponse = collectionInstanceWithOperation.format({
+                collection: result.collection,
+                operation: result.operation,
+            }
         );
 
         const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);

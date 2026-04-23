@@ -6,14 +6,11 @@ import {US_ERRORS} from '../../../../../const';
 import type {WorkbookModel} from '../../../../../db/models/new/workbook';
 import {getMockedOperation} from '../../../../../entities/utils';
 import {Permissions, WorkbookPermission} from '../../../../../entities/workbook/types';
-import {ZitadelUserRole} from '../../../../../types/zitadel';
 import Utils from '../../../../../utils';
 
 import {WorkbookConstructor, WorkbookInstance} from './types';
 
-export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
-    implements WorkbookInstance
-{
+export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook implements WorkbookInstance {
     static bulkFetchAllPermissions = async (ctx, items) => {
         return await Promise.all(
             items.map(async ({model}) => {
@@ -67,6 +64,7 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             delete: true,
         }, (response && response.data) ? response.data[0] : {});
     }
+    
     async register() {
         const isEditorOrAdmin = this.isEditorOrAdmin();
 
@@ -118,10 +116,10 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
             update: true,
             copy: true,
             move: true,
-            delete: true,
+            publish: true,
             embed: true,
-            hidden: true,
-            publish: true
+            delete: true,
+            hidden: true
         };
 
         this.permissions = permissions;
@@ -132,13 +130,11 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook
     private isEditorOrAdmin() {
         const {isAuthEnabled} = this.ctx.config;
         const user = this.ctx.get('user');
-        const {zitadelUserRole} = this.ctx.get('info');
         return isAuthEnabled
             ? (user?.roles || []).some(
                   (role) => role === UserRole.Editor || role === UserRole.Admin,
               )
-            : zitadelUserRole === ZitadelUserRole.Editor ||
-                  zitadelUserRole === ZitadelUserRole.Admin;
+            : false;
     }
 
     private getAllPermissions() {

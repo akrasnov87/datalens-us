@@ -10,19 +10,24 @@ import Utils from '../../../../../utils';
 
 import {SharedEntryConstructor, SharedEntryInstance} from './types';
 
-export const SharedEntry: SharedEntryConstructor<SharedEntryInstance> = class SharedEntry
-    implements SharedEntryInstance
-{
+export const SharedEntry: SharedEntryConstructor<SharedEntryInstance> = class SharedEntry implements SharedEntryInstance {
     static bulkFetchAllPermissions = async (ctx, items) => {
-        return items.map(({model}) => {
-            const sharedEntry = new SharedEntry({ctx, model});
-            if (ctx.config.accessServiceEnabled) {
-                sharedEntry.fetchAllPermissions({parentIds: []});
-            } else {
-                sharedEntry.enableAllPermissions();
-            }
-            return sharedEntry;
-        });
+        return await Promise.all(
+            items.map(async ({model}) => {
+                const sharedEntry = new SharedEntry({ctx, model});
+                try {
+                    if (ctx.config.accessServiceEnabled) {
+                        await sharedEntry.fetchAllPermissions({parentIds: []});
+                    } else {
+                        await sharedEntry.enableAllPermissions();
+                    }
+
+                    return sharedEntry;
+                } catch(error) {
+                    return sharedEntry;
+                }
+            })
+        );
     };
 
     ctx: AppContext;

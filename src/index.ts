@@ -3,7 +3,6 @@ import {nodekit} from './nodekit';
 import {AppMiddleware, AppRoutes, AuthPolicy, ExpressKit} from '@gravity-ui/expresskit';
 import {
     rpcAuthorization,
-    authZitadel,
     checkCtxTenantId,
     checkReadOnlyMode,
     ctx,
@@ -62,10 +61,6 @@ afterAuth.push(
     checkReadOnlyMode,
     checkCtxTenantId,
 );
-
-if (nodekit.config.zitadelEnabled) {
-    nodekit.config.appAuthHandler = authZitadel;
-}
 
 if (nodekit.config.isAuthEnabled) {
     nodekit.config.appAuthHandler = appAuth;

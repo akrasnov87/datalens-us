@@ -5,8 +5,8 @@ United Storage is part of [DataLens](https://datalens.tech) that provides univer
 ## Getting started
 
 ```sh
-npm ci
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 [More details](https://github.com/datalens-tech/datalens)
@@ -60,8 +60,9 @@ US_SURPRESS_DB_STATUS_LOGS=true
 
 И выполнить: 
 <pre>
-npm ci
-npm run dev
+npm i -g pnpm
+pnpm install
+pnpm run dev
 </pre>
 
 ### Описание параметров

@@ -6,7 +6,6 @@ import {US_ERRORS} from '../../../../../const';
 import type {CollectionModel} from '../../../../../db/models/new/collection';
 import {CollectionPermission, Permissions} from '../../../../../entities/collection/types';
 import {getMockedOperation} from '../../../../../entities/utils';
-import {ZitadelUserRole} from '../../../../../types/zitadel';
 import Utils from '../../../../../utils';
 
 import {CollectionConstructor, CollectionInstance} from './types';
@@ -132,13 +131,11 @@ export const Collection: CollectionConstructor<CollectionInstance> = class Colle
     private isEditorOrAdmin() {
         const {isAuthEnabled} = this.ctx.config;
         const user = this.ctx.get('user');
-        const {zitadelUserRole} = this.ctx.get('info');
         return isAuthEnabled
             ? (user?.roles || []).some(
                   (role) => role === UserRole.Editor || role === UserRole.Admin,
               )
-            : zitadelUserRole === ZitadelUserRole.Editor ||
-                  zitadelUserRole === ZitadelUserRole.Admin;
+            : false;
     }
 
     private getAllPermissions() {

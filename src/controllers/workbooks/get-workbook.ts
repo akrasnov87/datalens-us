@@ -36,7 +36,10 @@ export const getWorkbookController: AppRouteHandler = async (
         },
     );
 
-    const formattedResponse = workbookInstance.format(result);
+    const formattedResponse = workbookInstance.format({
+            workbook: result,
+            includePermissionsInfo: query.includePermissionsInfo,
+        });
 
     const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
     
