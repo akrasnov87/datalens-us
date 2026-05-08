@@ -10,7 +10,6 @@ export interface CtxInfo {
     tenantId: string;
     workbookId?: string;
     datasetId?: string;
-    userToken?: string;
     user: UserCtxInfo;
     isPrivateRoute: boolean;
     isAuditRoute?: boolean;

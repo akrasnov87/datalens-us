@@ -1,5 +1,4 @@
 import {NextFunction, Request, Response} from '@gravity-ui/expresskit';
-import jwt from 'jsonwebtoken';
 
 import {SYSTEM_USER, US_DYNAMIC_MASTER_TOKEN_HEADER, US_MASTER_TOKEN_HEADER} from '../../const';
 import {Feature, isEnabledFeature} from '../features';

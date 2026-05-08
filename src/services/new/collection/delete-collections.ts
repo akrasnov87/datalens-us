@@ -70,7 +70,7 @@ export const deleteCollections = async (
 
     const recursiveName = 'collectionChildren';
 
-    const collectionsForDelete = await CollectionModel.query(targetTrx)
+    const collectionsForDelete = await CollectionModel.query(getReplica(trx))
         .withRecursive(recursiveName, (qb1) => {
             qb1.select()
                 .from(CollectionModel.tableName)

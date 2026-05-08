@@ -150,7 +150,7 @@ export const copyWorkbook = async (
                 [WorkbookModelColumn.CollectionId]: newCollectionId,
                 [WorkbookModelColumn.Meta]: originWorkbookModel.meta,
                 [WorkbookModelColumn.CreatedBy]: userId,
-                [WorkbookModelColumn.UpdatedBy]: userId,           
+                [WorkbookModelColumn.UpdatedBy]: userId,
             })
             .returning('*')
             .timeout(WorkbookModel.DEFAULT_QUERY_TIMEOUT);
