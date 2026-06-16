@@ -51,7 +51,7 @@ export const createEntryController: AppRouteHandler = async (req, res) => {
             ctx: req.ctx,
         });
 
-        logEvent({
+        await logEvent({
             type: LogEventType.CreateEntrySuccess,
             ctx: req.ctx,
             data: result,
@@ -70,7 +70,7 @@ export const createEntryController: AppRouteHandler = async (req, res) => {
 
         res.status(code).send(response);
     } catch (error) {
-        logEvent({
+        await logEvent({
             type: LogEventType.CreateEntryFail,
             ctx: req.ctx,
             reqParams: logEventReqParams,

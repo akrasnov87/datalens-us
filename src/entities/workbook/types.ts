@@ -18,6 +18,7 @@ export enum WorkbookPermission {
     Publish = 'publish',
     Embed = 'embed',
     Delete = 'delete',
+    SecurityApprove = 'securityApprove',
     Hidden = 'hidden'
 }
 

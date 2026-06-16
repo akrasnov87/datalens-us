@@ -43,7 +43,7 @@ export const createCollectionController: AppRouteHandler = async (req, res) => {
             },
         );
 
-        logEvent({
+        await logEvent({
             type: LogEventType.CreateCollectionSuccess,
             ctx: req.ctx,
             reqBody: body,
@@ -51,10 +51,9 @@ export const createCollectionController: AppRouteHandler = async (req, res) => {
         });
 
         const formattedResponse = collectionInstanceWithOperation.format({
-                collection: result.collection,
-                operation: result.operation,
-            }
-        );
+            collection: result.collection,
+            operation: result.operation,
+        });
 
         const {code, response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
 
@@ -67,7 +66,7 @@ export const createCollectionController: AppRouteHandler = async (req, res) => {
 
         res.status(code).send(response);
     } catch (error) {
-        logEvent({
+        await logEvent({
             type: LogEventType.CreateCollectionFail,
             ctx: req.ctx,
             reqBody: body,

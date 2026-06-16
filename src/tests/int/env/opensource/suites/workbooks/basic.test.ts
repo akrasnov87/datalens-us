@@ -3,7 +3,8 @@ import request from 'supertest';
 import {testUserId} from '../../../../constants';
 import {OPERATION_DEFAULT_FIELDS, WORKBOOK_DEFAULT_FIELDS} from '../../../../models';
 import {routes} from '../../../../routes';
-import {app, auth, authPrivateRoute, testTenantId} from '../../auth';
+import {US_ERRORS, app, auth, testTenantId} from '../../auth';
+import {createMockWorkbook, createMockWorkbookEntry} from '../../helpers';
 import {OpensourceRole} from '../../roles';
 
 const workbooksData = [
@@ -21,12 +22,6 @@ const workbooksData = [
 
 let testWorkbookId: string;
 let testCopiedWorkbookId: string;
-
-const testTemplateWorkbookData = {
-    id: '',
-    title: 'Test template workbook title',
-    description: 'Testt template workbook description',
-};
 
 describe('Workbooks managment', () => {
     test('Create workbooks', async () => {
@@ -511,53 +506,44 @@ describe('Entries in workboooks managment', () => {
     });
 });
 
-describe('Workbook template', () => {
-    test('Create workbook', async () => {
-        const response = await auth(request(app).post(routes.workbooks), {
+describe('Workbook delete with locked entries', () => {
+    const lockDuration = 80000;
+
+    test('Delete workbook fails when an entry inside is locked', async () => {
+        const wb = await createMockWorkbook({title: `Lock test workbook ${Date.now()}`});
+        const entry = await createMockWorkbookEntry({workbookId: wb.workbookId});
+
+        await auth(request(app).post(`${routes.locks}/${entry.entryId}`), {
             role: OpensourceRole.Editor,
         })
-            .send({
-                title: testTemplateWorkbookData.title,
-                description: testTemplateWorkbookData.description,
-            })
+            .send({duration: lockDuration})
             .expect(200);
 
-        const {body} = response;
+        const {body} = await auth(request(app).delete(`${routes.workbooks}/${wb.workbookId}`), {
+            role: OpensourceRole.Editor,
+        }).expect(423);
 
-        expect(body).toStrictEqual({
-            ...WORKBOOK_DEFAULT_FIELDS,
-            collectionId: null,
-            createdBy: testUserId,
-            updatedBy: testUserId,
-            description: testTemplateWorkbookData.description,
-            title: testTemplateWorkbookData.title,
-            operation: OPERATION_DEFAULT_FIELDS,
-        });
-
-        testTemplateWorkbookData.id = body.workbookId;
+        expect(body.code).toBe(US_ERRORS.ENTRY_IS_LOCKED);
     });
 
-    test('Make workbook as template', async () => {
-        await request(app)
-            .post(routes.privateSetIsTemplateWorkbook(testTemplateWorkbookData.id))
-            .send({
-                workbookId: testTemplateWorkbookData.id,
-                isTemplate: true,
-            })
-            .expect(403);
+    test('Delete workbook succeeds after the locked entry is unlocked', async () => {
+        const wb = await createMockWorkbook({title: `Lock test workbook ${Date.now()}`});
+        const entry = await createMockWorkbookEntry({workbookId: wb.workbookId});
 
-        const response = await authPrivateRoute(
-            request(app).post(routes.privateSetIsTemplateWorkbook(testTemplateWorkbookData.id)),
-        ).send({
-            workbookId: testTemplateWorkbookData.id,
-            isTemplate: true,
-        });
+        const lockResponse = await auth(request(app).post(`${routes.locks}/${entry.entryId}`), {
+            role: OpensourceRole.Editor,
+        })
+            .send({duration: lockDuration})
+            .expect(200);
 
-        const {body} = response;
+        const {lockToken} = lockResponse.body;
 
-        expect(body).toStrictEqual({
-            workbookId: expect.any(String),
-            isTemplate: true,
-        });
+        await auth(request(app).delete(`${routes.locks}/${entry.entryId}`).query({lockToken}), {
+            role: OpensourceRole.Editor,
+        }).expect(200);
+
+        await auth(request(app).delete(`${routes.workbooks}/${wb.workbookId}`), {
+            role: OpensourceRole.Editor,
+        }).expect(200);
     });
 });

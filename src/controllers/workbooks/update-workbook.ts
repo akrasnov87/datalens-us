@@ -18,7 +18,7 @@ const requestSchema = {
             title: zc.entityName().optional(),
             description: z.string().optional(),
             project: z.string().optional(),
-            status: z.nativeEnum(WorkbookStatus).optional(),
+            status: z.enum(WorkbookStatus).optional(),
             meta: zc.limitedObject({limit: 3000}).optional(),
         })
         .refine(
@@ -32,7 +32,7 @@ const requestSchema = {
                 );
             },
             {
-                message: `The request body must contain at least one of the following fields: "title", "description", "project", "status", or "meta".`,
+                error: `The request body must contain at least one of the following fields: "title", "description", "status", or "meta".`,
             },
         ),
 };
@@ -68,7 +68,7 @@ export const updateWorkbookController: AppRouteHandler = async (
             },
         );
 
-        logEvent({
+        await logEvent({
             type: LogEventType.UpdateWorkbookSuccess,
             ctx: req.ctx,
             reqBody: body,
@@ -78,7 +78,7 @@ export const updateWorkbookController: AppRouteHandler = async (
 
         res.status(200).send(workbookModel.format(result));
     } catch (error) {
-        logEvent({
+        await logEvent({
             type: LogEventType.UpdateWorkbookFail,
             ctx: req.ctx,
             reqBody: body,

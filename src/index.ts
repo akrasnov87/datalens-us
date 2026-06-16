@@ -9,6 +9,7 @@ import {
     decodeId,
     dlContext,
     finalRequestHandler,
+    noStore,
     resolveIsolationIds,
     resolveSpecialTokens,
     resolveTenantId,
@@ -20,7 +21,7 @@ import {AppEnv} from './const';
 import {registry} from './registry';
 import {setRegistryToContext} from './registry/utils';
 import {setupRegistryPlugins} from './registry/setup';
-import {getRoutes} from './routes';
+import {ExtendedAppRouteDescription, getRoutes} from './routes';
 import {Feature, isEnabledFeature} from './components/features';
 import {
     getAdditionalHeaders,
@@ -30,6 +31,7 @@ import {
 } from './components/api-docs';
 import {objectKeys} from './utils/utility-types';
 import {initTemporal} from './components/temporal/init-temporal';
+import helpers from './controllers/helpers';
 
 setRegistryToContext(nodekit, registry);
 setupRegistryPlugins();
@@ -62,7 +64,10 @@ afterAuth.push(
     checkCtxTenantId,
 );
 
-if (nodekit.config.isAuthEnabled) {
+if (
+    nodekit.config.appAuthPolicy !== AuthPolicy.disabled &&
+    nodekit.config.authMethods?.includes('datalens-auth')
+) {
     nodekit.config.appAuthHandler = appAuth;
 }
 
@@ -77,25 +82,46 @@ objectKeys(extendedRoutes).forEach((key) => {
         !Array.isArray(features) ||
         features.every((feature) => isEnabledFeature(nodekit.ctx, feature))
     ) {
-        if (nodekit.config.swaggerEnabled) {
-            registerApiRoute(
-                extendedRoutes[key],
-                getAdditionalHeaders(extendedRoutes[key], nodekit),
-            );
-        }
-
         routes[route] = {
             ...params,
+            handlerName: extendedRoutes[key].handlerName ?? extendedRoutes[key].handler.name,
+            handler: registerApiRoute(extendedRoutes[key], nodekit),
             manualDecodeId: extendedRoutes[key].handler.manualDecodeId,
         };
     }
 });
 
-const app = new ExpressKit(nodekit, routes);
+const {registerRoutes, getDocsHandler} = initSwagger({
+    nodekit,
+    securitySchemes: getAdditionalSecuritySchemes(nodekit),
+    transformOperation: (operation, {route}) => {
+        const {headers, security} = getAdditionalHeaders(
+            route as ExtendedAppRouteDescription<Feature>,
+            nodekit,
+        );
+
+        return {
+            ...operation,
+            parameters: [
+                ...(operation.parameters ?? []),
+                ...headers.map((header) => ({...header, in: 'header'})),
+            ],
+            security,
+        };
+    },
+});
+
+const app = new ExpressKit(nodekit, registerRoutes(routes, nodekit));
+
+app.express.get('/ping', noStore, helpers.ping);
+app.express.get('/ping-db', noStore, helpers.pingDb);
+app.express.get('/ping-db-primary', noStore, helpers.pingDbPrimary);
+app.express.get('/pool', noStore, helpers.pool);
+
 registry.setupApp(app);
 
 if (nodekit.config.swaggerEnabled) {
-    initSwagger(app, getAdditionalSecuritySchemes(nodekit));
+    app.express.use('/api-docs', getDocsHandler());
 }
 
 if (require.main === module) {

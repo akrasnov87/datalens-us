@@ -1,3 +1,4 @@
+import {AuthPolicy} from '@gravity-ui/expresskit';
 import type {AppContext} from '@gravity-ui/nodekit';
 import {AppError} from '@gravity-ui/nodekit';
 
@@ -12,22 +13,15 @@ import {SharedEntryConstructor, SharedEntryInstance} from './types';
 
 export const SharedEntry: SharedEntryConstructor<SharedEntryInstance> = class SharedEntry implements SharedEntryInstance {
     static bulkFetchAllPermissions = async (ctx, items) => {
-        return await Promise.all(
-            items.map(async ({model}) => {
-                const sharedEntry = new SharedEntry({ctx, model});
-                try {
-                    if (ctx.config.accessServiceEnabled) {
-                        await sharedEntry.fetchAllPermissions({parentIds: []});
-                    } else {
-                        await sharedEntry.enableAllPermissions();
-                    }
-
-                    return sharedEntry;
-                } catch(error) {
-                    return sharedEntry;
-                }
-            })
-        );
+        return items.map(({model}) => {
+            const sharedEntry = new SharedEntry({ctx, model});
+            if (ctx.config.accessServiceEnabled) {
+                sharedEntry.fetchAllPermissions({parentIds: []});
+            } else {
+                sharedEntry.enableAllPermissions();
+            }
+            return sharedEntry;
+        });
     };
 
     ctx: AppContext;
@@ -48,7 +42,7 @@ export const SharedEntry: SharedEntryConstructor<SharedEntryInstance> = class Sh
             });
         }
 
-        return Promise.resolve(getMockedOperation(Utils.encodeId(this.model.entryId)));
+        return Promise.resolve(getMockedOperation({id: Utils.encodeId(this.model.entryId)}));
     }
 
     async checkPermission(args: {
@@ -91,17 +85,18 @@ export const SharedEntry: SharedEntryConstructor<SharedEntryInstance> = class Sh
             delete: true,
             createEntryBinding: true,
             createLimitedEntryBinding: true,
+            securityApprove: true,
         };
     }
 
     private isEditorOrAdmin() {
-        const {isAuthEnabled} = this.ctx.config;
+        const {appAuthPolicy} = this.ctx.config;
         const user = this.ctx.get('user');
-        return isAuthEnabled
-            ? (user?.roles || []).some(
+        return appAuthPolicy === AuthPolicy.disabled
+            ? true
+            : (user?.roles || []).some(
                   (role) => role === UserRole.Editor || role === UserRole.Admin,
-              )
-            : true;
+              );
     }
 
     private getAllPermissions() {
@@ -118,6 +113,7 @@ export const SharedEntry: SharedEntryConstructor<SharedEntryInstance> = class Sh
             delete: isEditorOrAdmin,
             createEntryBinding: isEditorOrAdmin,
             createLimitedEntryBinding: isEditorOrAdmin,
+            securityApprove: isEditorOrAdmin,
         };
 
         return permissions;

@@ -21,7 +21,7 @@ const requestSchema = {
         description: z.string().optional(),
         project: z.string().optional(),
         meta: zc.limitedObject({limit: 3000}).optional(),
-        status: z.nativeEnum(WorkbookStatus).optional(),
+        status: z.enum(WorkbookStatus).optional(),
     }),
 };
 
@@ -54,7 +54,7 @@ export const createWorkbookController: AppRouteHandler = async (
             },
         );
 
-        logEvent({
+        await logEvent({
             type: LogEventType.CreateWorkbookSuccess,
             ctx: req.ctx,
             reqBody: body,
@@ -76,7 +76,7 @@ export const createWorkbookController: AppRouteHandler = async (
 
         res.status(code).send(response);
     } catch (error) {
-        logEvent({
+        await logEvent({
             type: LogEventType.CreateWorkbookFail,
             ctx: req.ctx,
             reqBody: body,

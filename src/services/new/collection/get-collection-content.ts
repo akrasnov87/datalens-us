@@ -94,7 +94,7 @@ export const getCollectionContent = async (
 
             await collection.checkPermission({
                 parentIds,
-                permission: CollectionPermission.LimitedView,
+                permission: CollectionPermission.Browse,
             });
         }
     }
@@ -154,7 +154,7 @@ export const getCollectionContent = async (
                         try {
                             await collection.checkPermission({
                                 parentIds: contentParentIds,
-                                permission: CollectionPermission.LimitedView,
+                                permission: CollectionPermission.Browse,
                             });
 
                             return collection;

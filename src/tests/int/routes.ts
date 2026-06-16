@@ -4,6 +4,7 @@ export const routes = {
     favorites: '/v1/favorites',
     states: '/v1/states',
     locks: '/v1/locks',
+    privateCreateLock: (entryId: string) => `/private/locks/${entryId}`,
     collections: '/v1/collections',
     deleteCollections: '/v1/delete-collections',
     deleteWorkbooks: '/v2/delete-workbooks',
@@ -20,12 +21,18 @@ export const routes = {
     getEntriesData: '/v1/get-entries-data',
     getEntriesAnnotation: '/v1/get-entries-annotation',
     getEntriesMeta: '/v1/get-entries-meta',
+    getEntryMetaRoute: (entryId: string) => `/v1/entries/${entryId}/meta`,
+    getPrivateEntryMetaRoute: (entryId: string) => `/private/entries/${entryId}/meta`,
     checkEntriesExistence: '/v1/check-entries-existence',
     setDefaultColorPalette: '/v1/tenants/set-default-color-palette',
     updateTenantSettings: '/v1/tenants/settings',
     colorPalettes: '/v1/color-palettes',
-    privateSetIsTemplateWorkbook: (workbookId: string) =>
-        `/private/v2/workbooks/${workbookId}/setIsTemplate`,
     getEntriesRelations: '/v1/get-entries-relations',
     privateGetEntriesRelations: '/private/v1/get-entries-relations',
+    privateUpdateEntryUnversionedData: (entryId: string) =>
+        `/private/entries/${entryId}/unversioned-data`,
+    allWorkbooks: '/private/all-workbooks',
+    entryRevisions: (entryId: string) => `/v1/entries/${entryId}/revisions`,
+    entryRelations: (entryId: string) => `/v1/entries/${entryId}/relations`,
+    switchRevision: (entryId: string) => `/private/entries/${entryId}/switch-revision`,
 } as const;

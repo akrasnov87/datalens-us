@@ -1,3 +1,12 @@
+export {
+    BrandedTransactionOrKnex,
+    MainDbTransactionOrKnex,
+    BrandedModelClass,
+    dbTransaction,
+    queryPrimary,
+    queryReplica,
+} from '../src/db';
+
 export {default as LegacyEntry} from '../src/db/models/entry';
 export {default as LegacyRevision} from '../src/db/models/revision';
 export {default as LegacyNavigation} from '../src/db/models/navigation';
@@ -16,7 +25,7 @@ export {TenantWithCurrentLimit} from '../src/db/models/new/tenant/presentations'
 export {WorkbookModel, WorkbookModelColumn} from '../src/db/models/new/workbook';
 export {CollectionModel, CollectionModelColumn} from '../src/db/models/new/collection';
 export {State} from '../src/db/models/new/state';
-export {Template} from '../src/db/models/new/template';
+export {Template, TemplateColumn} from '../src/db/models/new/template';
 export {Preset} from '../src/db/models/new/preset';
 export {Link} from '../src/db/models/new/link';
 export {Lock} from '../src/db/models/new/lock';
@@ -30,6 +39,7 @@ export {
     EmbeddingSecretModel,
     EmbeddingSecretModelColumn,
 } from '../src/db/models/new/embedding-secret';
+export {EMBEDDING_TYPE, EmbeddingType} from '../src/db/models/new/shared';
 export {ColorPaletteModel, ColorPaletteModelColumn} from '../src/db/models/new/color-palette';
 export {
     OperationModel,
@@ -71,6 +81,12 @@ export {LicenseLimitWithIsStartedOnCurrentDay} from '../src/db/models/new/licens
 export {License, LicenseColumnRaw, LicenseColumn} from '../src/db/models/new/license';
 export {LicenseType} from '../src/db/models/new/license/types';
 export {LicenseWithIsActive} from '../src/db/models/new/license/presentations';
+
+export {
+    LicenseQuarantine,
+    LicenseQuarantineColumn,
+    LicenseQuarantineColumnRaw,
+} from '../src/db/models/new/license-quarantine';
 
 export {
     SubscriptionStatus,

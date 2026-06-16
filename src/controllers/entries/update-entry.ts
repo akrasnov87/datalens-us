@@ -33,9 +33,11 @@ export const updateEntryController: AppRouteHandler = async (req, res) => {
             checkTenantFeatures: body.checkTenantFeatures,
             version: body.version,
             sourceVersion: body.sourceVersion,
+            currentScope: body.currentScope,
+            currentType: body.currentType,
         });
 
-        logEvent({
+        await logEvent({
             type: LogEventType.UpdateEntrySuccess,
             ctx: req.ctx,
             data: result,
@@ -46,7 +48,7 @@ export const updateEntryController: AppRouteHandler = async (req, res) => {
 
         res.status(code).send(response);
     } catch (error) {
-        logEvent({
+        await logEvent({
             type: LogEventType.UpdateEntryFail,
             ctx: req.ctx,
             reqParams: logEventReqParams,

@@ -1,12 +1,11 @@
 import {AppError} from '@gravity-ui/nodekit';
-import {raw} from 'objection';
 
 import {Feature, isEnabledFeature} from '../../../../components/features';
-import {CURRENT_TIMESTAMP, US_ERRORS} from '../../../../const';
+import {US_ERRORS} from '../../../../const';
 import OldEntry from '../../../../db/models/entry';
 import {CollectionModelColumn} from '../../../../db/models/new/collection';
 import {Entry, EntryColumn} from '../../../../db/models/new/entry';
-import {LicenseColumnRaw} from '../../../../db/models/new/license';
+import {LicenseWithIsActive} from '../../../../db/models/new/license/presentations';
 import {TenantColumn} from '../../../../db/models/new/tenant';
 import {WorkbookModelColumn} from '../../../../db/models/new/workbook';
 import type {Permissions as SharedEntryPermissions} from '../../../../entities/shared-entry/types';
@@ -97,6 +96,7 @@ export const getEntry = async (
     const {
         getEntryBeforeDbRequestHook,
         checkEmbedding,
+        getEmbeddingWorkbookId,
         getEntryResolveUserLogin,
         isLicenseRequired,
         checkLicense,
@@ -116,6 +116,7 @@ export const getEntry = async (
     ]);
 
     const isEmbedding = checkEmbedding({ctx});
+    const embeddingWorkbookId = getEmbeddingWorkbookId({ctx});
 
     const graphRelations = ['workbook', 'tenant(tenantModifier)', 'collection(collectionModifier)'];
 
@@ -146,19 +147,26 @@ export const getEntry = async (
             builder.where({
                 [`${Entry.tableName}.${EntryColumn.EntryId}`]: entryId,
                 [`${Entry.tableName}.${EntryColumn.IsDeleted}`]: false,
-                ...(checkEntryTenantEnabled
-                    ? {
-                          [`${Entry.tableName}.${EntryColumn.TenantId}`]: tenantId,
-                      }
-                    : {}),
             });
 
+            if (checkEntryTenantEnabled) {
+                builder.andWhere({
+                    [`${Entry.tableName}.${EntryColumn.TenantId}`]: tenantId,
+                });
+            }
+
+            if (isEmbedding && embeddingWorkbookId) {
+                builder.andWhere({
+                    [`${Entry.tableName}.${EntryColumn.WorkbookId}`]: embeddingWorkbookId,
+                });
+            }
+
             if (onlyPublic) {
-                builder.andWhere({public: true});
+                builder.andWhere({[`${Entry.tableName}.${EntryColumn.Public}`]: true});
             }
 
             if (onlyMirrored) {
-                builder.andWhere({mirrored: true});
+                builder.andWhere({[`${Entry.tableName}.${EntryColumn.Mirrored}`]: true});
             }
         })
         .withGraphJoined(`[${graphRelations.join(', ')}]`)
@@ -187,9 +195,7 @@ export const getEntry = async (
                 builder
                     .select([
                         ...selectedLicenseColumns,
-                        raw(`coalesce(?? > ${CURRENT_TIMESTAMP}, true)`, [
-                            LicenseColumnRaw.ExpiresAt,
-                        ]).as('is_active'),
+                        ...LicenseWithIsActive.computedStatusSelectColumns,
                     ])
                     .where({
                         tenantId,
@@ -215,7 +221,7 @@ export const getEntry = async (
     }
 
     if (licenseRequired) {
-        checkLicense({ctx, license: entry.license, tenant: entry.tenant});
+        checkLicense({ctx, license: entry.license});
     }
 
     const checkWorkbookIsolationEnabled =

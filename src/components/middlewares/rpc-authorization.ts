@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from '@gravity-ui/expresskit';
-import {isAuthFeature} from '../features';
+import {isAuthFeature} from '../features/auth';
 
 export const rpcAuthorization = (req: Request, res: Response, next: NextFunction) => {
     //console.log(`WATCH_URL ${req.method} ${req.url} ${JSON.stringify(req.headers)}`);

@@ -1,10 +1,11 @@
 import {AppError} from '@gravity-ui/nodekit';
-import {TransactionOrKnex, raw, transaction} from 'objection';
+import {RawBuilder, TransactionOrKnex, raw, transaction} from 'objection';
 import {Optional} from 'utility-types';
 
 import {makeSchemaValidator} from '../../../components/validation-schema-compiler';
 import {
     AJV_PATTERN_KEYS_NOT_OBJECT,
+    ALLOWED_SCOPE_VALUES,
     ANNOTATION_DESCRIPTION_SCHEMA,
     ANNOTATION_SCHEMA,
     BiTrackingLogs,
@@ -14,7 +15,6 @@ import {
     US_ERRORS,
 } from '../../../const';
 import Entry from '../../../db/models/entry';
-import Lock from '../../../db/models/lock';
 import {EntryColumn} from '../../../db/models/new/entry';
 import {EntryScope} from '../../../db/models/new/entry/types';
 import Revision from '../../../db/models/revision';
@@ -30,6 +30,7 @@ import {
 } from '../../../types/models';
 import Utils, {makeUserId} from '../../../utils';
 import {checkSharedEntryPermission} from '../../new/entry/utils/check-collection-entry-permission/check-permission';
+import {checkLock} from '../../new/lock';
 import {getWorkbook} from '../../new/workbook/get-workbook';
 import {checkWorkbookPermission} from '../../new/workbook/utils';
 
@@ -37,6 +38,10 @@ import {checkEntry} from './check-entry';
 
 type Mode = 'save' | 'publish' | 'recover';
 const ModeValues: Mode[] = ['save', 'publish', 'recover'];
+
+type EntryPatchWithRawTimestamp = Partial<Omit<EntryColumns, 'updatedAt'>> & {
+    updatedAt?: RawBuilder;
+};
 
 const validateUpdateEntry = makeSchemaValidator({
     type: 'object',
@@ -71,6 +76,13 @@ const validateUpdateEntry = makeSchemaValidator({
             type: 'string',
         },
         revId: {
+            type: 'string',
+        },
+        currentScope: {
+            type: 'string',
+            enum: ALLOWED_SCOPE_VALUES,
+        },
+        currentType: {
             type: 'string',
         },
         mode: {
@@ -118,6 +130,8 @@ type UpdateEntryData = {
     checkTenantFeatures?: string[];
     version?: RevisionColumns['version'];
     sourceVersion?: RevisionColumns['sourceVersion'];
+    currentScope?: EntryScope;
+    currentType?: string;
 };
 
 export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
@@ -144,6 +158,8 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
         checkTenantFeatures,
         version,
         sourceVersion,
+        currentScope,
+        currentType,
     } = updateData;
 
     ctx.log('UPDATE_ENTRY_REQUEST', {
@@ -174,6 +190,15 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
         .where({
             entryId,
         })
+        .where((builder) => {
+            if (currentScope) {
+                builder.andWhere({[`${Entry.tableName}.${EntryColumn.Scope}`]: currentScope});
+            }
+
+            if (currentType) {
+                builder.andWhere({[`${Entry.tableName}.${EntryColumn.Type}`]: currentType});
+            }
+        })
         .first()
         .timeout(DEFAULT_QUERY_TIMEOUT);
 
@@ -194,7 +219,7 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
             ...(!isPrivateRoute ? [fetchAndValidateLicenseOrFail({ctx})] : []),
         ]);
 
-        await Lock.checkLock({entryId, lockToken}, ctx);
+        await checkLock({ctx}, {entryId, lockToken});
     } else {
         throw new AppError(US_ERRORS.NOT_EXIST_ENTRY, {
             code: US_ERRORS.NOT_EXIST_ENTRY,
@@ -339,7 +364,6 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
 
                     const patch: Partial<EntryColumns> = {
                         savedId: revId,
-                        updatedBy: updatedBy,
                         hidden: hiddenNext,
                         mirrored: mirroredNext,
                     };
@@ -428,10 +452,11 @@ export async function updateEntry(ctx: CTX, updateData: UpdateEntryData) {
 
                         const revId = revision.revId;
 
-                        const patch: Partial<EntryColumns> = {
+                        const patch: EntryPatchWithRawTimestamp = {
                             savedId: revId,
                             publishedId: revId,
                             updatedBy: updatedBy,
+                            updatedAt: raw(CURRENT_TIMESTAMP),
                         };
 
                         if (type) {

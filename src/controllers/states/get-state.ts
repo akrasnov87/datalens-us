@@ -32,7 +32,6 @@ export const getStateController: AppRouteHandler = async (req, res) => {
 
     const {response} = await preparePermissionsResponseAsync({data: formattedResponse}, req);
 
-
     res.status(200).send(response);
 };
 

@@ -1,3 +1,4 @@
+import {AuthPolicy} from '@gravity-ui/expresskit';
 import type {AppContext} from '@gravity-ui/nodekit';
 import {AppError} from '@gravity-ui/nodekit';
 
@@ -64,7 +65,6 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook im
             delete: true,
         }, (response && response.data) ? response.data[0] : {});
     }
-    
     async register() {
         const isEditorOrAdmin = this.isEditorOrAdmin();
 
@@ -74,7 +74,7 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook im
             });
         }
 
-        return Promise.resolve(getMockedOperation(Utils.encodeId(this.model.workbookId)));
+        return Promise.resolve(getMockedOperation({id: Utils.encodeId(this.model.workbookId)}));
     }
 
     async checkPermission(args: {
@@ -116,10 +116,11 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook im
             update: true,
             copy: true,
             move: true,
-            publish: true,
-            embed: true,
             delete: true,
-            hidden: true
+	        securityApprove: true,
+            embed: true,
+            hidden: true,
+            publish: true
         };
 
         this.permissions = permissions;
@@ -128,13 +129,13 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook im
     }
 
     private isEditorOrAdmin() {
-        const {isAuthEnabled} = this.ctx.config;
+        const {appAuthPolicy} = this.ctx.config;
         const user = this.ctx.get('user');
-        return isAuthEnabled
-            ? (user?.roles || []).some(
+        return appAuthPolicy === AuthPolicy.disabled
+            ? true
+            : (user?.roles || []).some(
                   (role) => role === UserRole.Editor || role === UserRole.Admin,
               )
-            : false;
     }
 
     private getAllPermissions() {
@@ -151,6 +152,7 @@ export const Workbook: WorkbookConstructor<WorkbookInstance> = class Workbook im
             publish: isEditorOrAdmin,
             embed: isEditorOrAdmin,
             delete: isEditorOrAdmin,
+            securityApprove: isEditorOrAdmin,
         };
 
         return permissions;

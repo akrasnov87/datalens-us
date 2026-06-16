@@ -29,5 +29,6 @@ export const WORKBOOKS_DEFAULT_PERMISSIONS: Permissions = {
     delete: false,
     createCollection: false,
     createWorkbook: false,
-    hidden: false
+    hidden: false,
+    securityApprove: false,
 };

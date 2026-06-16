@@ -9,14 +9,14 @@ const schema = z
         collectionId: z.string().nullable(),
         title: z.string(),
         description: z.string().nullable(),
+        projectId: z.string().nullable(), 
         tenantId: z.string(),
-        projectId: z.string().nullable(),
-        meta: z.object({}),
+        meta: z.record(z.string(), z.unknown()),
         createdBy: z.string(),
         createdAt: z.string(),
         updatedBy: z.string().nullable(),
         updatedAt: z.string(),
-        status: z.nativeEnum(WorkbookStatus),
+        status: z.enum(WorkbookStatus),
     })
     .describe('Workbook model');
 

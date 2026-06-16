@@ -1,4 +1,4 @@
-import type {CtxUser} from '../components/auth/types/user';
+import type {CtxSubject} from '../components/auth/types/user';
 import {FeaturesConfig} from '../components/features/types';
 import type {TemporalConfig} from '../components/temporal/types';
 import type {Registry} from '../registry';
@@ -19,7 +19,7 @@ export interface PlatformAppConfig {
     masterToken: string[];
 
     // auth
-    isAuthEnabled?: boolean;
+    authMethods?: string[];
     authTokenPublicKey?: string;
 
     swaggerEnabled?: boolean;
@@ -33,7 +33,7 @@ export interface PlatformAppContextParams {
     info: CtxInfo;
     registry: Registry;
     // auth
-    user?: CtxUser;
+    user?: CtxSubject;
 }
 
 export interface PlatformAppDynamicConfig {

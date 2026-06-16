@@ -14,7 +14,7 @@ const requestSchema = {
             collectionId: zc.encodedId().optional(),
             includePermissionsInfo: zc.stringBoolean().optional(),
             filterString: z.string().optional(),
-            page: zc.stringNumber({min: 0}).optional(),
+            page: z.string().optional(),
             pageSize: zc.stringNumber({min: 1, max: 200}).optional(),
             orderField: z.enum(['title', 'createdAt', 'updatedAt']).optional(),
             orderDirection: z.enum(['asc', 'desc']).optional(),
@@ -24,7 +24,7 @@ const requestSchema = {
         .superRefine(({collectionId, mode}, ctx) => {
             if (mode === 'onlyEntries' && !collectionId) {
                 ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
+                    code: 'custom',
                     path: ['mode', 'collectionId'],
                     message: "'collectionId' is required if mode is 'onlyEntries'",
                 });
