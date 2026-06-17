@@ -431,9 +431,19 @@ ALTER FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claim
 
 COMMENT ON FUNCTION core.sf_accesses(c_role_name text, n_currentuser integer, c_claims text, n_user_id integer) IS 'Системная функция для обработки прав. Для внешнего использования не применять';
 
-CREATE OR REPLACE FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) RETURNS TABLE(decode_id bigint, encode_id text, existsing boolean)
-    LANGUAGE plpgsql ROWS 1
-    AS $$
+CREATE OR REPLACE FUNCTION core.sf_create_embed(
+	_public_key text,
+	_entity_id bigint,
+	_created_by text,
+	_reject text,
+	_tenant text)
+    RETURNS TABLE(decode_id bigint, encode_id text, existsing boolean) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1
+
+AS $BODY$
 DECLARE
 	_embedding_secret_id			bigint;
 	_embed_id						bigint;
@@ -456,12 +466,12 @@ BEGIN
 	IF (SELECT COUNT(*) FROM public.embeds AS e WHERE e.entry_id = _entity_id AND e.created_by = _created_by) = 0 THEN
 		-- создаём embedding_secret
 		INSERT INTO public.embedding_secrets(
-		embedding_secret_id, title, workbook_id, public_key, created_by, created_at)
-		VALUES (_embedding_secret_id, public.encode_id(_embedding_secret_id), _workbook_id, _public_key, _created_by, now());
+		embedding_secret_id, title, workbook_id, public_key, created_by, created_at, tenant_id)
+		VALUES (_embedding_secret_id, public.encode_id(_embedding_secret_id), _workbook_id, _public_key, _created_by, now(), _tenant);
 	
 		INSERT INTO public.embeds(
-		embed_id, title, embedding_secret_id, entry_id, deps_ids, unsigned_params, created_by, created_at, updated_by)
-		VALUES (_embed_id, public.encode_id(_embed_id), _embedding_secret_id, _entity_id, '{}', '{}', _created_by, now(), _created_by);
+		embed_id, title, embedding_secret_id, entry_id, deps_ids, unsigned_params, created_by, created_at, updated_by, tenant_id)
+		VALUES (_embed_id, public.encode_id(_embed_id), _embedding_secret_id, _entity_id, '{}', '{}', _created_by, now(), _created_by, _tenant);
 	ELSE
 		SELECT true INTO _existsing;
 
@@ -474,11 +484,13 @@ BEGIN
 	RETURN QUERY
 		SELECT _embed_id, public.encode_id(_embed_id), _existsing;
 END
-$$;
+$BODY$;
 
-ALTER FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) OWNER TO "pg-user";
+ALTER FUNCTION core.sf_create_embed(text, bigint, text, text, text)
+    OWNER TO "pg-user";
 
-COMMENT ON FUNCTION core.sf_create_embed(_public_key text, _entity_id bigint, _created_by text, _reject text) IS 'Создание ссылки для "Поделиться"';
+COMMENT ON FUNCTION core.sf_create_embed(text, bigint, text, text, text)
+    IS 'Создание ссылки для "Поделиться"';
 
 CREATE OR REPLACE FUNCTION core.sf_create_oidc_user(_login text, _token text, _jb_data jsonb) RETURNS TABLE(msg text, user_id integer, n_code integer)
     LANGUAGE plpgsql ROWS 1
