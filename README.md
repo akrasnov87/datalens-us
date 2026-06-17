@@ -62,8 +62,10 @@ US_SURPRESS_DB_STATUS_LOGS=true
 <pre>
 npm i -g pnpm
 pnpm install
-pnpm run dev
+pnpm run dev или pnpm run build
 </pre>
+
+Возможно потребуется выполнить команду `pnpm approve-builds` после `pnpm install`
 
 ### Описание параметров
 * NODE_RPC_URL - имя сервиса для разграничения прав доступа

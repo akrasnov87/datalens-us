@@ -203,6 +203,7 @@ export const getEntry = async (
                     });
             },
         })
+        .debug()
         .first()
         .timeout(ENTRY_QUERY_TIMEOUT);
 

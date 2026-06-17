@@ -30,7 +30,9 @@ COPY ./src /opt/app/src
 COPY ./typings /opt/app/typings
 COPY tsconfig.json /opt/app/
 
-RUN pnpm run build && chown app /opt/app/dist/run
+RUN pnpm run build && \
+    mkdir -p /opt/app/dist/run && \
+    chown app:app /opt/app/dist/run
 
 # runtime base image for both platform
 FROM ubuntu:${UBUNTU_VERSION} AS base-stage
