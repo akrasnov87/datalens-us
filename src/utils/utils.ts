@@ -254,14 +254,19 @@ export class Utils {
     static encodeId(bigIntId: any) {
         let encodedId = '';
 
-        if (bigIntId) {
-            const rotationNumber = Utils.getRotationNumber(bigIntId);
-            const rotatedCodingBase = Utils.rotate(CODING_BASE, rotationNumber);
+        try {
+            if (bigIntId) {
+                const rotationNumber = Utils.getRotationNumber(bigIntId);
+                const rotatedCodingBase = Utils.rotate(CODING_BASE, rotationNumber);
 
-            const encodedLongPart = new PowerRadix(bigIntId, 10).toString(rotatedCodingBase);
-            const encodedRotationNumber = new PowerRadix(rotationNumber, 10).toString(Utils.base);
+                const encodedLongPart = new PowerRadix(bigIntId, 10).toString(rotatedCodingBase);
+                const encodedRotationNumber = new PowerRadix(rotationNumber, 10).toString(Utils.base);
 
-            encodedId = encodedLongPart + encodedRotationNumber;
+                encodedId = encodedLongPart + encodedRotationNumber;
+            }
+        } catch(err) {
+            // TODO: таким образом обходим ошибку, если изначально bigIntId является преобразованной строкой
+            return bigIntId;
         }
 
         return encodedId;
