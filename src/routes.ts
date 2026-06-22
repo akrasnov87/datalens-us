@@ -9,13 +9,13 @@ import collections from './controllers/collections';
 import colorPalettes from './controllers/color-palettes';
 import entries from './controllers/entries';
 import favorites from './controllers/favorites';
-import helpers from './controllers/helpers';
 import homeController from './controllers/home';
 import locks from './controllers/locks';
 import states from './controllers/states';
 import structureItems from './controllers/structure-items';
 import tenants from './controllers/tenants';
 import workbooks from './controllers/workbooks';
+import helpers from './controllers/helpers';
 
 export type GetRoutesOptions = {
     beforeAuth: AppMiddleware[];
